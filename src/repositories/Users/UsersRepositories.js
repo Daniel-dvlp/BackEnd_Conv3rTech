@@ -17,7 +17,7 @@ const updateUser = async (id, userData) => {
 }
 
 const deleteUser = async (id) => {
-    return User.destroy({ where: { id } });
+    return User.destroy({ where: {  id_usuario: id } });
 }
 
 module.exports = {

@@ -8,5 +8,7 @@ router.post('/', UsuariosValidations.createUserValidation, UsersControllers.crea
 router.get('/', UsersControllers.getAllUsers);
 router.get('/:id', UsuariosValidations.findUserByIdValidation, UsersControllers.getUserById);
 router.put('/:id', UsuariosValidations.updateUserValidation, UsersControllers.updateUser);
+router.delete('/:id', UsuariosValidations.deleteUserValidation, UsersControllers.deleteUser);
+
 
 module.exports = router;
