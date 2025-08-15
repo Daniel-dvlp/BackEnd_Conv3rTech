@@ -66,12 +66,34 @@ const createUserValidation = [
     body('documento').custom(validateUsuariosUniqueDocumento),
     body('correo').custom(validateUsuariosUniqueCorreo),
 ];
+
+// Validaciones para verificar la unicidad del documento y correo al actualizar
+const validateUsuariosUniqueDocumentoUpdate = async (documento, { req }) => {
+    const usuario = await Usuario.findOne({ where: { documento } });
+    if (usuario && usuario.id_usuario != req.params.id) {
+        throw new Error('El documento ya está en uso');
+    }
+}
+const validateUsuariosUniqueCorreoUpdate = async (correo, { req }) => {
+    const usuario = await Usuario.findOne({ where: { correo } });
+    if (usuario && usuario.id_usuario != req.params.id) {
+        throw new Error('El correo ya está en uso');
+    }
+}
+
 // Validaciones para actualizar
 const updateUserValidation = [
-    ...validateBaseUsuarios,
-    param('id').isInt().withMessage('El ID del usuario debe ser oblogatorio'),
-    param('id').custom(validateUsuariosExistence),
-]
+  body('documento').optional().isString().custom(validateUsuariosUniqueDocumentoUpdate),
+  body('tipo_documento').optional().isIn(['CC', 'CE', 'PPT', 'NIT']),
+  body('nombre').optional().isString(),
+  body('apellido').optional().isString(),
+  body('celular').optional().isString(),
+  body('correo').optional().isEmail().custom(validateUsuariosUniqueCorreoUpdate),
+  body('contrasena').optional().isString(),
+  body('id_rol').optional().isString(),
+  body('id_estado_usuario').optional().isIn(['Activo', 'Inactivo', 'Suspendido', 'En vacaciones', 'Retirado', 'Licencia médica']),
+];
+
 // Validaciones para eliminar
 const deleteUserValidation = [
     param('id').isInt().withMessage('El ID del usuario debe ser oblogatorio'),

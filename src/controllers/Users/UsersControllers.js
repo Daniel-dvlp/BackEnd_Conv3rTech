@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const UsersServices = require('../../services/Users/UsersServices');
+const Users = require('../../models/Users/Users');
 
 const createUser = async (req, res) => {
     const errors = validationResult(req);
@@ -12,7 +13,8 @@ const createUser = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
+};
+
 const getAllUsers = async (req, res) => {
     try {
         const users = await UsersServices.getAllUsers();
@@ -20,7 +22,7 @@ const getAllUsers = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
+};
 
 const getUserById = async (req, res) => {
     try {
@@ -32,7 +34,7 @@ const getUserById = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
+};
 
 const updateUser = async (req, res) => {
     const errors = validationResult(req);
@@ -40,15 +42,17 @@ const updateUser = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const user = await UsersServices.updateUser(req.params.id, req.body);
-        if (!user) {
-            return res.status(400).json({ error: 'Usuario no encontrado' });
+        const { id } = req.params;
+        const [updated] = await Users.update(req.body, { where: { id_usuario: id } });
+        if (updated) {
+            const updatedUser = await Users.findOne({ where: { id_usuario: id } });
+            return res.status(200).json(updatedUser);
         }
-        res.status(204).end();
+        return res.status(404).json({ error: 'Usuario no encontrado' });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
-}
+};
 
 const deleteUser = async (req, res) => {
     try {
@@ -60,7 +64,8 @@ const deleteUser = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-}
+};
+
 module.exports = {
     createUser,
     getAllUsers,
