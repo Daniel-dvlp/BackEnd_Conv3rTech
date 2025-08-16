@@ -3,7 +3,6 @@ const sequelize = require('../../config/database');
 
 //const Rol = require('./rol.model');
 
-
 const Users = sequelize.define('Users', {
   id_usuario: {
     type: DataTypes.INTEGER,
@@ -16,7 +15,7 @@ const Users = sequelize.define('Users', {
     unique: true
   },
   tipo_documento: {
-    type: DataTypes.ENUM('CC', 'CE', 'PPT', 'NIT'),
+    type: DataTypes.ENUM('CC', 'CE', 'PPT', 'NIT', 'PA'),
     allowNull: false
   },
   nombre: {
