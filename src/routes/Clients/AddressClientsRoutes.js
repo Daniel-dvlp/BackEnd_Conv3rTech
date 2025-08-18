@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const AddressClientsControllers = require('../../controllers/Clients/AddressClientsControllers');
-const AddressClientsMiddlewares = require('../../middlewares/Clients/AddressClientsMiddlewares');
+const AddressClientsControllers = require('../../controllers/clients/AddressClientsControllers');
+const AddressClientsMiddlewares = require('../../middlewares/clients/AddressClientsMiddlewares');
 
 // Rutas para direcciones de clientes
 router.post('/', AddressClientsMiddlewares.validateCreateAddressClients, AddressClientsControllers.createAddressClient);
