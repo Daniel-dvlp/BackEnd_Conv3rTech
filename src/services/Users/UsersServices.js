@@ -1,4 +1,4 @@
-const UserRepository = require('../../repositories/Users/UsersRepositories');
+const UserRepository = require('../../repositories/users/UsersRepositories');
 
 const createUser = async (userData) => {
     return UserRepository.createUser(userData);

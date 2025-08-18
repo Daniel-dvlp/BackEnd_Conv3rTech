@@ -1,6 +1,6 @@
 const  {validationResult} = require('express-validator');
-const AddressClientsServices = require('../../services/Clients/AddressClientservices');
-const AddressClients = require('../../models/Clients/AddressClients');
+const AddressClientsServices = require('../../services/clients/AddressClientservices');
+const AddressClients = require('../../models/clients/AddressClients');
 
 const createAddressClient = async (req, res) => {
     const errors = validationResult(req);

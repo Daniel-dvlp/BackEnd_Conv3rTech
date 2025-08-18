@@ -1,8 +1,8 @@
 const { body, param } = require('express-validator');
-const Usuario = require('../../models/Users/Users');
+const Usuario = require('../../models/users/Users');
 
 //comentamos roles mientras se hace la tabla
-//const Rol = require('../../models/Users/rol.model');
+//const Rol = require('../../models/users/rol.model');
 
 // Validaciones para verificar la existencia de un usuario
 const validateUsuariosExistence = async(id) => {
