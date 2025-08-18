@@ -1,5 +1,5 @@
 const {body, param} = require('express-validator');
-const AddressClients = require('../../models/Clients/AddressClients');
+const AddressClients = require('../../models/clients/AddressClients');
 
 // Validaciones para verificar la existencia de una direccion de cliente
 const validateAddressClientsExistence = async(id) => {
