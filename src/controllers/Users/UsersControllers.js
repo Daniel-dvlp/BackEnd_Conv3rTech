@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
-const UsersServices = require('../../services/Users/UsersServices');
-const Users = require('../../models/Users/Users');
+const UsersServices = require('../../services/users/UsersServices');
+const Users = require('../../models/users/Users');
 
 const createUser = async (req, res) => {
     const errors = validationResult(req);

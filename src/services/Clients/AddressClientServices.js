@@ -1,4 +1,4 @@
-const AddressClientsRepositories = require('../../repositories/Clients/AddressClientsRepositories');
+const AddressClientsRepositories = require('../../repositories/clients/AddressClientsRepositories');
 
 const createAddressClient = async (addressClientData) => {
     return AddressClientsRepositories.createAddressClient(addressClientData);

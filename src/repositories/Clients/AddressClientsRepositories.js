@@ -1,4 +1,4 @@
-const AddressClients= require('../../models/Clients/AddressClients');
+const AddressClients= require('../../models/clients/AddressClients');
 
 const createAddressClient = async (addressClient) => {
     return AddressClients.create(addressClient);

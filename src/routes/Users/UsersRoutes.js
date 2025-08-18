@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const UsersControllers = require('../../controllers/Users/UsersControllers');
-const UsuariosValidations = require('../../middlewares/Users/UsuariosValidations');
+const UsersControllers = require('../../controllers/users/UsersControllers');
+const UsuariosValidations = require('../../middlewares/users/UsuariosValidations');
 
 // Rutas para usuarios
 router.post('/', UsuariosValidations.createUserValidation, UsersControllers.createUser);
