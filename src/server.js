@@ -1,7 +1,11 @@
 const app = require('./app');
 const sequelize = require('./config/database');
-const PORT = 3000;
+const PORT = 3006;
 
-sequelize.sync().then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+sequelize.sync()
+    .then(() => {
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    })
+    .catch(err => {
+        console.error('Error al sincronizar la base de datos:', err);
+    });
