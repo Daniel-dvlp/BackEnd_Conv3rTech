@@ -7,7 +7,7 @@ const getAllAddressClients = async () => {
     return AddressClients.findAll();
 }
 const updateAddressClient = async (id, addressClientData) => {
-    return AddressClients.update(addressClientData, { where: { id } });
+    return AddressClients.update(addressClientData, { where: { id_address: id } });
 }
 const deleteAddressClient = async (id) => {
     return AddressClients.destroy({ where: {id_address: id } });

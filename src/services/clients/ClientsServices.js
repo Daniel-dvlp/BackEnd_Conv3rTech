@@ -1,10 +1,6 @@
-const ClientsRepositories = require('../../repositories/ClientsRepositories');
+const ClientsRepositories = require('../../repositories/clients/ClientsRepositories');
 const AddressClientServices = require('./AddressClientServices'); 
 
-
-// const createClient = async (clientData, addressClientData) => {
-//     return ClientsRepositories.createClient(clientData);
-// }
 
 const createClient = async (clientData, addressClientData) => {
     try {
@@ -19,7 +15,7 @@ const createClient = async (clientData, addressClientData) => {
                 // y le pasamos el id_client del nuevo cliente para que la relacione
                 const newAddress = await AddressClientServices.createAddressClient({
                     ...address,
-                    id_client: newClient.id_cliente
+                    id_client: newClient.id_client
                 });
             }
         }
@@ -39,13 +35,22 @@ const getAllClients = async () => {
 };
 
 const updateClient = async (id, clientData , addressClientData) => {
-    
     // Primero actualizamos el cliente
     const updatedClient = await ClientsRepositories.updateClient(id, clientData);
-    
-    // Luego actualizamos las direcciones asociadas al cliente
-    if (addressClientData && addressClientData.length > 0) {
-        for (const address of addressClientData) {
+
+    // Normalizamos addresses a arreglo si viene un solo objeto
+    const addressesArray = !addressClientData
+        ? []
+        : Array.isArray(addressClientData)
+            ? addressClientData
+            : [addressClientData];
+
+    // Actualizamos direcciones existentes y creamos las nuevas
+    if (addressesArray.length > 0) {
+        for (const address of addressesArray) {
+            if (!address.id_address) {
+                continue;
+            }
             await AddressClientServices.updateAddressClient(address.id_address, {
                 ...address,
                 id_client: id
@@ -57,15 +62,16 @@ const updateClient = async (id, clientData , addressClientData) => {
 };
 
 const deleteClient = async (id, addressClientData) => {
-    //Primero eliminamos el cliente
-    const deleteClient =  await ClientsRepositories.deleteClient(id);
-    //Luego eliminamos las direcciones asociadas al cliente
-    if(addressClientData && addressClientData.length > 0){
-        for(const address of addressClientData){
+    // Primero eliminamos las direcciones asociadas al cliente para evitar errores de FK
+    if (addressClientData && addressClientData.length > 0) {
+        for (const address of addressClientData) {
             await AddressClientServices.deleteAddressClient(address.id_address);
         }
     }
-    return deleteClient;
+
+    // Luego eliminamos el cliente
+    const deletedClient = await ClientsRepositories.deleteClient(id);
+    return deletedClient;
 }; 
 
 const getClientById = async (id) => {

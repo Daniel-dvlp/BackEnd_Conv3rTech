@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const ClientsControllers = require('../../controllers/clients/ClientsControllers');
+const ClientsMiddlewares = require('../../middlewares/clients/ClientsMiddlewares');
+
+// Rutas para clientes
+router.post('/', ClientsMiddlewares.normalizeClientPayload, ClientsMiddlewares.validateCreateClients, ClientsControllers.createClient);
+router.get('/', ClientsControllers.getAllClients);
+router.put('/:id', ClientsMiddlewares.normalizeClientPayload, ClientsMiddlewares.validateUpdateClients, ClientsControllers.updateClient);
+router.delete('/:id', ClientsMiddlewares.validateDeleteClients, ClientsControllers.deleteClient);
+
+module.exports = router;

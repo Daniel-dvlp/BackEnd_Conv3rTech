@@ -8,8 +8,10 @@ const createClient = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const client = await ClientsServices.createClient(req.body);
-        res.status(200).json(client);
+        // Tras la normalización, los campos del cliente están en el nivel raíz
+        const { addresses, ...clientData } = req.body;
+        const createdClient = await ClientsServices.createClient(clientData, addresses);
+        res.status(201).json(createdClient);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -29,12 +31,13 @@ const updateClient = async (req, res) => {
     }
     try {
         const { id } = req.params;
-        const [updated] = await Clients.update(req.body, { where: { id_client: id } });
-        if (updated) {
-            const updatedClient = await Clients.findOne({ where: { id_client: id } });
-            return res.status(200).json(updatedClient);
+        const { addresses, ...clientData } = req.body;
+        await ClientsServices.updateClient(id, clientData, addresses);
+        const updatedClient = await Clients.findOne({ where: { id_client: id } });
+        if (!updatedClient) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
         }
-        return res.status(404).json({ error: 'Cliente no encontrado' });
+        return res.status(200).json(updatedClient);
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
