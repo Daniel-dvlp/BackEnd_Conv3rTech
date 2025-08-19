@@ -3,8 +3,12 @@ const app = express();
 
 app.use(express.json());
 
-const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
+const SupplierRoutes = require('./routes/supplier/SupplierRoutes');
+app.use('/api/suppliers', SupplierRoutes);
+const PurchaseRoutes = require('./routes/purchase/PurchaseRoutes');
+app.use('/api/purchases', PurchaseRoutes);
 
+const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
 app.use('/api/productsCategory', categoryRoutes);
 
 const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
