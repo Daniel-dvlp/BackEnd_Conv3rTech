@@ -1,6 +1,6 @@
 const app = require('./app');
 const sequelize = require('./config/database');
-const PORT = 3000;
+const PORT = 3006;
 
 sequelize.sync()
     .then(() => {

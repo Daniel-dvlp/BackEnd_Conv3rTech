@@ -20,8 +20,8 @@ const deleteCategory = async (id) => {
     return categoryRepository.deleteCategory(id);
 }
 
-const changeSateCategory = async (id, state) => {
-    return categoryRepository.changeSateCategory(id, state);
+const changeStateCategory = async (id, state) => {
+    return categoryRepository.changeStateCategory(id, state);
 }
 
 module.exports = {
@@ -30,5 +30,5 @@ module.exports = {
     getCategoryById,
     updateCategory,
     deleteCategory,
-    changeSateCategory,
+    changeStateCategory,
 };
