@@ -8,22 +8,22 @@ const validateCategoryExistence = async (id) => {
     }
 };
 
-const validateUniqueCategoryName = async (name) => {
-    const category = await ProductCategory.findOne({ where: { nombre: name } });
+const validateUniqueCategoryName = async (nombre) => {
+    const category = await ProductCategory.findOne({ where: { nombre: nombre } });
     if (category) {
         return Promise.reject('La categoría ya existe');
     }
 };
 
 const categoryBaseValidation = [
-    body('name')
-        .isLength({ min: 6 })
-        .withMessage('El nombre debe tener más de 5 caracteres'),
-    body('description')
+    body('nombre')
+        .isLength({ min: 5 })
+        .withMessage('El nombre debe tener 5 o más caracteres'),
+    body('descripcion')
         .optional({ nullable: true })
         .isLength({ min: 10 })
         .withMessage('La descripción debe tener al menos 10 caracteres'),
-    body('state')
+    body('estado')
         .optional()
         .isBoolean()
         .withMessage('El estado debe ser un valor booleano')
@@ -31,11 +31,22 @@ const categoryBaseValidation = [
 
 const createCategoryValidation = [
     ...categoryBaseValidation,
-    body('name').custom(validateUniqueCategoryName)
+    body('nombre').custom(validateUniqueCategoryName)
 ];
 
 const updateCategoryValidation = [
-    ...categoryBaseValidation,
+    body('nombre')
+        .optional()
+        .isLength({ min: 5 })
+        .withMessage('El nombre debe tener 5 o más caracteres'),
+    body('descripcion')
+        .optional({ nullable: true })
+        .isLength({ min: 10 })
+        .withMessage('La descripción debe tener al menos 10 caracteres'),
+    body('estado')
+        .optional()
+        .isBoolean()
+        .withMessage('El estado debe ser un valor booleano'),
     param('id').isInt().withMessage('El id debe ser un número entero'),
     param('id').custom(validateCategoryExistence)
 ];
@@ -51,7 +62,7 @@ const getCategoryByIdValidation = [
 ];
 
 const changeStateValidation = [
-    body('state')
+    body('estado')
         .isBoolean()
         .withMessage('El estado debe ser un valor booleano'),
     param('id').isInt().withMessage('El id debe ser un número entero'),

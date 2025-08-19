@@ -13,15 +13,15 @@ const getCategoryById = async (id) => {
 }
 
 const updateCategory = async (id, category) => {
-    return Category.update(category, { where: { id } });
+    return Category.update(category, { where: { id_categoria: id } });
 }
 
 const deleteCategory = async (id) => {
-    return Category.destroy({ where: { id } });
+    return Category.destroy({ where: { id_categoria: id } });
 }
 
-const changeSateCategory = async (id, state) => {
-    return Category.update({ state }, { where: { id } });
+const changeStateCategory = async (id, state) => {
+    return Category.update({ estado: state }, { where: { id_categoria: id } });
 }
 
 module.exports = {
@@ -30,5 +30,5 @@ module.exports = {
     getCategoryById,
     updateCategory,
     deleteCategory,
-    changeSateCategory,
+    changeStateCategory,
 };
