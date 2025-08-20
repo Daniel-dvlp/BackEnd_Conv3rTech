@@ -3,20 +3,26 @@ const app = express();
 
 app.use(express.json());
 
-//Miguel
+// Rutas para proveedores
 const SupplierRoutes = require('./routes/supplier/SupplierRoutes');
 app.use('/api/suppliers', SupplierRoutes);
+
+// Rutas para compras
 const PurchaseRoutes = require('./routes/purchase/PurchaseRoutes');
 app.use('/api/purchases', PurchaseRoutes);
 
-//Sarai
+// Rutas para categorias de productos
 const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
 app.use('/api/productsCategory', categoryRoutes);
 
-//Luissy
+// Rutas para usuarios
 const UsersRoutes = require('./routes/Users/UsersRoutes');
 app.use('/api/users', UsersRoutes);
-const AddressClientsRoutes = require('./routes/Clients/AddressClientsRoutes');
+
+// Rutas para clientes
+const ClientsRoutes = require('./routes/clients/ClientsRoutes');
+app.use('/api/clients', ClientsRoutes);
+const AddressClientsRoutes = require('./routes/clients/AddressClientsRoutes');
 app.use('/api/address-clients', AddressClientsRoutes);
 
 module.exports = app;
