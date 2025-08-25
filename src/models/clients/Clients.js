@@ -1,11 +1,11 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const AddresClient = require("./AddressClients");
+const AddressClients = require("./AddressClients");
 
 const Clients = sequelize.define(
   "Clients",
   {
-    id_cliente: {
+    id_client: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -51,10 +51,9 @@ const Clients = sequelize.define(
     underscored: true,
   }
 );
-//define las relaciones entre las tablas
-// Un cliente puede tener varias direcciones
-AddresClient.belongsTo(Clients, { foreignKey: "id_client" });
-// Una dirección pertenece a un cliente
-Clients.hasMany(AddresClient, { foreignKey: "id_client" });
+
+// Relaciones
+Clients.hasMany(AddressClients, { foreignKey: "id_client" }); 
+AddressClients.belongsTo(Clients, { foreignKey: "id_client" });
 
 module.exports = Clients;

@@ -12,6 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 // Importar asociaciones de modelos
 require("./models/associations");
 
+// ====================== RUTAS ======================
+
 // Rutas de autenticación
 const authRoutes = require("./routes/auth/auth_routes");
 app.use("/api/auth", authRoutes);
@@ -20,35 +22,44 @@ app.use("/api/auth", authRoutes);
 const rolesRoutes = require("./routes/auth/RolesRoutes");
 const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
+const RBACRoutes = require("./routes/auth/RBACRoutes");
 
 app.use("/api/roles", rolesRoutes);
 app.use("/api/permissions", permissionsRoutes);
 app.use("/api/privileges", privilegesRoutes);
-
-// Rutas existentes
-const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
-app.use("/api/suppliers", SupplierRoutes);
-
-const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
-app.use("/api/purchases", PurchaseRoutes);
-
-const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
-app.use("/api/productsCategory", categoryRoutes);
-
-const UsersRoutes = require("./routes/users/UsersRoutes");
-app.use("/api/users", UsersRoutes);
-
-const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
-app.use("/api/address-clients", AddressClientsRoutes);
+app.use("/api/rbac", RBACRoutes);
 
 // Rutas de proyectos
 const ProjectRoutes = require("./routes/projects/ProjectRoutes");
 app.use("/api/projects", ProjectRoutes);
 
-const RBACRoutes = require("./routes/auth/RBACRoutes");
-app.use("/api/rbac", RBACRoutes);
+// Rutas de proveedores
+const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
+app.use("/api/suppliers", SupplierRoutes);
 
-// Ruta de prueba
+// Rutas de compras
+const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
+app.use("/api/purchases", PurchaseRoutes);
+
+// Rutas de categorías de productos
+const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
+app.use("/api/productsCategory", categoryRoutes);
+
+// Rutas de usuarios
+const UsersRoutes = require("./routes/users/UsersRoutes");
+app.use("/api/users", UsersRoutes);
+
+// Rutas de clientes
+const ClientsRoutes = require("./routes/clients/ClientsRoutes");
+app.use("/api/clients", ClientsRoutes);
+
+// Rutas de direcciones de clientes
+const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
+app.use("/api/address-clients", AddressClientsRoutes);
+
+// ====================== UTILIDADES ======================
+
+// Ruta de prueba (health check)
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
