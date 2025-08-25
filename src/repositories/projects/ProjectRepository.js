@@ -1,0 +1,637 @@
+const { Project, ProjectSede, ProjectMaterial, ProjectServicio, ProjectEmpleado, SalidaMaterial, SedeMaterial, SedeServicio } = require('../../models/projects/associations');
+const { Op } = require('sequelize');
+
+class ProjectRepository {
+  // Obtener todos los proyectos con sus relaciones
+  async getAllProjects(filters = {}) {
+    const whereClause = {};
+    
+    if (filters.search) {
+      whereClause[Op.or] = [
+        { nombre: { [Op.like]: `%${filters.search}%` } },
+        { numero_contrato: { [Op.like]: `%${filters.search}%` } },
+        { '$cliente.nombre$': { [Op.like]: `%${filters.search}%` } },
+        { '$responsable.nombre$': { [Op.like]: `%${filters.search}%` } },
+        { '$responsable.apellido$': { [Op.like]: `%${filters.search}%` } },
+        { estado: { [Op.like]: `%${filters.search}%` } },
+        { prioridad: { [Op.like]: `%${filters.search}%` } }
+      ];
+    }
+    
+    if (filters.estado) {
+      whereClause.estado = filters.estado;
+    }
+    
+    if (filters.prioridad) {
+      whereClause.prioridad = filters.prioridad;
+    }
+
+    return Project.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: require('../../models/clients/Clients'),
+          as: 'cliente',
+          attributes: ['id_cliente', 'nombre', 'documento']
+        },
+        {
+          model: require('../../models/users/Users'),
+          as: 'responsable',
+          attributes: ['id_usuario', 'nombre', 'apellido']
+        },
+        {
+          model: ProjectSede,
+          as: 'sedes',
+          include: [
+            {
+              model: SedeMaterial,
+              as: 'materialesAsignados',
+              include: [
+                {
+                  model: require('../../models/products_category/ProductsCategory'),
+                  as: 'producto',
+                  attributes: ['id_producto', 'nombre', 'precio']
+                }
+              ]
+            },
+            {
+              model: SedeServicio,
+              as: 'serviciosAsignados',
+              include: [
+                {
+                  model: require('../../models/services_category/ServicesCategory'),
+                  as: 'servicio',
+                  attributes: ['id_servicio', 'nombre', 'precio']
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: ProjectMaterial,
+          as: 'materiales',
+          include: [
+            {
+              model: require('../../models/products_category/ProductsCategory'),
+              as: 'producto',
+              attributes: ['id_producto', 'nombre', 'precio', 'stock']
+            }
+          ]
+        },
+        {
+          model: ProjectServicio,
+          as: 'servicios',
+          include: [
+            {
+              model: require('../../models/services_category/ServicesCategory'),
+              as: 'servicio',
+              attributes: ['id_servicio', 'nombre', 'precio']
+            }
+          ]
+        },
+        {
+          model: ProjectEmpleado,
+          as: 'empleadosAsociados',
+          include: [
+            {
+              model: require('../../models/users/Users'),
+              as: 'empleado',
+              attributes: ['id_usuario', 'nombre', 'apellido']
+            }
+          ]
+        }
+      ],
+      order: [['fecha_creacion', 'DESC']]
+    });
+  }
+
+  // Obtener un proyecto por ID
+  async getProjectById(id) {
+    return Project.findByPk(id, {
+      include: [
+        {
+          model: require('../../models/clients/Clients'),
+          as: 'cliente',
+          attributes: ['id_cliente', 'nombre', 'documento']
+        },
+        {
+          model: require('../../models/users/Users'),
+          as: 'responsable',
+          attributes: ['id_usuario', 'nombre', 'apellido']
+        },
+        {
+          model: ProjectSede,
+          as: 'sedes',
+          include: [
+            {
+              model: SedeMaterial,
+              as: 'materialesAsignados',
+              include: [
+                {
+                  model: require('../../models/products_category/ProductsCategory'),
+                  as: 'producto',
+                  attributes: ['id_producto', 'nombre', 'precio']
+                }
+              ]
+            },
+            {
+              model: SedeServicio,
+              as: 'serviciosAsignados',
+              include: [
+                {
+                  model: require('../../models/services_category/ServicesCategory'),
+                  as: 'servicio',
+                  attributes: ['id_servicio', 'nombre', 'precio']
+                }
+              ]
+            },
+            {
+              model: SalidaMaterial,
+              as: 'salidasMaterial',
+              include: [
+                {
+                  model: require('../../models/products_category/ProductsCategory'),
+                  as: 'producto',
+                  attributes: ['id_producto', 'nombre']
+                },
+                {
+                  model: require('../../models/users/Users'),
+                  as: 'entregador',
+                  attributes: ['id_usuario', 'nombre', 'apellido']
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: ProjectMaterial,
+          as: 'materiales',
+          include: [
+            {
+              model: require('../../models/products_category/ProductsCategory'),
+              as: 'producto',
+              attributes: ['id_producto', 'nombre', 'precio', 'stock']
+            }
+          ]
+        },
+        {
+          model: ProjectServicio,
+          as: 'servicios',
+          include: [
+            {
+              model: require('../../models/services_category/ServicesCategory'),
+              as: 'servicio',
+              attributes: ['id_servicio', 'nombre', 'precio']
+            }
+          ]
+        },
+        {
+          model: ProjectEmpleado,
+          as: 'empleadosAsociados',
+          include: [
+            {
+              model: require('../../models/users/Users'),
+              as: 'empleado',
+              attributes: ['id_usuario', 'nombre', 'apellido']
+            }
+          ]
+        },
+        {
+          model: SalidaMaterial,
+          as: 'salidasMaterial',
+          include: [
+            {
+              model: require('../../models/products_category/ProductsCategory'),
+              as: 'producto',
+              attributes: ['id_producto', 'nombre']
+            },
+            {
+              model: require('../../models/users/Users'),
+              as: 'entregador',
+              attributes: ['id_usuario', 'nombre', 'apellido']
+            },
+            {
+              model: ProjectSede,
+              as: 'sede',
+              attributes: ['id_proyecto_sede', 'nombre']
+            }
+          ]
+        }
+      ]
+    });
+  }
+
+  // Crear un nuevo proyecto
+  async createProject(projectData) {
+    const transaction = await Project.sequelize.transaction();
+    
+    try {
+      // Crear el proyecto principal
+      const project = await Project.create({
+        numero_contrato: projectData.numero_contrato,
+        nombre: projectData.nombre,
+        id_cliente: projectData.id_cliente,
+        id_responsable: projectData.id_responsable,
+        fecha_inicio: projectData.fecha_inicio,
+        fecha_fin: projectData.fecha_fin,
+        estado: projectData.estado,
+        progreso: projectData.progreso || 0,
+        prioridad: projectData.prioridad,
+        ubicacion: projectData.ubicacion,
+        descripcion: projectData.descripcion,
+        observaciones: projectData.observaciones,
+        costo_mano_obra: projectData.costo_mano_obra || 0
+      }, { transaction });
+
+      // Crear materiales del proyecto
+      if (projectData.materiales && projectData.materiales.length > 0) {
+        const materiales = projectData.materiales.map(material => ({
+          id_proyecto: project.id_proyecto,
+          id_producto: material.id_producto,
+          cantidad: material.cantidad,
+          precio_unitario: material.precio_unitario,
+          precio_total: material.cantidad * material.precio_unitario
+        }));
+        await ProjectMaterial.bulkCreate(materiales, { transaction });
+      }
+
+      // Crear servicios del proyecto
+      if (projectData.servicios && projectData.servicios.length > 0) {
+        const servicios = projectData.servicios.map(servicio => ({
+          id_proyecto: project.id_proyecto,
+          id_servicio: servicio.id_servicio,
+          cantidad: servicio.cantidad,
+          precio_unitario: servicio.precio_unitario,
+          precio_total: servicio.cantidad * servicio.precio_unitario
+        }));
+        await ProjectServicio.bulkCreate(servicios, { transaction });
+      }
+
+      // Crear empleados asociados
+      if (projectData.empleadosAsociados && projectData.empleadosAsociados.length > 0) {
+        const empleados = projectData.empleadosAsociados.map(empleado => ({
+          id_proyecto: project.id_proyecto,
+          id_usuario: empleado.id_usuario
+        }));
+        await ProjectEmpleado.bulkCreate(empleados, { transaction });
+      }
+
+      // Crear sedes del proyecto
+      if (projectData.sedes && projectData.sedes.length > 0) {
+        for (const sedeData of projectData.sedes) {
+          const sede = await ProjectSede.create({
+            id_proyecto: project.id_proyecto,
+            nombre: sedeData.nombre,
+            ubicacion: sedeData.ubicacion,
+            presupuesto_materiales: sedeData.presupuesto_materiales || 0,
+            presupuesto_servicios: sedeData.presupuesto_servicios || 0,
+            presupuesto_total: sedeData.presupuesto_total || 0,
+            presupuesto_restante: sedeData.presupuesto_restante || 0
+          }, { transaction });
+
+          // Crear materiales asignados a la sede
+          if (sedeData.materialesAsignados && sedeData.materialesAsignados.length > 0) {
+            const sedeMateriales = sedeData.materialesAsignados.map(material => ({
+              id_proyecto_sede: sede.id_proyecto_sede,
+              id_producto: material.id_producto,
+              cantidad: material.cantidad
+            }));
+            await SedeMaterial.bulkCreate(sedeMateriales, { transaction });
+          }
+
+          // Crear servicios asignados a la sede
+          if (sedeData.serviciosAsignados && sedeData.serviciosAsignados.length > 0) {
+            const sedeServicios = sedeData.serviciosAsignados.map(servicio => ({
+              id_proyecto_sede: sede.id_proyecto_sede,
+              id_servicio: servicio.id_servicio,
+              cantidad: servicio.cantidad,
+              precio_unitario: servicio.precio_unitario
+            }));
+            await SedeServicio.bulkCreate(sedeServicios, { transaction });
+          }
+        }
+      }
+
+      await transaction.commit();
+      return this.getProjectById(project.id_proyecto);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
+  // Actualizar un proyecto
+  async updateProject(id, projectData) {
+    const transaction = await Project.sequelize.transaction();
+    
+    try {
+      // Actualizar el proyecto principal
+      await Project.update({
+        numero_contrato: projectData.numero_contrato,
+        nombre: projectData.nombre,
+        id_cliente: projectData.id_cliente,
+        id_responsable: projectData.id_responsable,
+        fecha_inicio: projectData.fecha_inicio,
+        fecha_fin: projectData.fecha_fin,
+        estado: projectData.estado,
+        progreso: projectData.progreso,
+        prioridad: projectData.prioridad,
+        ubicacion: projectData.ubicacion,
+        descripcion: projectData.descripcion,
+        observaciones: projectData.observaciones,
+        costo_mano_obra: projectData.costo_mano_obra,
+        fecha_actualizacion: new Date()
+      }, {
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Actualizar materiales (eliminar existentes y crear nuevos)
+      if (projectData.materiales) {
+        await ProjectMaterial.destroy({
+          where: { id_proyecto: id },
+          transaction
+        });
+        
+        if (projectData.materiales.length > 0) {
+          const materiales = projectData.materiales.map(material => ({
+            id_proyecto: id,
+            id_producto: material.id_producto,
+            cantidad: material.cantidad,
+            precio_unitario: material.precio_unitario,
+            precio_total: material.cantidad * material.precio_unitario
+          }));
+          await ProjectMaterial.bulkCreate(materiales, { transaction });
+        }
+      }
+
+      // Actualizar servicios (eliminar existentes y crear nuevos)
+      if (projectData.servicios) {
+        await ProjectServicio.destroy({
+          where: { id_proyecto: id },
+          transaction
+        });
+        
+        if (projectData.servicios.length > 0) {
+          const servicios = projectData.servicios.map(servicio => ({
+            id_proyecto: id,
+            id_servicio: servicio.id_servicio,
+            cantidad: servicio.cantidad,
+            precio_unitario: servicio.precio_unitario,
+            precio_total: servicio.cantidad * servicio.precio_unitario
+          }));
+          await ProjectServicio.bulkCreate(servicios, { transaction });
+        }
+      }
+
+      // Actualizar empleados asociados
+      if (projectData.empleadosAsociados) {
+        await ProjectEmpleado.destroy({
+          where: { id_proyecto: id },
+          transaction
+        });
+        
+        if (projectData.empleadosAsociados.length > 0) {
+          const empleados = projectData.empleadosAsociados.map(empleado => ({
+            id_proyecto: id,
+            id_usuario: empleado.id_usuario
+          }));
+          await ProjectEmpleado.bulkCreate(empleados, { transaction });
+        }
+      }
+
+      // Actualizar sedes
+      if (projectData.sedes) {
+        // Obtener sedes existentes
+        const sedesExistentes = await ProjectSede.findAll({
+          where: { id_proyecto: id },
+          transaction
+        });
+
+        // Eliminar sedes existentes y sus relaciones
+        for (const sede of sedesExistentes) {
+          await SedeMaterial.destroy({
+            where: { id_proyecto_sede: sede.id_proyecto_sede },
+            transaction
+          });
+          await SedeServicio.destroy({
+            where: { id_proyecto_sede: sede.id_proyecto_sede },
+            transaction
+          });
+        }
+        
+        await ProjectSede.destroy({
+          where: { id_proyecto: id },
+          transaction
+        });
+
+        // Crear nuevas sedes
+        if (projectData.sedes.length > 0) {
+          for (const sedeData of projectData.sedes) {
+            const sede = await ProjectSede.create({
+              id_proyecto: id,
+              nombre: sedeData.nombre,
+              ubicacion: sedeData.ubicacion,
+              presupuesto_materiales: sedeData.presupuesto_materiales || 0,
+              presupuesto_servicios: sedeData.presupuesto_servicios || 0,
+              presupuesto_total: sedeData.presupuesto_total || 0,
+              presupuesto_restante: sedeData.presupuesto_restante || 0
+            }, { transaction });
+
+            // Crear materiales asignados a la sede
+            if (sedeData.materialesAsignados && sedeData.materialesAsignados.length > 0) {
+              const sedeMateriales = sedeData.materialesAsignados.map(material => ({
+                id_proyecto_sede: sede.id_proyecto_sede,
+                id_producto: material.id_producto,
+                cantidad: material.cantidad
+              }));
+              await SedeMaterial.bulkCreate(sedeMateriales, { transaction });
+            }
+
+            // Crear servicios asignados a la sede
+            if (sedeData.serviciosAsignados && sedeData.serviciosAsignados.length > 0) {
+              const sedeServicios = sedeData.serviciosAsignados.map(servicio => ({
+                id_proyecto_sede: sede.id_proyecto_sede,
+                id_servicio: servicio.id_servicio,
+                cantidad: servicio.cantidad,
+                precio_unitario: servicio.precio_unitario
+              }));
+              await SedeServicio.bulkCreate(sedeServicios, { transaction });
+            }
+          }
+        }
+      }
+
+      await transaction.commit();
+      return this.getProjectById(id);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
+  // Eliminar un proyecto
+  async deleteProject(id) {
+    const transaction = await Project.sequelize.transaction();
+    
+    try {
+      // Obtener sedes del proyecto
+      const sedes = await ProjectSede.findAll({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar salidas de material de todas las sedes
+      for (const sede of sedes) {
+        await SalidaMaterial.destroy({
+          where: { id_proyecto_sede: sede.id_proyecto_sede },
+          transaction
+        });
+      }
+
+      // Eliminar materiales y servicios de las sedes
+      for (const sede of sedes) {
+        await SedeMaterial.destroy({
+          where: { id_proyecto_sede: sede.id_proyecto_sede },
+          transaction
+        });
+        await SedeServicio.destroy({
+          where: { id_proyecto_sede: sede.id_proyecto_sede },
+          transaction
+        });
+      }
+
+      // Eliminar sedes
+      await ProjectSede.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar salidas de material del proyecto
+      await SalidaMaterial.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar materiales del proyecto
+      await ProjectMaterial.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar servicios del proyecto
+      await ProjectServicio.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar empleados asociados
+      await ProjectEmpleado.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      // Eliminar el proyecto
+      const deleted = await Project.destroy({
+        where: { id_proyecto: id },
+        transaction
+      });
+
+      await transaction.commit();
+      return deleted > 0;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
+  // Crear salida de material
+  async createSalidaMaterial(salidaData) {
+    const transaction = await Project.sequelize.transaction();
+    
+    try {
+      const salida = await SalidaMaterial.create({
+        id_proyecto: salidaData.id_proyecto,
+        id_proyecto_sede: salidaData.id_proyecto_sede,
+        id_producto: salidaData.id_producto,
+        cantidad: salidaData.cantidad,
+        id_entregador: salidaData.id_entregador,
+        receptor: salidaData.receptor,
+        observaciones: salidaData.observaciones,
+        costo_total: salidaData.costo_total,
+        fecha_salida: salidaData.fecha_salida || new Date()
+      }, { transaction });
+
+      // Actualizar presupuesto restante de la sede si existe
+      if (salidaData.id_proyecto_sede) {
+        const sede = await ProjectSede.findByPk(salidaData.id_proyecto_sede, { transaction });
+        if (sede) {
+          const nuevoRestante = parseFloat(sede.presupuesto_restante) - parseFloat(salidaData.costo_total);
+          await sede.update({
+            presupuesto_restante: Math.max(0, nuevoRestante)
+          }, { transaction });
+        }
+      }
+
+      await transaction.commit();
+      return salida;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
+  // Obtener salidas de material de un proyecto
+  async getSalidasMaterial(idProyecto, idSede = null) {
+    const whereClause = { id_proyecto: idProyecto };
+    if (idSede) {
+      whereClause.id_proyecto_sede = idSede;
+    }
+
+    return SalidaMaterial.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: require('../../models/products_category/ProductsCategory'),
+          as: 'producto',
+          attributes: ['id_producto', 'nombre']
+        },
+        {
+          model: require('../../models/users/Users'),
+          as: 'entregador',
+          attributes: ['id_usuario', 'nombre', 'apellido']
+        },
+        {
+          model: ProjectSede,
+          as: 'sede',
+          attributes: ['id_proyecto_sede', 'nombre']
+        }
+      ],
+      order: [['fecha_salida', 'DESC']]
+    });
+  }
+
+  // Obtener estadísticas de proyectos
+  async getProjectStats() {
+    const stats = await Project.findAll({
+      attributes: [
+        'estado',
+        [Project.sequelize.fn('COUNT', Project.sequelize.col('id_proyecto')), 'count']
+      ],
+      group: ['estado']
+    });
+
+    const totalProjects = await Project.count();
+    const activeProjects = await Project.count({
+      where: { estado: 'En Progreso' }
+    });
+
+    return {
+      total: totalProjects,
+      activos: activeProjects,
+      porEstado: stats
+    };
+  }
+}
+
+module.exports = new ProjectRepository();
