@@ -43,9 +43,8 @@ const updateUser = async (req, res) => {
     }
     try {
         const { id } = req.params;
-        const [updated] = await Users.update(req.body, { where: { id_usuario: id } });
-        if (updated) {
-            const updatedUser = await Users.findOne({ where: { id_usuario: id } });
+        const updatedUser = await UsersServices.updateUser(id, req.body);
+        if (updatedUser) {
             return res.status(200).json(updatedUser);
         }
         return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -56,16 +55,30 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const user = await UsersServices.deleteUser(req.params.id);
-        if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
+        const deleted = await UsersServices.deleteUser(req.params.id);
+        if (deleted) {
+            res.status(204).end();
+        } else {
+            res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        res.status(204).end();
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
+// Nuevas funciones para el perfil del usuario logueado
+const getMyProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await UsersServices.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 const searchUsers = async (req, res) => {
 
     try {
@@ -76,11 +89,63 @@ const searchUsers = async (req, res) => {
     }
 };
 
+const updateMyProfile = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const userId = req.user.id;
+        const updatedUser = await UsersServices.updateMyProfile(userId, req.body);
+        if (updatedUser) {
+            return res.status(200).json({
+                success: true,
+                message: 'Perfil actualizado exitosamente',
+                user: updatedUser
+            });
+        }
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+const changeMyPassword = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const userId = req.user.id;
+        const { currentPassword, newPassword } = req.body;
+        
+        const result = await UsersServices.changeMyPassword(userId, currentPassword, newPassword);
+        
+        if (result.success) {
+            return res.status(200).json({
+                success: true,
+                message: 'Contraseña actualizada exitosamente'
+            });
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+
+    }
+};
+
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
     deleteUser,
-    searchUsers
+    searchUsers,
+    getMyProfile,
+    updateMyProfile,
+    changeMyPassword
 };
