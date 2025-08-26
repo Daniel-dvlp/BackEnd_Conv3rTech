@@ -6,6 +6,10 @@ const PermisoPrivilegio = require("./permiso_privilegio/permiso_privilegio");
 const RolPP = require("./rol_pp/rol_pp");
 const EstadoUsuarios = require("./estado_usuarios/estado_usuarios");
 
+// Modelos básicos para evitar conflictos de sincronización
+const Clients = require("./clients/Clients");
+const AddressClients = require("./clients/AddressClients");
+
 // Asociación Usuario - Rol
 Users.belongsTo(Roles, {
   foreignKey: "id_rol",
@@ -98,6 +102,17 @@ PermisoPrivilegio.hasMany(RolPP, {
   as: "asignaciones_roles",
 });
 
+// Asociaciones básicas de clientes
+Clients.hasMany(AddressClients, { 
+  foreignKey: "id_client", 
+  as: "direcciones" 
+});
+
+AddressClients.belongsTo(Clients, { 
+  foreignKey: "id_client", 
+  as: "cliente" 
+});
+
 module.exports = {
   Users,
   Roles,
@@ -106,4 +121,6 @@ module.exports = {
   PermisoPrivilegio,
   RolPP,
   EstadoUsuarios,
+  Clients,
+  AddressClients,
 };

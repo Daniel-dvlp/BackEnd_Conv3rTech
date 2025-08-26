@@ -53,7 +53,7 @@ DB_PORT=3306
 JWT_SECRET=conv3rtech-secret-key-2024-super-segura
 
 # Servidor
-PORT=3006
+PORT=3000
 NODE_ENV=development
 
 # CORS

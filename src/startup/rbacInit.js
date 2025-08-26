@@ -4,7 +4,8 @@ const {
   Roles,
   Permisos,
   Privilegios,
-  RolPermisoPrivilegio,
+  PermisoPrivilegio, //Quite el RolPermisoPrivilegio y deje este para que funcionara
+  RolPP,
   EstadoUsuarios,
 } = require("../models/associations");
 
@@ -122,25 +123,33 @@ async function ensurePermisos() {
 
 async function link(role, permiso, privilegio) {
   try {
-    await RolPermisoPrivilegio.findOrCreate({
+    // 1) Asegurar combinación permiso-privilegio en tabla permiso_privilegio
+    const [pp] = await PermisoPrivilegio.findOrCreate({
       where: {
-        id_rol: role.id_rol,
         id_permiso: permiso.id_permiso,
         id_privilegio: privilegio.id_privilegio,
       },
       defaults: {
-        id_rol: role.id_rol,
         id_permiso: permiso.id_permiso,
         id_privilegio: privilegio.id_privilegio,
       },
     });
+
+    // 2) Asegurar relación rol con esa combinación en tabla rol_pp
+    await RolPP.findOrCreate({
+      where: {
+        id_rol: role.id_rol,
+        id_pp: pp.id_pp,
+      },
+      defaults: {
+        id_rol: role.id_rol,
+        id_pp: pp.id_pp,
+      },
+    });
   } catch (error) {
-    // Si es un error de duplicado, lo ignoramos silenciosamente
     if (error.name === "SequelizeUniqueConstraintError") {
-      // console.log(`[RBAC] ⚠️  Asignación ya existe: Rol ${role.id_rol}, Permiso ${permiso.id_permiso}, Privilegio ${privilegio.id_privilegio}`);
       return;
     }
-    // Si es otro tipo de error, lo relanzamos
     throw error;
   }
 }

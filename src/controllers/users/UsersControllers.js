@@ -79,6 +79,15 @@ const getMyProfile = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+const searchUsers = async (req, res) => {
+
+    try {
+        const users = await UsersServices.searchUsers(req.params.term);
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
 const updateMyProfile = async (req, res) => {
     const errors = validationResult(req);
@@ -125,6 +134,7 @@ const changeMyPassword = async (req, res) => {
         }
     } catch (error) {
         return res.status(500).json({ error: error.message });
+
     }
 };
 
@@ -134,6 +144,7 @@ module.exports = {
     getUserById,
     updateUser,
     deleteUser,
+    searchUsers,
     getMyProfile,
     updateMyProfile,
     changeMyPassword

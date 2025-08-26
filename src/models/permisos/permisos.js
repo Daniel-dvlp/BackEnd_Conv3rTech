@@ -15,7 +15,7 @@ const Permisos = sequelize.define(
       allowNull: false,
       unique: true,
       validate: {
-        is: /^[A-Za-z ]+$/,
+        is: /^[A-Za-z_]+$/,
       },
     },
   },
