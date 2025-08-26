@@ -20,10 +20,15 @@ const deleteUser = async (id) => {
     return UserRepository.deleteUser(id);
 }
 
+const searchUsers = async (term) => {
+    return UserRepository.searchUsers(term);
+}
+
 module.exports = {
     createUser, 
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    searchUsers
 };

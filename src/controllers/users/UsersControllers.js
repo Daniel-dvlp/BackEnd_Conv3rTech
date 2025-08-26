@@ -66,10 +66,21 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const searchUsers = async (req, res) => {
+
+    try {
+        const users = await UsersServices.searchUsers(req.query.term);
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    searchUsers
 };
