@@ -4,7 +4,7 @@ const {
   Roles,
   Permisos,
   Privilegios,
-  PermisoPrivilegio,
+  PermisoPrivilegio, //Quite el RolPermisoPrivilegio y deje este para que funcionara
   RolPP,
   EstadoUsuarios,
 } = require("../models/associations");
