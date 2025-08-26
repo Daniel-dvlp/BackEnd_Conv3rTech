@@ -78,10 +78,23 @@ const getClientById = async (id) => {
     return ClientsRepositories.getClientById(id);
 };
 
+const changeClientStatus = async (id, status) => {
+    return ClientsRepositories.changeClientStatus(id, status);
+};
+const searchClients = async (term) => {
+    return ClientsRepositories.searchClients(term);
+};
+const changeClientCredit = async (id, credit) => {
+    return ClientsRepositories.changeClientCredit(id, credit);
+};
+
 module.exports = {
     createClient,   
     getAllClients,
     updateClient,
     deleteClient,
-    getClientById
+    getClientById,
+    changeClientStatus,
+    searchClients,
+    changeClientCredit
 };
