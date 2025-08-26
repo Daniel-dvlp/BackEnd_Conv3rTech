@@ -9,8 +9,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Importar asociaciones de modelos
+// Importar asociaciones de modelos básicas
 require("./models/associations");
+
+// Comentar temporalmente las asociaciones de proyectos para evitar conflictos
+// require("./models/projects/associations");
 
 // ====================== RUTAS ======================
 
@@ -29,19 +32,19 @@ app.use("/api/permissions", permissionsRoutes);
 app.use("/api/privileges", privilegesRoutes);
 app.use("/api/rbac", RBACRoutes);
 
-// Rutas de proyectos
-const ProjectRoutes = require("./routes/projects/ProjectRoutes");
-app.use("/api/projects", ProjectRoutes);
+// Rutas de proyectos (comentadas temporalmente)
+// const ProjectRoutes = require("./routes/projects/ProjectRoutes");
+// app.use("/api/projects", ProjectRoutes);
 
-// Rutas de proveedores
+// Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
 app.use("/api/suppliers", SupplierRoutes);
 
-// Rutas de compras
+// Rutas de compras (comentadas temporalmente)
 const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
 app.use("/api/purchases", PurchaseRoutes);
 
-// Rutas de categorías de productos
+// Rutas de categorías de productos (comentadas temporalmente)
 const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
 app.use("/api/productsCategory", categoryRoutes);
 

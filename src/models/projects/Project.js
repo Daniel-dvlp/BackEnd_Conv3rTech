@@ -21,8 +21,8 @@ const Project = sequelize.define('proyectos', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'clientes',
-      key: 'id_cliente'
+      model: 'Clients',
+      key: 'id_client'
     }
   },
   id_responsable: {
