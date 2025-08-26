@@ -9,6 +9,9 @@ router.get('/', UsersControllers.getAllUsers);
 router.get('/:id', UsuariosValidations.findUserByIdValidation, UsersControllers.getUserById);
 router.put('/:id', UsuariosValidations.updateUserValidation, UsersControllers.updateUser);
 router.delete('/:id', UsuariosValidations.deleteUserValidation, UsersControllers.deleteUser);
+// Ruta para buscar usuarios por cualquier campo
+router.get('/search/:term', UsersControllers.searchUsers);
+
 
 
 module.exports = router;

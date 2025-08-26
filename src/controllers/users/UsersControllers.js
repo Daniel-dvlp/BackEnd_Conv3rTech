@@ -69,7 +69,7 @@ const deleteUser = async (req, res) => {
 const searchUsers = async (req, res) => {
 
     try {
-        const users = await UsersServices.searchUsers(req.query.term);
+        const users = await UsersServices.searchUsers(req.params.term);
         res.status(200).json(users);
     } catch (error) {
         res.status(400).json({ error: error.message });
