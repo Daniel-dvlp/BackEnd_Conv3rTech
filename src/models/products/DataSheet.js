@@ -4,15 +4,26 @@ const Product = require('./Product');
 const Feature = require('./Feature');
 
 const Datasheet = sequelize.define('Datasheet', {
-    id_ficha_tecnica: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+    id_ficha_tecnica: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    valor: { 
-        type: DataTypes.STRING(255), 
-        allowNull: false 
+    id_producto: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    id_caracteristica: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    valor: {
+        type: DataTypes.STRING(255),
+        allowNull: false
     }
+}, {
+    tableName: 'fichas_tecnicas',
+    timestamps: false
 });
 
 // Relaciones

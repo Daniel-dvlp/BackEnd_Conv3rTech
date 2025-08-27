@@ -65,10 +65,98 @@ const getClientById = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 }
+const changeClientStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { stateClient } = req.body;
+        
+        // Validar que el campo stateClient esté presente
+        if (stateClient === undefined) {
+            return res.status(400).json({ error: 'El campo stateClient es requerido' });
+        }
+        
+        // Actualizar el estado del cliente
+        const [updatedRows] = await ClientsServices.changeClientStatus(id, stateClient);
+        
+        if (updatedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado o no se pudo actualizar' });
+        }
+        
+        // Obtener el cliente actualizado para confirmar el cambio
+        const updatedClient = await Clients.findOne({ where: { id_client: id } });
+        
+        res.status(200).json({ 
+            message: 'Estado del cliente actualizado exitosamente',
+            client: updatedClient
+        });
+    } catch (error) {
+        console.error('Error al cambiar estado del cliente:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+const searchClients = async (req, res) => {
+    try {
+        const { term } = req.params;
+        console.log('Buscando clientes con término:', term);
+        
+        if (!term) {
+            return res.status(400).json({ error: 'Término de búsqueda requerido' });
+        }
+        
+        const clients = await ClientsServices.searchClients(term);
+        console.log(`Búsqueda completada. Se encontraron ${clients.length} clientes`);
+        
+        res.status(200).json({
+            message: `Búsqueda completada`,
+            term: term,
+            count: clients.length,
+            results: clients
+        });
+    } catch (error) {
+        console.error('Error en searchClients controller:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message 
+        });
+    }
+}
+const changeClientCredit = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { credit } = req.body;
+        
+        // Validar que el campo credit esté presente
+        if (credit === undefined) {
+            return res.status(400).json({ error: 'El campo credit es requerido' });
+        }
+        
+        // Actualizar el crédito del cliente
+        const [updatedRows] = await ClientsServices.changeClientCredit(id, credit);
+        
+        if (updatedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado o no se pudo actualizar' });
+        }
+        
+        // Obtener el cliente actualizado para confirmar el cambio
+        const updatedClient = await Clients.findOne({ where: { id_client: id } });
+        
+        res.status(200).json({ 
+            message: 'Crédito del cliente actualizado exitosamente',
+            client: updatedClient
+        });
+    } catch (error) {
+        console.error('Error al cambiar crédito del cliente:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
 module.exports = {
     createClient,
     getAllClients,
     updateClient,
     deleteClient,
-    getClientById
+    getClientById,
+    changeClientStatus,
+    searchClients,
+    changeClientCredit
 };

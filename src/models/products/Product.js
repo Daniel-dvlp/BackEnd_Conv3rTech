@@ -3,51 +3,61 @@ const sequelize = require('../../config/database');
 const Category = require('../products_category/ProductsCategory');
 
 const Product = sequelize.define('Product', {
-    id_producto: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+    id_producto: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    fotos: { 
-        type: DataTypes.JSON,
-        allowNull: true  
+    fotos: {
+        type: DataTypes.JSON, // se guardan como array en PostgreSQL
+        allowNull: true
     },
-    nombre: { 
-        type: DataTypes.STRING(255), 
-        allowNull: false,
-        unique: true
-    },
-    modelo: { 
-        type: DataTypes.STRING(100), 
+    nombre: {
+        type: DataTypes.STRING(255),
         allowNull: false
     },
-    unidad: { 
-        type: DataTypes.ENUM('Unidad', 'Metros', 'Tramo 2 metros', 'Tramos 3 metros', 'Paquetes', 'Kit'), 
-        defaultValue: 'Unidad'
+    modelo: {
+        type: DataTypes.STRING(100),
+        allowNull: false
     },
-    precio: { 
-        type: DataTypes.DECIMAL(10,2), 
+    id_categoria: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    unidad_medida: {
+        type: DataTypes.ENUM('unidad', 'metros', 'tramo 2 metros', 'tramo 3 metros', 'paquetes', 'kit'),
+        defaultValue: 'unidad'
+    },
+    precio: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         validate: { min: 0 }
     },
-    cantidad: { 
-        type: DataTypes.INTEGER, 
-        defaultValue: 0, 
+    stock: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
         validate: { min: 0 }
     },
-    garantia: { 
-        type: DataTypes.STRING(100), 
-        allowNull: true 
+    garantia: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     },
-    iva: { 
-        type: DataTypes.DECIMAL(5,2), 
+    iva: {
+        type: DataTypes.DECIMAL(5, 2),
         defaultValue: 19.00,
         validate: { isDecimal: true }
     },
-    estado: { 
+    estado: {
         type: DataTypes.BOOLEAN,
         defaultValue: true // true = activo, false = inactivo
+    },
+    codigo_barras: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     }
+}, {
+    tableName: 'productos',
+    timestamps: false
 });
 
 // Relación con categorías
