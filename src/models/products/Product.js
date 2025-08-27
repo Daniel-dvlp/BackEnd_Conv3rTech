@@ -39,8 +39,9 @@ const Product = sequelize.define('Product', {
         validate: { min: 0 }
     },
     garantia: {
-        type: DataTypes.STRING(100),
-        allowNull: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: { min: 12 }
     },
     iva: {
         type: DataTypes.DECIMAL(5, 2),
@@ -51,7 +52,7 @@ const Product = sequelize.define('Product', {
         type: DataTypes.BOOLEAN,
         defaultValue: true // true = activo, false = inactivo
     },
-    codigo_barras: {
+    codigo_barra: {
         type: DataTypes.STRING(100),
         allowNull: true
     }

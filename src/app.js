@@ -49,6 +49,8 @@ const categoryRoutes = require("./routes/products_category/ProductsCategoryRoute
 app.use("/api/productsCategory", categoryRoutes);
 
 //Ruta para productos
+const ProductRoutes = require('./routes/products/ProductsRoutes');
+app.use('/api/products/products', ProductRoutes)
 const ProductFeatureRoutes = require('./routes/products/FeatureRoutes');
 app.use('/api/products/features', ProductFeatureRoutes);
 const DatasheetRoutes = require('./routes/products/DatasheetRoutes');
