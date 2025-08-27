@@ -6,7 +6,6 @@ const {
   Privilegios,
   PermisoPrivilegio, //Quite el RolPermisoPrivilegio y deje este para que funcionara
   RolPP,
-  EstadoUsuarios,
 } = require("../models/associations");
 
 // --- Catálogos base ---
@@ -46,7 +45,7 @@ const ROLES = [
   },
 ];
 
-const ESTADOS_USUARIO = [{ estado: "ACTIVO" }, { estado: "INACTIVO" }];
+//const ESTADOS_USUARIO = [{ estado: "ACTIVO" }, { estado: "INACTIVO" }];
 
 // --- Reglas de asignación ---
 // Admin: todo en todos los módulos.
@@ -76,14 +75,14 @@ const REGLAS_TECNICO = {
 };
 
 // -------------- Helpers --------------
-async function ensureEstadosUsuarios() {
-  for (const est of ESTADOS_USUARIO) {
-    await EstadoUsuarios.findOrCreate({
-      where: { estado: est.estado },
-      defaults: est,
-    });
-  }
-}
+// async function ensureEstadosUsuarios() {
+//   for (const est of ESTADOS_USUARIO) {
+//     await EstadoUsuarios.findOrCreate({
+//       where: { estado: est.estado },
+//       defaults: est,
+//     });
+//   }
+// }
 
 async function ensureRoles() {
   const map = {};
@@ -185,7 +184,7 @@ async function initRBAC() {
   // Recomendado: transacción para consistencia
   const tx = await sequelize.transaction();
   try {
-    await ensureEstadosUsuarios();
+    // await ensureEstadosUsuarios(); ---- comentado por que no hay tal relacion
     const roles = await ensureRoles();
     const privilegios = await ensurePrivilegios();
     const permisos = await ensurePermisos();

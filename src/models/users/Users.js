@@ -19,7 +19,7 @@ const Users = sequelize.define(
       },
     },
     tipo_documento: {
-      type: DataTypes.ENUM("CC", "CE", "PPT", "NIT"),
+      type: DataTypes.ENUM("CC", "CE", "PPT", "NIT", "PA"),
       allowNull: false,
     },
     nombre: {
@@ -63,14 +63,10 @@ const Users = sequelize.define(
         key: "id_rol",
       },
     },
-    id_estado_usuario: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: "estado_usuarios",
-        key: "id_estado_usuario",
-      },
-    },
+    estado_usuario: {
+    type: DataTypes.ENUM('Activo', 'Inactivo', 'Suspendido', 'En vacaciones', 'Retirado', 'Licencia médica'),
+    allowNull: false
+  },
     fecha_creacion: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
