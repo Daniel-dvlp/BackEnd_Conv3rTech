@@ -17,9 +17,9 @@ require("./models/associations");
 
 // ====================== RUTAS ======================
 
-// Rutas de autenticación
-const authRoutes = require("./routes/auth/auth_routes");
-app.use("/api/auth", authRoutes);
+// Rutas de autenticación (Comentadas temporalmente minetras verifico)
+// const authRoutes = require("./routes/auth/auth_routes");
+// app.use("/api/auth", authRoutes);
 
 // Rutas de roles y permisos
 const rolesRoutes = require("./routes/auth/RolesRoutes");
