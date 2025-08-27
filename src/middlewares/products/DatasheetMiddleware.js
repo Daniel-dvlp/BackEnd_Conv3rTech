@@ -21,8 +21,8 @@ const validateFeatureExistence = async (id_caracteristica) => {
 
 // Validar si la ficha técnica existe
 const validateDataSheetExistence = async (id) => {
-    const data_sheet = await DataSheet.findByPk(id);
-    if (!data_sheet) {
+    const datasheet = await DataSheet.findByPk(id);
+    if (!datasheet) {
         return Promise.reject('La ficha técnica no existe');
     }
 };

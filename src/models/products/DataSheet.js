@@ -27,10 +27,11 @@ const Datasheet = sequelize.define('Datasheet', {
 });
 
 // Relaciones
-Datasheet.belongsTo(Product, { foreignKey: 'id_producto', onDelete: 'CASCADE' });
-Product.hasMany(Datasheet, { foreignKey: 'id_producto' });
+Datasheet.belongsTo(Product, { foreignKey: 'id_producto', as: 'producto', onDelete: 'CASCADE' });
+Product.hasMany(Datasheet, { foreignKey: 'id_producto', as: 'fichas_tecnicas' });
 
-Datasheet.belongsTo(Feature, { foreignKey: 'id_caracteristica' });
-Feature.hasMany(Datasheet, { foreignKey: 'id_caracteristica' });
+Datasheet.belongsTo(Feature, { foreignKey: 'id_caracteristica', as: 'caracteristica' });
+Feature.hasMany(Datasheet, { foreignKey: 'id_caracteristica', as: 'fichas_tecnicas' });
 
 module.exports = Datasheet;
+
