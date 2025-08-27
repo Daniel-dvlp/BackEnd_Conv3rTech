@@ -1,9 +1,6 @@
 const { body, param } = require("express-validator");
 const Usuario = require("../../models/users/Users");
 
-//comentamos roles mientras se hace la tabla
-//const Rol = require('../../models/users/rol.model');
-
 // Validaciones para verificar la existencia de un usuario
 const validateUsuariosExistence = async (id) => {
   const usuario = await Usuario.findByPk(id);
@@ -11,14 +8,18 @@ const validateUsuariosExistence = async (id) => {
     throw new Error("Usuario no encontrado");
   }
 };
+
 // Validaciones para verificar la unicidad del documento y correo
 const validateUsuariosUniqueDocumento = async (documento) => {
+  if (!documento) return true; // Si no hay documento, no validar
   const usuario = await Usuario.findOne({ where: { documento } });
   if (usuario) {
     throw new Error("El documento ya está en uso");
   }
 };
+
 const validateUsuariosUniqueCorreo = async (correo) => {
+  if (!correo) return true; // Si no hay correo, no validar
   const usuario = await Usuario.findOne({ where: { correo } });
   if (usuario) {
     throw new Error("El correo ya está en uso");
@@ -31,12 +32,11 @@ const validateBaseUsuarios = [
     .notEmpty()
     .withMessage("El documento es obligatorio")
     .isLength({ max: 15 })
-    .withMessage("El documento no puede exceder los 15 caracteres")
-    .custom(validateUsuariosUniqueDocumento),
+    .withMessage("El documento no puede exceder los 15 caracteres"),
   body("tipo_documento")
     .notEmpty()
     .withMessage("El tipo de documento es obligatorio")
-    .isIn(["CC", "CE", "PPT", "NIT"])
+    .isIn(["CC", "CE", "PPT", "NIT", "PA"])
     .withMessage("Tipo de documento inválido"),
   body("nombre")
     .notEmpty()
@@ -59,8 +59,7 @@ const validateBaseUsuarios = [
     .isEmail()
     .withMessage("Correo electrónico inválido")
     .isLength({ max: 100 })
-    .withMessage("El correo no puede exceder los 100 caracteres")
-    .custom(validateUsuariosUniqueCorreo),
+    .withMessage("El correo no puede exceder los 100 caracteres"),
   body("contrasena")
     .notEmpty()
     .withMessage("La contraseña es obligatoria")
@@ -69,11 +68,11 @@ const validateBaseUsuarios = [
   body("id_rol")
     .notEmpty()
     .withMessage("El rol es obligatorio")
-    .isLength({ max: 50 })
-    .withMessage("El rol no puede exceder los 50 caracteres"),
-  body("id_estado_usuario")
+    .isInt()
+    .withMessage("El rol debe ser un número entero"),
+  body("estado_usuario")
     .notEmpty()
-    .withMessage("El tipo de documento es obligatorio")
+    .withMessage("El estado del usuario es obligatorio")
     .isIn([
       "Activo",
       "Inactivo",
@@ -82,7 +81,7 @@ const validateBaseUsuarios = [
       "Retirado",
       "Licencia médica",
     ])
-    .withMessage("Tipo de documento inválido"),
+    .withMessage("Estado de usuario inválido"),
 ];
 
 // Validaciones para crear
@@ -94,12 +93,15 @@ const createUserValidation = [
 
 // Validaciones para verificar la unicidad del documento y correo al actualizar
 const validateUsuariosUniqueDocumentoUpdate = async (documento, { req }) => {
+  if (!documento) return true; // Si no hay documento, no validar
   const usuario = await Usuario.findOne({ where: { documento } });
   if (usuario && usuario.id_usuario != req.params.id) {
     throw new Error("El documento ya está en uso");
   }
 };
+
 const validateUsuariosUniqueCorreoUpdate = async (correo, { req }) => {
+  if (!correo) return true; // Si no hay correo, no validar
   const usuario = await Usuario.findOne({ where: { correo } });
   if (usuario && usuario.id_usuario != req.params.id) {
     throw new Error("El correo ya está en uso");
@@ -112,7 +114,7 @@ const updateUserValidation = [
     .optional()
     .isString()
     .custom(validateUsuariosUniqueDocumentoUpdate),
-  body("tipo_documento").optional().isIn(["CC", "CE", "PPT", "NIT"]),
+  body("tipo_documento").optional().isIn(["CC", "CE", "PPT", "NIT", "PA"]),
   body("nombre").optional().isString(),
   body("apellido").optional().isString(),
   body("celular").optional().isString(),
@@ -121,8 +123,7 @@ const updateUserValidation = [
     .isEmail()
     .custom(validateUsuariosUniqueCorreoUpdate),
   body("contrasena").optional().isString(),
-  body("id_rol").optional().isString(),
-  body("id_estado_usuario")
+  body("estado_usuario")
     .optional()
     .isIn([
       "Activo",
@@ -131,17 +132,19 @@ const updateUserValidation = [
       "En vacaciones",
       "Retirado",
       "Licencia médica",
-    ]),
+    ])
+    .withMessage("Estado de usuario inválido"),
 ];
 
 // Validaciones para eliminar
 const deleteUserValidation = [
-  param("id").isInt().withMessage("El ID del usuario debe ser oblogatorio"),
+  param("id").isInt().withMessage("El ID del usuario debe ser obligatorio"),
   param("id").custom(validateUsuariosExistence),
 ];
+
 // Validaciones para buscar por Id
 const findUserByIdValidation = [
-  param("id").isInt().withMessage("El ID del usuario debe ser oblogatorio"),
+  param("id").isInt().withMessage("El ID del usuario debe ser obligatorio"),
   param("id").custom(validateUsuariosExistence),
 ];
 
