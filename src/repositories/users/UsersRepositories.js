@@ -1,4 +1,6 @@
 const User= require('../../models/users/Users');
+const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 
 const createUser = async (user) => {
     // Encriptar contraseña
@@ -15,11 +17,6 @@ const getAllUsers = async () => {
                 as: 'rol',
                 attributes: ['id_rol', 'nombre_rol', 'descripcion']
             },
-            {
-                model: require('../../models/estado_usuarios/estado_usuarios'),
-                as: 'estado',
-                attributes: ['id_estado_usuario', 'estado']
-            }
         ],
         attributes: { exclude: ['contrasena'] }
     });
@@ -32,11 +29,6 @@ const getUserById = async (id) => {
                 model: require('../../models/roles/roles'),
                 as: 'rol',
                 attributes: ['id_rol', 'nombre_rol', 'descripcion']
-            },
-            {
-                model: require('../../models/estado_usuarios/estado_usuarios'),
-                as: 'estado',
-                attributes: ['id_estado_usuario', 'estado']
             }
         ]
     });
@@ -71,7 +63,7 @@ const searchUsers = async (term) => {
         { celular: { [likeOperator]: `%${searchTerm}%` } },
         { correo: { [likeOperator]: `%${searchTerm}%` } },
         { id_rol: { [likeOperator]: `%${searchTerm}%` } },
-        { id_estado_usuario: { [likeOperator]: `%${searchTerm}%` } },
+        { estado_usuario: { [likeOperator]: `%${searchTerm}%` } },
     ];
 
     const parsedId = Number(searchTerm);

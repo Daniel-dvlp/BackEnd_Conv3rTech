@@ -5,55 +5,55 @@ const AddressClients = require("./AddressClients");
 const Clients = sequelize.define(
   "Clients",
   {
-    id_client: {
+    id_cliente: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    document: {
+    documento: {
       type: DataTypes.STRING(15),
       allowNull: false,
       unique: true,
     },
-    type_document: {
+    tipo_documento: {
       type: DataTypes.ENUM("CC", "CE", "PPT", "NIT", "PA"),
       allowNull: false,
     },
-    name: {
+    nombre: {
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    lastName: {
+    apellido: {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    phone: {
+    telefono: {
       type: DataTypes.STRING(15),
       allowNull: false,
     },
-    email: {
+    correo: {
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
     },
-    credit: {
+    credito: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    stateClient: {
+    estado_cliente: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
   },
   {
-    tableName: "clients",
+    tableName: "clientes",
     timestamps: false,
     underscored: true,
   }
 );
 
 // Relaciones
-Clients.hasMany(AddressClients, { foreignKey: "id_client" }); 
-AddressClients.belongsTo(Clients, { foreignKey: "id_client" });
+Clients.hasMany(AddressClients, { foreignKey: "id_cliente" }); 
+AddressClients.belongsTo(Clients, { foreignKey: "id_cliente" });
 
 module.exports = Clients;
