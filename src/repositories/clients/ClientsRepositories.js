@@ -4,20 +4,25 @@ const { Op } = require('sequelize');
 const createClient = async (clientData) => {
     return Client.create(clientData);
 }
+
 const getAllClients = async () => {
     return Client.findAll();
 }
+
 const updateClient = async (id, ClientData) => {
-    return Client.update(ClientData, { where: { id_client: id } });
+    return Client.update(ClientData, { where: { id_cliente: id } });
 }
+
 const deleteClient = async (id) => {
-    return Client.destroy({ where: { id_client: id } });
+    return Client.destroy({ where: { id_cliente: id } });
 }
+
 const getClientById = async (id) => {
     return Client.findByPk(id);
 }
+
 const changeClientStatus = async (id, status) => {
-    const result = await Client.update({ stateClient: status }, { where: { id_client: id } });
+    const result = await Client.update({ estado_cliente: status }, { where: { id_cliente: id } });
     return result;
 }
 
@@ -35,30 +40,30 @@ const searchClients = async (term) => {
 
         // Condiciones de búsqueda para campos de texto
         const orConditions = [
-            { document: { [likeOperator]: `%${searchTerm}%` } },
-            { type_document: { [likeOperator]: `%${searchTerm}%` } },
-            { name: { [likeOperator]: `%${searchTerm}%` } },
-            { lastName: { [likeOperator]: `%${searchTerm}%` } },
-            { phone: { [likeOperator]: `%${searchTerm}%` } },
-            { email: { [likeOperator]: `%${searchTerm}%` } }
+            { documento: { [likeOperator]: `%${searchTerm}%` } },
+            { tipo_documento: { [likeOperator]: `%${searchTerm}%` } },
+            { nombre: { [likeOperator]: `%${searchTerm}%` } },
+            { apellido: { [likeOperator]: `%${searchTerm}%` } },
+            { telefono: { [likeOperator]: `%${searchTerm}%` } },
+            { correo: { [likeOperator]: `%${searchTerm}%` } }
         ];
 
         // Agregar búsqueda por ID si el término es un número
         const parsedId = Number(searchTerm);
         if (!Number.isNaN(parsedId)) {
-            orConditions.push({ id_client: parsedId });
+            orConditions.push({ id_cliente: parsedId });
         }
 
         // Agregar búsqueda por estado si el término es un booleano válido
         if (searchTerm.toLowerCase() === 'true' || searchTerm.toLowerCase() === 'false') {
             const boolValue = searchTerm.toLowerCase() === 'true';
-            orConditions.push({ stateClient: boolValue });
+            orConditions.push({ estado_cliente: boolValue });
         }
 
         // Agregar búsqueda por crédito si el término es un booleano válido
         if (searchTerm.toLowerCase() === 'true' || searchTerm.toLowerCase() === 'false') {
             const boolValue = searchTerm.toLowerCase() === 'true';
-            orConditions.push({ credit: boolValue });
+            orConditions.push({ credito: boolValue });
         }
 
         console.log('Buscando clientes con término:', searchTerm);
@@ -66,7 +71,7 @@ const searchClients = async (term) => {
 
         const results = await Client.findAll({ 
             where: { [Op.or]: orConditions },
-            order: [['name', 'ASC']] // Ordenar por nombre
+            order: [['nombre', 'ASC']] // Ordenar por nombre
         });
 
         console.log(`Se encontraron ${results.length} clientes`);
@@ -77,8 +82,9 @@ const searchClients = async (term) => {
         throw error;
     }
 }
+
 const changeClientCredit = async (id, credit) => {
-    const result = await Client.update({ credit: credit }, { where: { id_client: id } });
+    const result = await Client.update({ credito: credit }, { where: { id_cliente: id } });
     return result;
 }
 
