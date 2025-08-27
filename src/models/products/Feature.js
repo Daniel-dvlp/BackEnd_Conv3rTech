@@ -12,6 +12,9 @@ const Feature = sequelize.define('Feature', {
         allowNull: false, 
         unique: true 
     }
+}, {
+    tableName: 'caracteristicas_productos',
+    timestamps: false
 });
 
 module.exports = Feature;

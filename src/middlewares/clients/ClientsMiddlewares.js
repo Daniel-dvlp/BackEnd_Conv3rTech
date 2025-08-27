@@ -100,10 +100,32 @@ const validateDeleteClients = [
     .notEmpty().withMessage('El id del cliente es obligatorio')
     .isInt().withMessage('El id del cliente debe ser un número entero')
 ]
+const validateChangeClientStatus = [
+    body('stateClient')
+        .isBoolean()
+        .withMessage('El estado debe ser un valor booleano'),
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
+]
+
+const validateChangeClientCredit = [
+    body('credit')
+        .isBoolean()
+        .withMessage('El crédito debe ser un valor booleano'),
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
+]
+const validateGetClientById = [
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
+]
 
 module.exports = {
     normalizeClientPayload,
     validateCreateClients,
     validateUpdateClients,
-    validateDeleteClients
+    validateDeleteClients,
+    validateChangeClientStatus,
+    validateGetClientById,
+    validateChangeClientCredit
 };
