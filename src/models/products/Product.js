@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Category = require('./Category');
+const sequelize = require('../../config/database');
+const Category = require('../products_category/ProductsCategory');
 
 const Product = sequelize.define('Product', {
     id_producto: { 
@@ -10,12 +10,16 @@ const Product = sequelize.define('Product', {
     },
     fotos: { 
         type: DataTypes.JSON,
-        allowNull: true 
+        allowNull: true  
     },
     nombre: { 
         type: DataTypes.STRING(255), 
         allowNull: false,
         unique: true
+    },
+    modelo: { 
+        type: DataTypes.STRING(100), 
+        allowNull: false
     },
     unidad: { 
         type: DataTypes.ENUM('Unidad', 'Metros', 'Tramo 2 metros', 'Tramos 3 metros', 'Paquetes', 'Kit'), 
