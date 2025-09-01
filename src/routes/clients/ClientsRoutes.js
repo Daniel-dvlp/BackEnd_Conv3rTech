@@ -6,6 +6,11 @@ const ClientsMiddlewares = require('../../middlewares/clients/ClientsMiddlewares
 // Rutas para clientes
 router.post('/', ClientsMiddlewares.normalizeClientPayload, ClientsMiddlewares.validateCreateClients, ClientsControllers.createClient);
 router.get('/', ClientsControllers.getAllClients);
+router.get('/:id',ClientsMiddlewares.validateGetClientById, ClientsControllers.getClientById);
+router.get('/search/:term', ClientsControllers.searchClients);
+router.put('/:id/credit', ClientsMiddlewares.validateChangeClientCredit, ClientsControllers.changeClientCredit);
+router.put('/:id/status', ClientsMiddlewares.validateChangeClientStatus, ClientsControllers.changeClientStatus);
+router.put('/:id/credit', ClientsMiddlewares.validateChangeClientCredit, ClientsControllers.changeClientCredit);
 router.put('/:id', ClientsMiddlewares.normalizeClientPayload, ClientsMiddlewares.validateUpdateClients, ClientsControllers.updateClient);
 router.delete('/:id', ClientsMiddlewares.validateDeleteClients, ClientsControllers.deleteClient);
 
