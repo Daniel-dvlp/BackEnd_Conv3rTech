@@ -1,6 +1,11 @@
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
 const app = express();
 
+// Middleware
+app.use(cors());
 app.use(express.json());
 
 // Rutas para proveedores
@@ -14,10 +19,6 @@ app.use('/api/purchases', PurchaseRoutes);
 // Rutas para categorias de productos
 const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
 app.use('/api/productsCategory', categoryRoutes);
-
-// Rutas para catergoria de servicios
-const serviceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
-app.use('/api/service-categories', serviceCategoryRoutes);
 
 // Rutas para usuarios
 const UsersRoutes = require('./routes/Users/UsersRoutes');

@@ -1,5 +1,5 @@
 const  {validationResult} = require('express-validator');
-const AddressClientsServices = require('../../services/clients/AddressClientservices');
+const AddressClientsServices = require('../../services/clients/AddressClientServices');
 const AddressClients = require('../../models/clients/AddressClients');
 
 const createAddressClient = async (req, res) => {
@@ -31,9 +31,9 @@ const updateAddressClient = async (req, res) => {
     }
     try {
         const { id } = req.params;
-        const [updated] = await AddressClients.update(req.body, { where: { id_address: id } });
+        const [updated] = await AddressClients.update(req.body, { where: { id_direccion: id } });
         if (updated) {
-            const updatedAddressClient = await AddressClients.findOne({ where: { id_address: id } });
+            const updatedAddressClient = await AddressClients.findOne({ where: { id_direccion: id } });
             return res.status(200).json(updatedAddressClient);
         }
         return res.status(404).json({ error: 'Direccion de cliente no encontrada' });

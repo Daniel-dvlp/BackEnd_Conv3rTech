@@ -2,7 +2,7 @@ const {body, param} = require('express-validator');
 const Clients = require('../../models/clients/Clients');
 
 // Normaliza el body para aceptar tanto payload anidado { client, addresses }
-// como plano { document, type_document, ... , addresses }
+// como plano { documento, tipo_documento, ... , addresses }
 const normalizeClientPayload = (req, _res, next) => {
     const hasNestedClient = req.body && typeof req.body.client === 'object' && req.body.client !== null;
     if (hasNestedClient) {
@@ -21,41 +21,40 @@ const validateClientsExistence = async(id) => {
 }
 
 // Validacion para verificar la unicidad del cliente
-const validateClientsUniqueDocument = async(document, { req }) => {
+const validateClientsUniqueDocument = async(documento, { req }) => {
     const id = req.params.id;
-    const where = { document };
+    const where = { documento };
     if (id) {
-        where.id_client = { [require('sequelize').Op.ne]: id };
+        where.id_cliente = { [require('sequelize').Op.ne]: id };
     }
     const client = await Clients.findOne({ where });
     if (client) {
         throw new Error('El documento ya está en uso');
     }
 }
+
 const validateBaseClients = [
-    body('document')
+    body('documento')
         .notEmpty().withMessage('El documento es obligatorio')
         .isLength({ max: 20 }).withMessage('El documento no puede exceder los 20 caracteres')
         .custom(validateClientsUniqueDocument),
-    body('type_document')
+    body('tipo_documento')
         .notEmpty().withMessage('El tipo de Documento es Obligatorio')
         .isIn(['CC', 'CE', 'PPT', 'NIT','PA']),
-    body('name')
+    body('nombre')
         .notEmpty().withMessage('El nombre es obligatorio')
         .isLength({ max: 50 }).withMessage('El nombre no puede exceder los 50 caracteres'),
-    body('lastName')
+    body('apellido')
         .optional()
-        .isLength({ max: 50}).withMessage('El apellido no puede exceder los 50 caracteres')
-    ,
-    body('phone')
+        .isLength({ max: 50}).withMessage('El apellido no puede exceder los 50 caracteres'),
+    body('telefono')
         .isLength({ max: 15 }).withMessage('El teléfono no puede exceder los 15 caracteres'),
-    body('email')
+    body('correo')
         .isEmail().withMessage('Debe ser un correo electrónico válido'),
-    body('credit')
+    body('credito')
         .isBoolean().withMessage('El credito debe ser un booleano'),
-    body('stateClient')
+    body('estado_cliente')
         .isBoolean().withMessage('El estado del cliente debe ser un booleano')
-
 ]
 
 const validateCreateClients = [
@@ -64,46 +63,69 @@ const validateCreateClients = [
 
 const validateUpdateClients = [
     param('id'),
-    body('document')
-    .optional()
-    .notEmpty().withMessage('El documento es obligatorio')
-    .isLength({ max: 20 }).withMessage('El documento no puede exceder los 20 caracteres')
-    .custom(validateClientsUniqueDocument),
-body('type_document')
-    .optional()
-    .notEmpty().withMessage('El tipo de Documento es Obligatorio')
-    .isIn(['CC', 'CE', 'PPT', 'NIT','PA']),
-body('name')
-    .optional()
-    .notEmpty().withMessage('El nombre es obligatorio')
-    .isLength({ max: 50 }).withMessage('El nombre no puede exceder los 50 caracteres'),
-body('lastName')
-    .optional()
-    .isLength({ max: 50}).withMessage('El apellido no puede exceder los 50 caracteres')
-,
-body('phone')
-    .optional()
-    .isLength({ max: 15 }).withMessage('El teléfono no puede exceder los 15 caracteres'),
-body('email')
-    .optional()
-    .isEmail().withMessage('Debe ser un correo electrónico válido'),
-body('credit')
-    .optional()
-    .isBoolean().withMessage('El credito debe ser un booleano'),
-body('stateClient')
-    .optional()
-    .isBoolean().withMessage('El estado del cliente debe ser un booleano')
+    body('documento')
+        .optional()
+        .notEmpty().withMessage('El documento es obligatorio')
+        .isLength({ max: 20 }).withMessage('El documento no puede exceder los 20 caracteres')
+        .custom(validateClientsUniqueDocument),
+    body('tipo_documento')
+        .optional()
+        .notEmpty().withMessage('El tipo de Documento es Obligatorio')
+        .isIn(['CC', 'CE', 'PPT', 'NIT','PA']),
+    body('nombre')
+        .optional()
+        .notEmpty().withMessage('El nombre es obligatorio')
+        .isLength({ max: 50 }).withMessage('El nombre no puede exceder los 50 caracteres'),
+    body('apellido')
+        .optional()
+        .isLength({ max: 50}).withMessage('El apellido no puede exceder los 50 caracteres'),
+    body('telefono')
+        .optional()
+        .isLength({ max: 15 }).withMessage('El teléfono no puede exceder los 15 caracteres'),
+    body('correo')
+        .optional()
+        .isEmail().withMessage('Debe ser un correo electrónico válido'),
+    body('credito')
+        .optional()
+        .isBoolean().withMessage('El credito debe ser un booleano'),
+    body('estado_cliente')
+        .optional()
+        .isBoolean().withMessage('El estado del cliente debe ser un booleano')
 ]
 
 const validateDeleteClients = [
     param('id')
-    .notEmpty().withMessage('El id del cliente es obligatorio')
-    .isInt().withMessage('El id del cliente debe ser un número entero')
+        .notEmpty().withMessage('El id del cliente es obligatorio')
+        .isInt().withMessage('El id del cliente debe ser un número entero')
+]
+
+const validateChangeClientStatus = [
+    body('estado_cliente')
+        .isBoolean()
+        .withMessage('El estado debe ser un valor booleano'),
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
+]
+
+const validateChangeClientCredit = [
+    body('credito')
+        .isBoolean()
+        .withMessage('El crédito debe ser un valor booleano'),
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
+]
+
+const validateGetClientById = [
+    param('id').isInt().withMessage('El id debe ser un número entero'),
+    param('id').custom(validateClientsExistence)
 ]
 
 module.exports = {
     normalizeClientPayload,
     validateCreateClients,
     validateUpdateClients,
-    validateDeleteClients
+    validateDeleteClients,
+    validateChangeClientStatus,
+    validateGetClientById,
+    validateChangeClientCredit
 };
