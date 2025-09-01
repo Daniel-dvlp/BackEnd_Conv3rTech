@@ -1,10 +1,10 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const PermisoPrivilegio = sequelize.define(
-  "permiso_privilegio",
+const PermissionPrivilege = sequelize.define(
+  "PermissionPrivilege",
   {
-    id_pp: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -35,10 +35,10 @@ const PermisoPrivilegio = sequelize.define(
       {
         unique: true,
         fields: ["id_permiso", "id_privilegio"],
-        name: "uc_permiso_privilegio",
+        name: "unique_permiso_privilegio",
       },
     ],
   }
 );
 
-module.exports = PermisoPrivilegio;
+module.exports = PermissionPrivilege;

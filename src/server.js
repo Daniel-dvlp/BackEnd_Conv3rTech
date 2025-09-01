@@ -1,9 +1,8 @@
 // src/server.js
 const app = require("./app");
 const sequelize = require("./config/database");
-const initRBAC = require("./startup/rbacInit");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 (async () => {
   try {
@@ -15,10 +14,10 @@ const PORT = process.env.PORT;
     await sequelize.sync();
     console.log("✅ Modelos sincronizados");
 
-    // 3) Inicializar RBAC (roles, permisos, privilegios, estados de usuario)
-    await initRBAC();
+    // ❌ Eliminado: no llamamos a rbacInit ni a ningún startup
+    // await require("./startup/rbacInit")();
 
-    // 4) Levantar servidor Express
+    // 3) Levantar servidor Express
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
@@ -26,9 +25,7 @@ const PORT = process.env.PORT;
     console.error("❌ Error conectando a la base de datos:", err);
 
     // Levantar igual el servidor sin BD
-    console.log(
-      "⚠️  Iniciando servidor sin sincronización de base de datos..."
-    );
+    console.log("⚠️ Iniciando servidor sin sincronización de base de datos...");
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT} (sin BD)`);
     });
