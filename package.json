@@ -2,13 +2,8 @@
   "name": "conv3rtech-back",
   "version": "1.0.0",
   "description": "",
-<<<<<<< HEAD
-  "main": "index.js",
-"scripts": {
-=======
   "main": "server.js",
   "scripts": {
->>>>>>> dev
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
