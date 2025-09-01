@@ -9,28 +9,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Importar asociaciones de modelos básicas
-require("./models/associations");
+// Importar asociaciones de autenticación
+
+require("./models/auth/associations");
 
 // Comentar temporalmente las asociaciones de proyectos para evitar conflictos
 // require("./models/projects/associations");
 
 // ====================== RUTAS ======================
 
-// Rutas de autenticación (Comentadas temporalmente minetras verifico)
-// const authRoutes = require("./routes/auth/auth_routes");
-// app.use("/api/auth", authRoutes);
+// Rutas de autenticación
+const authRoutes = require("./routes/auth/AuthRoutes");
+app.use("/api/auth", authRoutes);
 
 // Rutas de roles y permisos
-const rolesRoutes = require("./routes/auth/RolesRoutes");
-const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
-const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
-const RBACRoutes = require("./routes/auth/RBACRoutes");
+const roleRoutes = require("./routes/auth/RoleRoutes");
+app.use("/api/roles", roleRoutes);
 
-app.use("/api/roles", rolesRoutes);
+// Rutas de permisos
+const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 app.use("/api/permissions", permissionsRoutes);
-app.use("/api/privileges", privilegesRoutes);
-app.use("/api/rbac", RBACRoutes);
 
 // Rutas de proyectos (comentadas temporalmente)
 // const ProjectRoutes = require("./routes/projects/ProjectRoutes");
@@ -49,12 +47,12 @@ const categoryRoutes = require("./routes/products_category/ProductsCategoryRoute
 app.use("/api/productsCategory", categoryRoutes);
 
 //Ruta para productos
-const ProductRoutes = require('./routes/products/ProductsRoutes');
-app.use('/api/products/products', ProductRoutes)
-const ProductFeatureRoutes = require('./routes/products/FeatureRoutes');
-app.use('/api/products/features', ProductFeatureRoutes);
-const DatasheetRoutes = require('./routes/products/DatasheetRoutes');
-app.use('/api/products/datasheets', DatasheetRoutes);
+const ProductRoutes = require("./routes/products/ProductsRoutes");
+app.use("/api/products/products", ProductRoutes);
+const ProductFeatureRoutes = require("./routes/products/FeatureRoutes");
+app.use("/api/products/features", ProductFeatureRoutes);
+const DatasheetRoutes = require("./routes/products/DatasheetRoutes");
+app.use("/api/products/datasheets", DatasheetRoutes);
 
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
