@@ -45,8 +45,6 @@ require("./models/auth/associations");
 
 
 // ====================== RUTAS ======================
-const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
-const RBACRoutes = require("./routes/auth/RBACRoutes");
 
 // Rutas de autenticación
 const authRoutes = require("./routes/auth/AuthRoutes");
@@ -66,14 +64,6 @@ app.use("/api/suppliers", SupplierRoutes);
 //Ruta para compras
 const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
 app.use("/api/purchases", PurchaseRoutes);
-
-// Rutas para proveedores
-const SupplierRoutes = require('./routes/supplier/SupplierRoutes');
-app.use('/api/suppliers', SupplierRoutes);
-
-// Rutas para compras
-const PurchaseRoutes = require('./routes/purchase/PurchaseRoutes');
-app.use('/api/purchases', PurchaseRoutes);
 
 // Rutas para categorias de productos
 const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
