@@ -9,14 +9,47 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// --- Nuevo bloque de código para las asociaciones de Sequelize ---
+// 1. Importar todos los modelos que tienen asociaciones
+const sequelize = require('./config/database');
+const Product = require('./models/products/Product');
+const Supplier = require('./models/supplier/SupplierModel');
+const Purchase = require('./models/purchase/PurchaseModel');
+const PurchaseDetail = require('./models/purchase/PurchaseDetailModel');
+const User = require('./models/users/Users');
+const LaborScheduling = require('./models/labor_scheduling/LaborSchedulingModel');
+
+// 2. Ejecutar las funciones de asociación de cada modelo
+function setupAssociations() {
+    const models = {
+        Product,
+        Supplier,
+        Purchase,
+        PurchaseDetail,
+        User,
+        LaborScheduling,
+        // ... Agrega todos tus modelos aquí
+    };
+
+    Object.values(models).forEach(model => {
+        if (model.associate) {
+            model.associate(models);
+        }
+    });
+}
+setupAssociations();
+// --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
 require("./models/auth/associations");
 
-// Comentar temporalmente las asociaciones de proyectos para evitar conflictos
-// require("./models/projects/associations");
 
 // ====================== RUTAS ======================
+
+const rolesRoutes = require("./routes/auth/RolesRoutes");
+const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
+const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
+const RBACRoutes = require("./routes/auth/RBACRoutes");
 
 // Rutas de autenticación
 const authRoutes = require("./routes/auth/AuthRoutes");
@@ -30,21 +63,25 @@ app.use("/api/roles", roleRoutes);
 const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 app.use("/api/permissions", permissionsRoutes);
 
-// Rutas de proyectos (comentadas temporalmente)
-// const ProjectRoutes = require("./routes/projects/ProjectRoutes");
-// app.use("/api/projects", ProjectRoutes);
-
-// Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
 app.use("/api/suppliers", SupplierRoutes);
 
-// Rutas de compras (comentadas temporalmente)
+//Ruta para compras
 const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
 app.use("/api/purchases", PurchaseRoutes);
 
-// Rutas de categorías de productos (comentadas temporalmente)
-const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
-app.use("/api/productsCategory", categoryRoutes);
+// Rutas para proveedores
+const SupplierRoutes = require('./routes/supplier/SupplierRoutes');
+app.use('/api/suppliers', SupplierRoutes);
+
+// Rutas para compras
+const PurchaseRoutes = require('./routes/purchase/PurchaseRoutes');
+app.use('/api/purchases', PurchaseRoutes);
+
+// Rutas para categorias de productos
+const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
+app.use('/api/productsCategory', categoryRoutes);
+
 
 //Ruta para productos
 const ProductRoutes = require("./routes/products/ProductsRoutes");
@@ -57,42 +94,56 @@ app.use("/api/products/datasheets", DatasheetRoutes);
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
 app.use("/api/users", UsersRoutes);
-
-// Rutas de clientes
 const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
-
-// Rutas de direcciones de clientes
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
+const LaborSchedulingRoutes = require('./routes/labor_scheduling/LaborSchedulingRoutes');
+app.use('/api/labor-scheduling', LaborSchedulingRoutes);
 
 // ====================== UTILIDADES ======================
 
-// Ruta de prueba (health check)
 app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Conv3rTech API está funcionando correctamente",
-    timestamp: new Date().toISOString(),
-  });
+    res.json({
+        success: true,
+        message: "Conv3rTech API está funcionando correctamente",
+        timestamp: new Date().toISOString(),
+    });
 });
 
-// Manejo de errores global
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  res.status(500).json({
-    success: false,
-    message: "Error interno del servidor",
-    error: process.env.NODE_ENV === "development" ? err.message : {},
-  });
+    console.error("Error:", err);
+    res.status(500).json({
+        success: false,
+        message: "Error interno del servidor",
+        error: process.env.NODE_ENV === "development" ? err.message : {},
+    });
 });
 
-// Ruta para manejar rutas no encontradas
 app.use("*", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Ruta no encontrada",
-  });
+    res.status(404).json({
+        success: false,
+        message: "Ruta no encontrada",
+    });
 });
+
+// Rutas para usuarios
+const UsersRoutes = require('./routes/Users/UsersRoutes');
+app.use('/api/users', UsersRoutes);
+
+// Rutas para clientes
+const ClientsRoutes = require('./routes/clients/ClientsRoutes');
+app.use('/api/clients', ClientsRoutes);
+const AddressClientsRoutes = require('./routes/clients/AddressClientsRoutes');
+app.use('/api/address-clients', AddressClientsRoutes);
+
+//Rutas de Categoria de Servicio
+const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
+app.use('/api/service-categories', ServiceCategoryRoutes);
+
+// Rutas para servicios
+const ServicesRoutes = require('./routes/services/ServicesRoutes');
+app.use('/api/services', ServicesRoutes);
+
 
 module.exports = app;
