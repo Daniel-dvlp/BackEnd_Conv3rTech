@@ -1,9 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database');
-const Supplier = require('../supplier/SupplierModel');
-const PurchaseDetail = require('./PurchaseDetailModel');
 
 const Purchase = sequelize.define('Purchase', {
+    // ... tus atributos aquí
     id_compra: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -17,11 +16,7 @@ const Purchase = sequelize.define('Purchase', {
     id_proveedor: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        unique: 'compositeIndex',
-        references: {
-            model: Supplier,
-            key: 'id_proveedor'
-        }
+        unique: 'compositeIndex'
     },
     monto: {
         type: DataTypes.DECIMAL(10, 2),
@@ -48,11 +43,18 @@ const Purchase = sequelize.define('Purchase', {
     timestamps: false
 });
 
-// Definición de las asociaciones
-Purchase.belongsTo(Supplier, { foreignKey: 'id_proveedor' });
-Supplier.hasMany(Purchase, { foreignKey: 'id_proveedor' });
-
-Purchase.hasMany(PurchaseDetail, { foreignKey: 'id_compra' });
-PurchaseDetail.belongsTo(Purchase, { foreignKey: 'id_compra' });
+// Definir las asociaciones después de que los modelos han sido registrados en Sequelize
+Purchase.associate = (models) => {
+    // Asociación con el modelo de Proveedor
+    Purchase.belongsTo(models.Supplier, {
+        foreignKey: 'id_proveedor',
+        as: 'supplier'
+    });
+    // Asociación con el modelo de Detalle de Compra
+    Purchase.hasMany(models.PurchaseDetail, {
+        foreignKey: 'id_compra',
+        as: 'purchaseDetails'
+    });
+};
 
 module.exports = Purchase;
