@@ -39,6 +39,9 @@ function setupAssociations() {
 }
 setupAssociations();
 // --- Fin del bloque de código nuevo ---
+// Importar asociaciones de autenticación
+
+require("./models/auth/associations");
 
 
 // ====================== RUTAS ======================
@@ -48,10 +51,17 @@ const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
 const RBACRoutes = require("./routes/auth/RBACRoutes");
 
-app.use("/api/roles", rolesRoutes);
+// Rutas de autenticación
+const authRoutes = require("./routes/auth/AuthRoutes");
+app.use("/api/auth", authRoutes);
+
+// Rutas de roles y permisos
+const roleRoutes = require("./routes/auth/RoleRoutes");
+app.use("/api/roles", roleRoutes);
+
+// Rutas de permisos
+const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 app.use("/api/permissions", permissionsRoutes);
-app.use("/api/privileges", privilegesRoutes);
-app.use("/api/rbac", RBACRoutes);
 
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
 app.use("/api/suppliers", SupplierRoutes);
@@ -62,22 +72,21 @@ app.use("/api/purchases", PurchaseRoutes);
 const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
 app.use("/api/productsCategory", categoryRoutes);
 
-const ProductRoutes = require('./routes/products/ProductsRoutes');
-app.use('/api/products/products', ProductRoutes)
-const ProductFeatureRoutes = require('./routes/products/FeatureRoutes');
-app.use('/api/products/features', ProductFeatureRoutes);
-const DatasheetRoutes = require('./routes/products/DatasheetRoutes');
-app.use('/api/products/datasheets', DatasheetRoutes);
+//Ruta para productos
+const ProductRoutes = require("./routes/products/ProductsRoutes");
+app.use("/api/products/products", ProductRoutes);
+const ProductFeatureRoutes = require("./routes/products/FeatureRoutes");
+app.use("/api/products/features", ProductFeatureRoutes);
+const DatasheetRoutes = require("./routes/products/DatasheetRoutes");
+app.use("/api/products/datasheets", DatasheetRoutes);
 
+// Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
 app.use("/api/users", UsersRoutes);
-
 const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
-
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
-
 const LaborSchedulingRoutes = require('./routes/labor_scheduling/LaborSchedulingRoutes');
 app.use('/api/labor-scheduling', LaborSchedulingRoutes);
 
