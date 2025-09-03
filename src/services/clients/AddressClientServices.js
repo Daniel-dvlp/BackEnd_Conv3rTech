@@ -3,6 +3,7 @@ const AddressClientsRepositories = require('../../repositories/clients/AddressCl
 const createAddressClient = async (addressClientData) => {
     return AddressClientsRepositories.createAddressClient(addressClientData);
 }
+
 const getAllAddressClients = async () => {
     return AddressClientsRepositories.getAllAddressClients();
 }
