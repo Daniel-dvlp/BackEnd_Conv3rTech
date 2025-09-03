@@ -56,14 +56,14 @@ const productBaseValidation = [
     body('garantia')
         .isInt({ min: 12 })
         .withMessage('La garantía debe ser igual o mayor a 12 meses'),
-    body('estado')
-        .optional()
-        .isBoolean()
-        .withMessage('El estado debe ser un booleano'),
     body('codigo_barra')
         .optional()
         .isString()
-        .withMessage('El código de barras debe ser un texto')
+        .withMessage('El código de barras debe ser un texto'),
+    body('estado')
+        .optional()
+        .isBoolean()
+        .withMessage('El estado debe ser un booleano')
 ];
 
 // Crear producto
@@ -102,14 +102,14 @@ const updateProductValidation = [
         .optional()
         .isInt({ min: 12 })
         .withMessage('La garantía debe ser igual o mayor a 12 meses'),
-    body('estado')
-        .optional()
-        .isBoolean()
-        .withMessage('El estado debe ser un booleano'),
     body('codigo_barra')
         .optional()
         .isString()
         .withMessage('El código de barras debe ser un texto'),
+    body('estado')
+        .optional()
+        .isBoolean()
+        .withMessage('El estado debe ser un booleano'),
     param('id')
         .isInt().withMessage('El id del producto debe ser un número entero')
         .custom(validateProductExistence)
