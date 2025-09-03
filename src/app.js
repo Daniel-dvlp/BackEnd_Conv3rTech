@@ -30,4 +30,14 @@ app.use('/api/clients', ClientsRoutes);
 const AddressClientsRoutes = require('./routes/clients/AddressClientsRoutes');
 app.use('/api/address-clients', AddressClientsRoutes);
 
+//Rutas de Categoria de Servicio
+const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
+app.use('/api/service-categories', ServiceCategoryRoutes);
+
+// Rutas para servicios
+const ServicesRoutes = require('./routes/services/ServicesRoutes');
+app.use('/api/services', ServicesRoutes);
+
+
+
 module.exports = app;
