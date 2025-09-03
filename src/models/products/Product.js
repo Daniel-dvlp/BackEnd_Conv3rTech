@@ -43,19 +43,14 @@ const Product = sequelize.define('Product', {
         allowNull: false,
         validate: { min: 12 }
     },
-    iva: {
-        type: DataTypes.DECIMAL(5, 2),
-        defaultValue: 19.00,
-        validate: { isDecimal: true }
+    codigo_barra: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     },
     estado: {
         type: DataTypes.BOOLEAN,
         defaultValue: true // true = activo, false = inactivo
     },
-    codigo_barra: {
-        type: DataTypes.STRING(100),
-        allowNull: true
-    }
 }, {
     tableName: 'productos',
     timestamps: false
