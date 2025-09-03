@@ -8,7 +8,7 @@ const createCategory = async (req, res) => {
     }
     try {
         const category = await categoryService.createCategory(req.body);
-        res.status(201).json(category);
+        res.status(201).json({ message: 'Categoría creada exitosamente', data: category });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -17,6 +17,9 @@ const createCategory = async (req, res) => {
 const getAllCategories = async (req, res) => {
     try {
         const categories = await categoryService.getAllCategories();
+        if (categories.length === 0) {
+            return res.status(200).json({ message: 'No hay categorías registradas', data: [] });
+        }
         res.status(200).json(categories);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -43,7 +46,7 @@ const updateCategory = async (req, res) => {
     }
     try {
         await categoryService.updateCategory(req.params.id, req.body);
-        res.status(204).end();
+        res.status(201).json({ message: 'Categoría actualizada exitosamente' });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -56,7 +59,7 @@ const deleteCategory = async (req, res) => {
     }
     try {
         await categoryService.deleteCategory(req.params.id);
-        res.status(204).end();
+        res.status(201).json({ message: 'Categoría eliminada exitosamente' });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
