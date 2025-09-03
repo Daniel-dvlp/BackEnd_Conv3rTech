@@ -45,9 +45,6 @@ require("./models/auth/associations");
 
 
 // ====================== RUTAS ======================
-
-const rolesRoutes = require("./routes/auth/RolesRoutes");
-const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
 const RBACRoutes = require("./routes/auth/RBACRoutes");
 
@@ -101,6 +98,14 @@ app.use("/api/address-clients", AddressClientsRoutes);
 const LaborSchedulingRoutes = require('./routes/labor_scheduling/LaborSchedulingRoutes');
 app.use('/api/labor-scheduling', LaborSchedulingRoutes);
 
+//Rutas de Categoria de Servicio
+const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
+app.use('/api/service-categories', ServiceCategoryRoutes);
+
+// Rutas para servicios
+const ServicesRoutes = require('./routes/services/ServicesRoutes');
+app.use('/api/services', ServicesRoutes);
+
 // ====================== UTILIDADES ======================
 
 app.get("/api/health", (req, res) => {
@@ -126,24 +131,6 @@ app.use("*", (req, res) => {
         message: "Ruta no encontrada",
     });
 });
-
-// Rutas para usuarios
-const UsersRoutes = require('./routes/Users/UsersRoutes');
-app.use('/api/users', UsersRoutes);
-
-// Rutas para clientes
-const ClientsRoutes = require('./routes/clients/ClientsRoutes');
-app.use('/api/clients', ClientsRoutes);
-const AddressClientsRoutes = require('./routes/clients/AddressClientsRoutes');
-app.use('/api/address-clients', AddressClientsRoutes);
-
-//Rutas de Categoria de Servicio
-const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
-app.use('/api/service-categories', ServiceCategoryRoutes);
-
-// Rutas para servicios
-const ServicesRoutes = require('./routes/services/ServicesRoutes');
-app.use('/api/services', ServicesRoutes);
 
 
 module.exports = app;
