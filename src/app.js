@@ -66,11 +66,22 @@ app.use("/api/permissions", permissionsRoutes);
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
 app.use("/api/suppliers", SupplierRoutes);
 
+//Ruta para compras
 const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
 app.use("/api/purchases", PurchaseRoutes);
 
-const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
-app.use("/api/productsCategory", categoryRoutes);
+// Rutas para proveedores
+const SupplierRoutes = require('./routes/supplier/SupplierRoutes');
+app.use('/api/suppliers', SupplierRoutes);
+
+// Rutas para compras
+const PurchaseRoutes = require('./routes/purchase/PurchaseRoutes');
+app.use('/api/purchases', PurchaseRoutes);
+
+// Rutas para categorias de productos
+const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
+app.use('/api/productsCategory', categoryRoutes);
+
 
 //Ruta para productos
 const ProductRoutes = require("./routes/products/ProductsRoutes");
@@ -115,5 +126,24 @@ app.use("*", (req, res) => {
         message: "Ruta no encontrada",
     });
 });
+
+// Rutas para usuarios
+const UsersRoutes = require('./routes/Users/UsersRoutes');
+app.use('/api/users', UsersRoutes);
+
+// Rutas para clientes
+const ClientsRoutes = require('./routes/clients/ClientsRoutes');
+app.use('/api/clients', ClientsRoutes);
+const AddressClientsRoutes = require('./routes/clients/AddressClientsRoutes');
+app.use('/api/address-clients', AddressClientsRoutes);
+
+//Rutas de Categoria de Servicio
+const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
+app.use('/api/service-categories', ServiceCategoryRoutes);
+
+// Rutas para servicios
+const ServicesRoutes = require('./routes/services/ServicesRoutes');
+app.use('/api/services', ServicesRoutes);
+
 
 module.exports = app;
