@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const Permisos = sequelize.define(
-  "permisos",
+const Permission = sequelize.define(
+  "Permission",
   {
     id_permiso: {
       type: DataTypes.INTEGER,
@@ -11,12 +11,17 @@ const Permisos = sequelize.define(
       allowNull: false,
     },
     nombre_permiso: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
-      validate: {
-        is: /^[A-Za-z_]+$/,
-      },
+    },
+    descripcion: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    estado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   {
@@ -26,4 +31,4 @@ const Permisos = sequelize.define(
   }
 );
 
-module.exports = Permisos;
+module.exports = Permission;

@@ -1,18 +1,21 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const RolesController = require('../../controllers/auth/RolesController');
-const { authenticateToken, requireAdmin } = require('../../middlewares/auth/auth_middleware');
+const RoleController = require("../../controllers/auth/RoleController");
 const {
-    // Permisos
-    createPermissionValidation,
-    updatePermissionValidation,
-    permissionIdValidation,
-    
-    // Privilegios
-    createPrivilegeValidation,
-    updatePrivilegeValidation,
-    privilegeIdValidation
-} = require('../../middlewares/auth/RolesValidations');
+  authMiddleware,
+  adminMiddleware,
+} = require("../../middlewares/auth/AuthMiddleware");
+const {
+  // Permisos
+  createPermissionValidation,
+  updatePermissionValidation,
+  permissionIdValidation,
+
+  // Privilegios
+  createPrivilegeValidation,
+  updatePrivilegeValidation,
+  privilegeIdValidation,
+} = require("../../middlewares/auth/AuthValidations");
 
 // ==================== RUTAS DE PERMISOS ====================
 
@@ -21,11 +24,12 @@ const {
  * @desc    Crear un nuevo permiso
  * @access  Private (Admin only)
  */
-router.post('/', 
-    authenticateToken, 
-    requireAdmin, 
-    createPermissionValidation, 
-    RolesController.createPermission
+router.post(
+  "/",
+  authMiddleware,
+  adminMiddleware,
+  createPermissionValidation,
+  RoleController.createPermission
 );
 
 /**
@@ -33,10 +37,11 @@ router.post('/',
  * @desc    Obtener todos los permisos
  * @access  Private (Admin only)
  */
-router.get('/', 
-    authenticateToken, 
-    requireAdmin, 
-    RolesController.getAllPermissions
+router.get(
+  "/",
+  authMiddleware,
+  adminMiddleware,
+  RoleController.getAllPermissions
 );
 
 /**
@@ -44,11 +49,12 @@ router.get('/',
  * @desc    Obtener un permiso por ID
  * @access  Private (Admin only)
  */
-router.get('/:id', 
-    authenticateToken, 
-    requireAdmin, 
-    permissionIdValidation, 
-    RolesController.getPermissionById
+router.get(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  permissionIdValidation,
+  RoleController.getPermissionById
 );
 
 /**
@@ -56,12 +62,13 @@ router.get('/:id',
  * @desc    Actualizar un permiso
  * @access  Private (Admin only)
  */
-router.put('/:id', 
-    authenticateToken, 
-    requireAdmin, 
-    permissionIdValidation,
-    updatePermissionValidation, 
-    RolesController.updatePermission
+router.put(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  permissionIdValidation,
+  updatePermissionValidation,
+  RoleController.updatePermission
 );
 
 /**
@@ -69,11 +76,12 @@ router.put('/:id',
  * @desc    Eliminar un permiso
  * @access  Private (Admin only)
  */
-router.delete('/:id', 
-    authenticateToken, 
-    requireAdmin, 
-    permissionIdValidation, 
-    RolesController.deletePermission
+router.delete(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  permissionIdValidation,
+  RoleController.deletePermission
 );
 
 module.exports = router;

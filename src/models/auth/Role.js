@@ -1,29 +1,34 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const Privilegios = sequelize.define(
-  "privilegios",
+const Role = sequelize.define(
+  "Role",
   {
-    id_privilegio: {
+    id_rol: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
-    nombre_privilegio: {
-      type: DataTypes.STRING(30),
+    nombre_rol: {
+      type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
-      validate: {
-        is: /^[A-Za-z ]+$/,
-      },
+    },
+    descripcion: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    estado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   {
-    tableName: "privilegios",
+    tableName: "roles",
     timestamps: false,
     underscored: true,
   }
 );
 
-module.exports = Privilegios;
+module.exports = Role;
