@@ -37,6 +37,19 @@ const getProductById = async (id) => {
     });
 };
 
+// Obtener producto por ID (sin relaciones)
+const getById = async (id) => {
+    return Product.findByPk(id);
+};
+
+// Actualizar stock del producto
+const updateStock = async (id, newStock) => {
+    return Product.update(
+        { stock: newStock },
+        { where: { id_producto: id } }
+    );
+};
+
 // Actualizar producto
 const updateProduct = async (id, product) => {
     return Product.update(product, { where: { id_producto: id } });
@@ -56,6 +69,8 @@ module.exports = {
     createProduct,
     getAllProducts,
     getProductById,
+    getById,
+    updateStock,
     updateProduct,
     deleteProduct,
     changeStateProduct,
