@@ -84,6 +84,12 @@ app.use('/api/sales', SaleRoutes);
 const SaleDetails = require('./routes/products_sale/SaleDetailsRoutes');
 app.use('/api/sales/details', SaleDetails);
 
+//Ruta para cotizaciones
+const QuoteRoutes = require('./routes/quotes/QuotesRoutes')
+app.use('/api/quotes', QuoteRoutes);
+const QuoteDetailsRoutes = require('./routes/quotes/QuoteDetailsRoutes')
+app.use('/api/quotes/details', QuoteDetailsRoutes);
+
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
 app.use("/api/users", UsersRoutes);
