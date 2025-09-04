@@ -1,5 +1,7 @@
 const Purchase = require('../../models/purchase/PurchaseModel');
 const PurchaseDetail = require('../../models/purchase/PurchaseDetailModel');
+const Supplier = require('../../models/supplier/SupplierModel');
+const Product = require('../../models/products/Product');
 const { Sequelize } = require('sequelize');
 
 const createPurchase = async (purchaseData) => {
@@ -7,22 +9,29 @@ const createPurchase = async (purchaseData) => {
     try {
         const { detalles_compras, ...purchaseInfo } = purchaseData;
         
-        const detailsWithSubtotal = detalles_compras.map(detail => ({
+        const purchase = await Purchase.create(purchaseInfo, { transaction: t });
+
+        const detailsToCreate = detalles_compras.map(detail => ({
             ...detail,
+            id_compra: purchase.id_compra,
             subtotal_producto: detail.cantidad * detail.precio_unitario,
         }));
 
-        const purchase = await Purchase.create(purchaseInfo, { transaction: t });
+        for (const detail of detalles_compras) {
+            const product = await Product.findByPk(detail.id_producto, { transaction: t });
 
-        const detailsToCreate = detailsWithSubtotal.map(detail => ({
-            ...detail,
-            id_compra: purchase.id_compra
-        }));
+            if (!product) {
+                throw new Error(`Producto con ID ${detail.id_producto} no encontrado.`);
+            }
 
+            await product.increment('stock', { by: detail.cantidad, transaction: t });
+        }
+        
         await PurchaseDetail.bulkCreate(detailsToCreate, { transaction: t });
-
+        
         await t.commit();
         return purchase;
+
     } catch (error) {
         await t.rollback();
         throw error;
@@ -32,7 +41,20 @@ const createPurchase = async (purchaseData) => {
 const getAllPurchases = async () => {
     return Purchase.findAll({
         include: [
-            { model: PurchaseDetail }
+            {
+                model: Supplier, 
+                as: 'supplier'
+            },
+            {
+                model: PurchaseDetail, 
+                as: 'purchaseDetails',
+                include: [
+                    {
+                        model: Product, 
+                        as: 'product'
+                    }
+                ]
+            }
         ]
     });
 };
@@ -40,50 +62,28 @@ const getAllPurchases = async () => {
 const getPurchaseById = async (id) => {
     return Purchase.findByPk(id, {
         include: [
-            { model: PurchaseDetail }
+            {
+                model: Supplier,
+                as: 'supplier'
+            },
+            {
+                model: PurchaseDetail,
+                as: 'purchaseDetails',
+                include: [
+                    {
+                        model: Product,
+                        as: 'product'
+                    }
+                ]
+            }
         ]
     });
 };
 
-const updatePurchase = async (id, purchaseData) => {
-    const t = await Purchase.sequelize.transaction();
-    try {
-        const { detalles_compras, ...purchaseInfo } = purchaseData;
-
-        if (detalles_compras) {
-            await PurchaseDetail.destroy({ where: { id_compra: id }, transaction: t });
-
-            const detailsWithSubtotal = detalles_compras.map(detail => ({
-                ...detail,
-                subtotal_producto: detail.cantidad * detail.precio_unitario,
-                id_compra: id
-            }));
-            await PurchaseDetail.bulkCreate(detailsWithSubtotal, { transaction: t });
-        }
-        
-        const [updated] = await Purchase.update(purchaseInfo, { where: { id_compra: id }, transaction: t });
-
-        await t.commit();
-        return [updated];
-    } catch (error) {
-        await t.rollback();
-        throw error;
-    }
-};
-
-const deletePurchase = async (id) => {
-    return Purchase.destroy({ where: { id_compra: id } });
-};
-
-const changeStatePurchase = async (id, estado) => {
-    return Purchase.update({ estado }, { where: { id_compra: id } });
-};
-
+// Asegúrate de exportar todas las funciones que necesitas
 module.exports = {
     createPurchase,
     getAllPurchases,
     getPurchaseById,
-    updatePurchase,
-    deletePurchase,
-    changeStatePurchase,
+    // Aquí puedes agregar las funciones que faltan como updatePurchase y deletePurchase
 };

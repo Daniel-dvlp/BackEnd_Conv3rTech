@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const RolesController = require("../../controllers/auth/RolesController");
+const RolesController = require("../../controllers/auth/RoleController");
 const {
   authenticateToken,
   requireAdmin,
-} = require("../../middlewares/auth/auth_middleware");
+} = require("../../middlewares/auth/AuthMiddleware");
 const {
   // Privilegios
   createPrivilegeValidation,
   updatePrivilegeValidation,
   privilegeIdValidation,
-} = require("../../middlewares/auth/RolesValidations");
+} = require("../../middlewares/auth/AuthValidations");
 
 // ==================== RUTAS DE PRIVILEGIOS ====================
 
