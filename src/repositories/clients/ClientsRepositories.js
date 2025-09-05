@@ -1,12 +1,15 @@
 const Client = require('../../models/clients/Clients');
 const { Op } = require('sequelize');
+const AddressClients = require('../../models/clients/AddressClients');
 
 const createClient = async (clientData) => {
     return Client.create(clientData);
 }
 
 const getAllClients = async () => {
-    return Client.findAll();
+    return Client.findAll(
+        { include: [{ model: AddressClients, as: 'AddressClients' }] }
+    );
 }
 
 const updateClient = async (id, ClientData) => {
@@ -18,7 +21,8 @@ const deleteClient = async (id) => {
 }
 
 const getClientById = async (id) => {
-    return Client.findByPk(id);
+    
+    return Client.findByPk(id, { include: [{ model: AddressClients, as: 'AddressClients' }] });
 }
 
 const changeClientStatus = async (id, status) => {

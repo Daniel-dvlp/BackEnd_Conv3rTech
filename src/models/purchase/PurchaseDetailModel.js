@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database');
-// Se ha eliminado la línea que requería PurchaseModel para evitar dependencias circulares.
+const Product = require('../products/Product'); // Ruta y nombre de archivo corregidos
 
-// Definición del modelo para la tabla 'detalles_compras'
 const PurchaseDetail = sequelize.define('PurchaseDetail', {
     id_detalle_compra: {
         type: DataTypes.INTEGER,
@@ -10,6 +9,10 @@ const PurchaseDetail = sequelize.define('PurchaseDetail', {
         autoIncrement: true
     },
     id_compra: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    id_producto: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -32,6 +35,13 @@ const PurchaseDetail = sequelize.define('PurchaseDetail', {
 }, {
     tableName: 'detalles_compras',
     timestamps: false
+});
+
+// Definimos la asociación unilateral desde PurchaseDetail a Product
+// No necesitamos modificar el modelo de Producto, solo lo importamos aquí
+PurchaseDetail.belongsTo(Product, {
+    foreignKey: 'id_producto',
+    as: 'product'
 });
 
 module.exports = PurchaseDetail;
