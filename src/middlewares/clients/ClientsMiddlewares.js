@@ -32,6 +32,18 @@ const validateClientsUniqueDocument = async(documento, { req }) => {
         throw new Error('El documento ya está en uso');
     }
 }
+//validacion para verificar la unicidad del correo
+const validateClientsUniqueEmail = async(correo, { req }) => {
+    const id = req.params.id;
+    const where = { correo };
+    if (id) {
+        where.id_cliente = { [require('sequelize').Op.ne]: id };
+    }
+    const client = await Clients.findOne({ where });
+    if (client) {
+        throw new Error('El correo ya está en uso');
+    }
+}
 
 const validateBaseClients = [
     body('documento')
@@ -50,7 +62,8 @@ const validateBaseClients = [
     body('telefono')
         .isLength({ max: 15 }).withMessage('El teléfono no puede exceder los 15 caracteres'),
     body('correo')
-        .isEmail().withMessage('Debe ser un correo electrónico válido'),
+        .isEmail().withMessage('Debe ser un correo electrónico válido')
+        .custom(validateClientsUniqueEmail),
     body('credito')
         .isBoolean().withMessage('El credito debe ser un booleano'),
     body('estado_cliente')
@@ -87,7 +100,8 @@ const validateUpdateClients = [
         .isEmail().withMessage('Debe ser un correo electrónico válido'),
     body('credito')
         .optional()
-        .isBoolean().withMessage('El credito debe ser un booleano'),
+        .isBoolean().withMessage('El credito debe ser un booleano')
+        .custom(validateClientsUniqueEmail),
     body('estado_cliente')
         .optional()
         .isBoolean().withMessage('El estado del cliente debe ser un booleano')
