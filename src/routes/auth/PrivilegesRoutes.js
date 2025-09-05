@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const RolesController = require("../../controllers/auth/RolesController");
+const RoleController = require("../../controllers/auth/RoleController");
 const {
-  authenticateToken,
-  requireAdmin,
-} = require("../../middlewares/auth/auth_middleware");
+  authMiddleware: authenticateToken,
+  adminMiddleware: requireAdmin,
+} = require("../../middlewares/auth/AuthMiddleware");
 const {
   // Privilegios
   createPrivilegeValidation,
   updatePrivilegeValidation,
   privilegeIdValidation,
-} = require("../../middlewares/auth/RolesValidations");
+} = require("../../middlewares/auth/AuthValidations");
 
 // ==================== RUTAS DE PRIVILEGIOS ====================
 
@@ -24,7 +24,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   createPrivilegeValidation,
-  RolesController.createPrivilege
+  RoleController.createPrivilege
 );
 
 /**
@@ -36,7 +36,7 @@ router.get(
   "/",
   authenticateToken,
   requireAdmin,
-  RolesController.getAllPrivileges
+  RoleController.getAllPrivileges
 );
 
 /**
@@ -49,7 +49,7 @@ router.get(
   authenticateToken,
   requireAdmin,
   privilegeIdValidation,
-  RolesController.getPrivilegeById
+  RoleController.getPrivilegeById
 );
 
 /**
@@ -63,7 +63,7 @@ router.put(
   requireAdmin,
   privilegeIdValidation,
   updatePrivilegeValidation,
-  RolesController.updatePrivilege
+  RoleController.updatePrivilege
 );
 
 /**
@@ -76,7 +76,7 @@ router.delete(
   authenticateToken,
   requireAdmin,
   privilegeIdValidation,
-  RolesController.deletePrivilege
+  RoleController.deletePrivilege
 );
 
 module.exports = router;

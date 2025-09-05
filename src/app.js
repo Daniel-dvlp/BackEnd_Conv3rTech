@@ -30,6 +30,10 @@ app.use("/api/roles", roleRoutes);
 const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 app.use("/api/permissions", permissionsRoutes);
 
+// Rutas de privilegios
+const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
+app.use("/api/privileges", privilegesRoutes);
+
 // Rutas de proyectos (comentadas temporalmente)
 // const ProjectRoutes = require("./routes/projects/ProjectRoutes");
 // app.use("/api/projects", ProjectRoutes);
