@@ -86,6 +86,54 @@ class RoleService {
     }
   }
 
+  // Métodos para CRUD de privilegios
+  async createPrivilege(privilegeData) {
+    try {
+      return await permissionRepository.createPrivilege(privilegeData);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPrivilegeById(id) {
+    try {
+      const privilege = await permissionRepository.findPrivilegeById(id);
+      if (!privilege) {
+        throw new Error("Privilegio no encontrado");
+      }
+      return privilege;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePrivilege(id, privilegeData) {
+    try {
+      const updated = await permissionRepository.updatePrivilege(
+        id,
+        privilegeData
+      );
+      if (!updated) {
+        throw new Error("No se pudo actualizar el privilegio");
+      }
+      return await permissionRepository.findPrivilegeById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deletePrivilege(id) {
+    try {
+      const deleted = await permissionRepository.deletePrivilege(id);
+      if (!deleted) {
+        throw new Error("No se pudo eliminar el privilegio");
+      }
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Métodos para CRUD de permisos
   async createPermission(permissionData) {
     try {
