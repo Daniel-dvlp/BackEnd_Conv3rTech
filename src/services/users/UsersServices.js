@@ -1,5 +1,7 @@
 const UserRepository = require("../../repositories/users/UsersRepositories");
 const bcrypt = require("bcryptjs");
+const Project = require("../../models/projects/Project");
+const ProjectEmpleado = require("../../models/projects/ProjectEmpleado");
 
 const createUser = async (userData) => {
   return UserRepository.createUser(userData);
@@ -22,6 +24,25 @@ const updateUser = async (id, userData) => {
 };
 
 const deleteUser = async (id) => {
+  // Bloquear eliminación si el usuario está asociado a proyectos
+  const isResponsible = await Project.findOne({ where: { id_responsable: id } });
+  if (isResponsible) {
+    const err = new Error(
+      "No se puede eliminar el usuario: es responsable de al menos un proyecto"
+    );
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const isAssigned = await ProjectEmpleado.findOne({ where: { id_usuario: id } });
+  if (isAssigned) {
+    const err = new Error(
+      "No se puede eliminar el usuario: está asignado a uno o más proyectos"
+    );
+    err.statusCode = 409;
+    throw err;
+  }
+
   const deleted = await UserRepository.deleteUser(id);
   return deleted > 0;
 };
