@@ -62,12 +62,12 @@ const deleteUser = async (req, res) => {
     try {
         const deleted = await UsersServices.deleteUser(req.params.id);
         if (deleted) {
-            res.status(204).end();
-        } else {
-            res.status(404).json({ error: 'Usuario no encontrado' });
+            return res.status(204).end();
         }
+        return res.status(404).json({ error: 'Usuario no encontrado' });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        const status = error.statusCode || 400;
+        return res.status(status).json({ error: error.message });
     }
 };
 
