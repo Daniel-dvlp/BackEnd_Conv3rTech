@@ -108,6 +108,11 @@ app.use('/api/service-categories', ServiceCategoryRoutes);
 const ServicesRoutes = require('./routes/services/ServicesRoutes');
 app.use('/api/services', ServicesRoutes);
 
+// Rutas para citas
+const AppointmentsRoutes = require('./routes/appointments/AppointmentsRoutes');
+app.use('/api/appointments', AppointmentsRoutes);
+
+
 // ====================== UTILIDADES ======================
 
 app.get("/api/health", (req, res) => {
