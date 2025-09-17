@@ -45,7 +45,18 @@ const getQuoteById = async (id) => {
 
 // ✅ Actualizar cotización
 const updateQuote = async (id, quote) => {
-    return Quote.update(quote, { where: { id_cotizacion: id } });
+    await Quote.update(quote, { where: { id_cotizacion: id } });
+    // Retorna la cotización actualizada con cliente y detalles
+    return Quote.findByPk(id, {
+        include: [
+            { model: Client, as: 'cliente' },
+            {
+                model: QuoteDetail,
+                as: 'detalles',
+                include: [{ model: Product, as: 'producto' }]
+            }
+        ]
+    });
 };
 
 // ✅ Eliminar cotización (y sus detalles en cascada)
@@ -68,7 +79,18 @@ const deleteQuote = async (id) => {
 
 // ✅ Cambiar estado de la cotización
 const changeQuoteState = async (id, state) => {
-    return Quote.update({ estado: state }, { where: { id_cotizacion: id } });
+    await Quote.update({ estado: state }, { where: { id_cotizacion: id } });
+    // Retorna la cotización actualizada con cliente y detalles
+    return Quote.findByPk(id, {
+        include: [
+            { model: Client, as: 'cliente' },
+            {
+                model: QuoteDetail,
+                as: 'detalles',
+                include: [{ model: Product, as: 'producto' }]
+            }
+        ]
+    });
 };
 
 module.exports = {
