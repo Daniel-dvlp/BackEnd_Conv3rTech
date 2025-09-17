@@ -13,7 +13,8 @@ const getCategoryById = async (id) => {
 }
 
 const updateCategory = async (id, category) => {
-    return Category.update(category, { where: { id_categoria: id } });
+    await Category.update(category, { where: { id_categoria: id } });
+    return Category.findByPk(id);
 }
 
 const deleteCategory = async (id) => {
@@ -21,7 +22,8 @@ const deleteCategory = async (id) => {
 }
 
 const changeStateCategory = async (id, state) => {
-    return Category.update({ estado: state }, { where: { id_categoria: id } });
+    await Category.update({ estado: state }, { where: { id_categoria: id } });
+    return Category.findByPk(id);
 }
 
 module.exports = {
