@@ -1,43 +1,16 @@
-const { Router } = require('express');
-const { body, param } = require('express-validator');
-const validate = require('../../middlewares/validate');
-const ctrl = require('../controllers/appointments.controller');
+const express = require("express");
+const router = express.Router();
 
-const r = Router();
+const AppointmentController = require("../controllers/AppointmentController");
+const { validateAppointment } = require("../middlewares/AppointmentValidation");
 
-r.get('/', ctrl.list);
-r.get('/:id', param('id').isInt(), validate, ctrl.find);
+const appointmentController = new AppointmentController();
 
-r.post('/',
-  body('id_cliente').isInt(),
-  body('id_direccion').isInt(),
-  body('fecha_hora').isISO8601().toDate(),
-  body('id_programacion_laboral').isInt(),
-  body('id_usuario').isInt(),
-  body('estado').optional().isIn(['Programada','Completada','Cancelada','Reprogramada']),
-  validate,
-  ctrl.create
-);
+// Rutas
+router.get("/", (req, res) => appointmentController.getAll(req, res));
+router.get("/:id", (req, res) => appointmentController.getById(req, res));
+router.post("/", validateAppointment, (req, res) => appointmentController.create(req, res));
+router.put("/:id", validateAppointment, (req, res) => appointmentController.update(req, res));
+router.delete("/:id", (req, res) => appointmentController.delete(req, res));
 
-r.put('/:id',
-  param('id').isInt(),
-  body('id_cliente').isInt(),
-  body('id_direccion').isInt(),
-  body('fecha_hora').isISO8601().toDate(),
-  body('id_programacion_laboral').isInt(),
-  body('id_usuario').isInt(),
-  body('estado').isIn(['Programada','Completada','Cancelada','Reprogramada']),
-  validate,
-  ctrl.update
-);
-
-r.patch('/:id/status',
-  param('id').isInt(),
-  body('estado').isIn(['Programada','Completada','Cancelada','Reprogramada']),
-  validate,
-  ctrl.changeStatus
-);
-
-r.delete('/:id', param('id').isInt(), validate, ctrl.remove);
-
-module.exports = r;
+module.exports = router;
