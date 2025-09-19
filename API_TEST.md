@@ -189,8 +189,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Editor",
-  "description": "Rol de editor con permisos limitados"
+  "nombre_rol": "Editor",
+  "descripcion": "Rol de editor con permisos limitados"
 }
 ```
 
@@ -202,8 +202,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Editor Senior",
-  "description": "Rol de editor senior con más permisos"
+  "nombre_rol": "Editor Senior",
+  "descripcion": "Rol de editor senior con más permisos"
 }
 ```
 
@@ -254,8 +254,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "read_products",
-  "description": "Permiso para leer productos"
+  "nombre_permiso": "read_products",
+  "descripcion": "Permiso para leer productos"
 }
 ```
 
@@ -267,8 +267,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "read_products",
-  "description": "Permiso para leer y listar productos"
+  "nombre_permiso": "read_products",
+  "descripcion": "Permiso para leer y listar productos"
 }
 ```
 
@@ -305,8 +305,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "create",
-  "description": "Privilegio para crear recursos"
+  "nombre_privilegio": "create",
+  "descripcion": "Privilegio para crear recursos"
 }
 ```
 
@@ -318,8 +318,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "create",
-  "description": "Privilegio para crear y modificar recursos"
+  "nombre_privilegio": "create",
+  "descripcion": "Privilegio para crear y modificar recursos"
 }
 ```
 
@@ -334,6 +334,95 @@ Authorization: Bearer {token}
 
 ## 5. ASIGNACIÓN DE PERMISOS A ROLES
 
+**⚠️ IMPORTANTE: Formato del Body**
+
+El sistema utiliza un modelo de relación ternaria donde cada registro en `rol_permiso_privilegio` contiene:
+
+- `id_rol` (del parámetro de la URL)
+- `id_permiso`
+- `id_privilegio`
+
+**Estructura del Body:**
+
+```json
+{
+  "permisos": [
+    {
+      "id_permiso": 1,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Ejemplos de Uso:**
+
+1. **Un permiso con un privilegio:**
+
+```json
+{
+  "permisos": [
+    {
+      "id_permiso": 2,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+2. **Un permiso con múltiples privilegios:**
+
+```json
+{
+  "permisos": [
+    {
+      "id_permiso": 2,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        },
+        {
+          "id_privilegio": 3
+        }
+      ]
+    }
+  ]
+}
+```
+
+3. **Múltiples permisos con múltiples privilegios:**
+
+```json
+{
+  "permisos": [
+    {
+      "id_permiso": 2,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    },
+    {
+      "id_permiso": 5,
+      "privilegios": [
+        {
+          "id_privilegio": 2
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### 5.1 Asignar Permiso a Rol
 
 ```http
@@ -342,8 +431,16 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "permissionId": 1,
-  "privilegeId": 1
+  "permisos": [
+    {
+      "id_permiso": 1,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -362,8 +459,16 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "permissionId": 1,
-  "privilegeId": 1
+  "permisos": [
+    {
+      "id_permiso": 1,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -375,14 +480,28 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "permissions": [
+  "permisos": [
     {
-      "permissionId": 1,
-      "privilegeId": 1
+      "id_permiso": 1,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        },
+        {
+          "id_privilegio": 2
+        }
+      ]
     },
     {
-      "permissionId": 2,
-      "privilegeId": 2
+      "id_permiso": 2,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        },
+        {
+          "id_privilegio": 3
+        }
+      ]
     }
   ]
 }
@@ -414,10 +533,14 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Juan Pérez",
-  "email": "juan@conv3rtech.com",
-  "password": "password123",
-  "roleId": 2
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "correo": "juan@conv3rtech.com",
+  "contrasena": "password123",
+  "id_rol": 2,
+  "documento": "1234567890",
+  "tipo_documento": "CC",
+  "celular": "3001234567"
 }
 ```
 
@@ -429,9 +552,10 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Juan Pérez Actualizado",
-  "email": "juan.nuevo@conv3rtech.com",
-  "roleId": 2
+  "nombre": "Juan",
+  "apellido": "Pérez Actualizado",
+  "correo": "juan.nuevo@conv3rtech.com",
+  "id_rol": 2
 }
 ```
 
@@ -457,8 +581,9 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Mi Nombre Actualizado",
-  "email": "mi.nuevo@email.com"
+  "nombre": "Mi Nombre",
+  "apellido": "Actualizado",
+  "correo": "mi.nuevo@email.com"
 }
 ```
 
@@ -502,11 +627,13 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Producto Test",
-  "description": "Descripción del producto",
-  "price": 99.99,
-  "categoryId": 1,
-  "stock": 100
+  "nombre": "Producto Test",
+  "modelo": "MOD-001",
+  "id_categoria": 1,
+  "precio": 99.99,
+  "stock": 100,
+  "garantia": 12,
+  "unidad_medida": "unidad"
 }
 ```
 
@@ -518,11 +645,11 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Producto Actualizado",
-  "description": "Nueva descripción",
-  "price": 149.99,
-  "categoryId": 1,
-  "stock": 150
+  "nombre": "Producto Actualizado",
+  "modelo": "MOD-002",
+  "precio": 149.99,
+  "stock": 150,
+  "garantia": 24
 }
 ```
 
@@ -571,9 +698,7 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Color",
-  "value": "Rojo",
-  "productId": 1
+  "nombre": "Color"
 }
 ```
 
@@ -585,9 +710,7 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Color",
-  "value": "Azul",
-  "productId": 1
+  "nombre": "Color"
 }
 ```
 
@@ -677,8 +800,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Electrónicos",
-  "description": "Productos electrónicos"
+  "nombre": "Electrónicos",
+  "descripcion": "Productos electrónicos"
 }
 ```
 
@@ -690,8 +813,8 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Electrónicos Avanzados",
-  "description": "Productos electrónicos de alta tecnología"
+  "nombre": "Electrónicos Avanzados",
+  "descripcion": "Productos electrónicos de alta tecnología"
 }
 ```
 
@@ -728,11 +851,12 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Cliente Test",
-  "email": "cliente@test.com",
-  "phone": "123456789",
-  "documentType": "CC",
-  "documentNumber": "12345678"
+  "nombre": "Cliente",
+  "apellido": "Test",
+  "correo": "cliente@test.com",
+  "telefono": "123456789",
+  "tipo_documento": "CC",
+  "documento": "12345678"
 }
 ```
 
@@ -744,11 +868,12 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Cliente Actualizado",
-  "email": "cliente.actualizado@test.com",
-  "phone": "987654321",
-  "documentType": "CC",
-  "documentNumber": "87654321"
+  "nombre": "Cliente",
+  "apellido": "Actualizado",
+  "correo": "cliente.actualizado@test.com",
+  "telefono": "987654321",
+  "tipo_documento": "CC",
+  "documento": "87654321"
 }
 ```
 
@@ -842,10 +967,12 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Proveedor Test",
-  "email": "proveedor@test.com",
-  "phone": "123456789",
-  "address": "Dirección del proveedor"
+  "nit": "123456789-0",
+  "nombre_encargado": "Juan Pérez",
+  "nombre_empresa": "Proveedor Test",
+  "telefono": "123456789",
+  "correo": "proveedor@test.com",
+  "direccion": "Dirección del proveedor"
 }
 ```
 
@@ -857,10 +984,11 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "name": "Proveedor Actualizado",
-  "email": "proveedor.actualizado@test.com",
-  "phone": "987654321",
-  "address": "Nueva dirección del proveedor"
+  "nombre_encargado": "Juan Pérez Actualizado",
+  "nombre_empresa": "Proveedor Actualizado",
+  "telefono": "987654321",
+  "correo": "proveedor.actualizado@test.com",
+  "direccion": "Nueva dirección del proveedor"
 }
 ```
 
@@ -985,6 +1113,41 @@ GET /health
 - **IDs**: Reemplazar `{id}`, `{roleId}`, etc. con los IDs reales obtenidos de las respuestas
 - **Tokens**: El token de acceso se obtiene al hacer login y debe incluirse en todas las peticiones protegidas
 - **Token Regeneration**: Usar el endpoint `/auth/refresh` con el token actual para regenerar un nuevo token
+
+## ⚠️ CAMBIOS EN NOMBRES DE CAMPOS
+
+**Este documento ha sido actualizado para usar los nombres de campos correctos según los modelos de la base de datos:**
+
+### Campos Corregidos:
+
+- **Usuarios**: `name` → `nombre` + `apellido`, `email` → `correo`, `password` → `contrasena`
+- **Roles**: `name` → `nombre_rol`, `description` → `descripcion`
+- **Permisos**: `name` → `nombre_permiso`, `description` → `descripcion`
+- **Privilegios**: `name` → `nombre_privilegio`, `description` → `descripcion`
+- **Productos**: `name` → `nombre`, `description` → `modelo`, `price` → `precio`
+- **Categorías**: `name` → `nombre`, `description` → `descripcion`
+- **Características**: `name` → `nombre`
+- **Clientes**: `name` → `nombre` + `apellido`, `email` → `correo`, `phone` → `telefono`
+- **Proveedores**: `name` → `nombre_empresa`, `email` → `correo`, `phone` → `telefono`
+
+### Estructura de Asignación de Permisos:
+
+La asignación de permisos y privilegios a roles ahora usa la estructura correcta:
+
+```json
+{
+  "permisos": [
+    {
+      "id_permiso": 1,
+      "privilegios": [
+        {
+          "id_privilegio": 1
+        }
+      ]
+    }
+  ]
+}
+```
 
 ---
 
