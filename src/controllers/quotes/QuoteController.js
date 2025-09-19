@@ -58,7 +58,8 @@ const updateQuote = async (req, res) => {
     }
     try {
         await quoteService.updateQuote(req.params.id, req.body);
-        res.status(201).json({ message: 'Cotización actualizada exitosamente' });
+        const updatedQuote = await quoteService.getQuoteById(req.params.id);
+        res.status(200).json({ message: 'Cotización actualizada exitosamente', data: updatedQuote });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -85,8 +86,8 @@ const changeQuoteState = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        await quoteService.changeQuoteState(req.params.id, req.body.estado);
-        res.status(201).json({ message: 'Estado de la cotización actualizado exitosamente' });
+        const updatedQuote = await quoteService.changeQuoteState(req.params.id, req.body.estado);
+        res.status(200).json({ message: 'Estado de la cotización actualizado exitosamente', data: updatedQuote });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
