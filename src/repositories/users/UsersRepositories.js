@@ -1,6 +1,9 @@
 const User = require("../../models/users/Users");
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
+const Role = require("../../models/auth/Role");
+const Permission = require("../../models/auth/Permission");
+const Privilege = require("../../models/auth/Privilege");
 
 const createUser = async (user) => {
   // Encriptar contraseña
@@ -13,9 +16,21 @@ const getAllUsers = async () => {
   return User.findAll({
     include: [
       {
-        model: require("../../models/rol_permiso_privilegio/rol_permiso_privilegio"),
+        model: Role,
         as: "rol",
         attributes: ["id_rol", "nombre_rol", "descripcion"],
+        include: [
+          {
+            model: Permission,
+            as: "permisos",
+            through: { attributes: [] },
+          },
+          {
+            model: Privilege,
+            as: "privilegios",
+            through: { attributes: [] },
+          },
+        ],
       },
     ],
     attributes: { exclude: ["contrasena"] },
@@ -26,11 +41,24 @@ const getUserById = async (id) => {
   return User.findByPk(id, {
     include: [
       {
-        model: require("../../models/roles/roles"),
+        model: Role,
         as: "rol",
         attributes: ["id_rol", "nombre_rol", "descripcion"],
+        include: [
+          {
+            model: Permission,
+            as: "permisos",
+            through: { attributes: [] },
+          },
+          {
+            model: Privilege,
+            as: "privilegios",
+            through: { attributes: [] },
+          },
+        ],
       },
     ],
+    attributes: { exclude: ["contrasena"] },
   });
 };
 

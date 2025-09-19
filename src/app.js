@@ -115,6 +115,10 @@ app.use("/api/service-categories", ServiceCategoryRoutes);
 const ServicesRoutes = require("./routes/services/ServicesRoutes");
 app.use("/api/services", ServicesRoutes);
 
+//Rutas para pagos y abonos
+// const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
+// app.use('/api/payments-installments', PaymentsInstallmentsRoutes);
+
 // ====================== UTILIDADES ======================
 
 app.get("/api/health", (req, res) => {
