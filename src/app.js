@@ -11,38 +11,37 @@ app.use(express.urlencoded({ extended: true }));
 
 // --- Nuevo bloque de código para las asociaciones de Sequelize ---
 // 1. Importar todos los modelos que tienen asociaciones
-const sequelize = require('./config/database');
-const Product = require('./models/products/Product');
-const Supplier = require('./models/supplier/SupplierModel');
-const Purchase = require('./models/purchase/PurchaseModel');
-const PurchaseDetail = require('./models/purchase/PurchaseDetailModel');
-const User = require('./models/users/Users');
-const LaborScheduling = require('./models/labor_scheduling/LaborSchedulingModel');
+const sequelize = require("./config/database");
+const Product = require("./models/products/Product");
+const Supplier = require("./models/supplier/SupplierModel");
+const Purchase = require("./models/purchase/PurchaseModel");
+const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
+const User = require("./models/users/Users");
+const LaborScheduling = require("./models/labor_scheduling/LaborSchedulingModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
 function setupAssociations() {
-    const models = {
-        Product,
-        Supplier,
-        Purchase,
-        PurchaseDetail,
-        User,
-        LaborScheduling,
-        // ... Agrega todos tus modelos aquí
-    };
+  const models = {
+    Product,
+    Supplier,
+    Purchase,
+    PurchaseDetail,
+    User,
+    LaborScheduling,
+    // ... Agrega todos tus modelos aquí
+  };
 
-    Object.values(models).forEach(model => {
-        if (model.associate) {
-            model.associate(models);
-        }
-    });
+  Object.values(models).forEach((model) => {
+    if (model.associate) {
+      model.associate(models);
+    }
+  });
 }
 setupAssociations();
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
 require("./models/auth/associations");
-
 
 // ====================== RUTAS ======================
 
@@ -58,6 +57,15 @@ app.use("/api/roles", roleRoutes);
 const permissionsRoutes = require("./routes/auth/PermissionsRoutes");
 app.use("/api/permissions", permissionsRoutes);
 
+// Rutas de privilegios
+const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
+app.use("/api/privileges", privilegesRoutes);
+
+// Rutas de proyectos (comentadas temporalmente)
+// const ProjectRoutes = require("./routes/projects/ProjectRoutes");
+// app.use("/api/projects", ProjectRoutes);
+
+// Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
 app.use("/api/suppliers", SupplierRoutes);
 
@@ -66,9 +74,8 @@ const PurchaseRoutes = require("./routes/purchase/PurchaseRoutes");
 app.use("/api/purchases", PurchaseRoutes);
 
 // Rutas para categorias de productos
-const categoryRoutes = require('./routes/products_category/ProductsCategoryRoutes');
-app.use('/api/productsCategory', categoryRoutes);
-
+const categoryRoutes = require("./routes/products_category/ProductsCategoryRoutes");
+app.use("/api/productsCategory", categoryRoutes);
 
 //Ruta para productos
 const ProductRoutes = require("./routes/products/ProductsRoutes");
@@ -79,16 +86,16 @@ const DatasheetRoutes = require("./routes/products/DatasheetRoutes");
 app.use("/api/products/datasheets", DatasheetRoutes);
 
 //Ruta para ventas
-const SaleRoutes = require('./routes/products_sale/SaleRoutes');
-app.use('/api/sales', SaleRoutes);
-const SaleDetails = require('./routes/products_sale/SaleDetailsRoutes');
-app.use('/api/sales/details', SaleDetails);
+const SaleRoutes = require("./routes/products_sale/SaleRoutes");
+app.use("/api/sales", SaleRoutes);
+const SaleDetails = require("./routes/products_sale/SaleDetailsRoutes");
+app.use("/api/sales/details", SaleDetails);
 
 //Ruta para cotizaciones
-const QuoteRoutes = require('./routes/quotes/QuotesRoutes')
-app.use('/api/quotes', QuoteRoutes);
-const QuoteDetailsRoutes = require('./routes/quotes/QuoteDetailsRoutes')
-app.use('/api/quotes/details', QuoteDetailsRoutes);
+const QuoteRoutes = require("./routes/quotes/QuotesRoutes");
+app.use("/api/quotes", QuoteRoutes);
+const QuoteDetailsRoutes = require("./routes/quotes/QuoteDetailsRoutes");
+app.use("/api/quotes/details", QuoteDetailsRoutes);
 
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
@@ -97,16 +104,16 @@ const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
-const LaborSchedulingRoutes = require('./routes/labor_scheduling/LaborSchedulingRoutes');
-app.use('/api/labor-scheduling', LaborSchedulingRoutes);
+const LaborSchedulingRoutes = require("./routes/labor_scheduling/LaborSchedulingRoutes");
+app.use("/api/labor-scheduling", LaborSchedulingRoutes);
 
 //Rutas de Categoria de Servicio
-const ServiceCategoryRoutes = require('./routes/service_categories/ServiceCategoryRoutes');
-app.use('/api/service-categories', ServiceCategoryRoutes);
+const ServiceCategoryRoutes = require("./routes/service_categories/ServiceCategoryRoutes");
+app.use("/api/service-categories", ServiceCategoryRoutes);
 
 // Rutas para servicios
-const ServicesRoutes = require('./routes/services/ServicesRoutes');
-app.use('/api/services', ServicesRoutes);
+const ServicesRoutes = require("./routes/services/ServicesRoutes");
+app.use("/api/services", ServicesRoutes);
 
 //Rutas para pagos y abonos
 // const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
@@ -115,28 +122,27 @@ app.use('/api/services', ServicesRoutes);
 // ====================== UTILIDADES ======================
 
 app.get("/api/health", (req, res) => {
-    res.json({
-        success: true,
-        message: "Conv3rTech API está funcionando correctamente",
-        timestamp: new Date().toISOString(),
-    });
+  res.json({
+    success: true,
+    message: "Conv3rTech API está funcionando correctamente",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use((err, req, res, next) => {
-    console.error("Error:", err);
-    res.status(500).json({
-        success: false,
-        message: "Error interno del servidor",
-        error: process.env.NODE_ENV === "development" ? err.message : {},
-    });
+  console.error("Error:", err);
+  res.status(500).json({
+    success: false,
+    message: "Error interno del servidor",
+    error: process.env.NODE_ENV === "development" ? err.message : {},
+  });
 });
 
 app.use("*", (req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "Ruta no encontrada",
-    });
+  res.status(404).json({
+    success: false,
+    message: "Ruta no encontrada",
+  });
 });
-
 
 module.exports = app;
