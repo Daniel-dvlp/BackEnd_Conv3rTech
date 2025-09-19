@@ -52,7 +52,20 @@ const updateStock = async (id, newStock) => {
 
 // Actualizar producto
 const updateProduct = async (id, product) => {
-    return Product.update(product, { where: { id_producto: id } });
+    await Product.update(product, { where: { id_producto: id } });
+    // Retorna el producto actualizado con sus relaciones
+    return Product.findByPk(id, {
+        include: [
+            { model: Category, as: 'categoria' },
+            {
+                model: Datasheet,
+                as: 'fichas_tecnicas',
+                include: [
+                    { model: Feature, as: 'caracteristica' }
+                ]
+            }
+        ]
+    });
 };
 
 // Eliminar producto
@@ -62,7 +75,20 @@ const deleteProduct = async (id) => {
 
 // Cambiar estado del producto
 const changeStateProduct = async (id, state) => {
-    return Product.update({ estado: state }, { where: { id_producto: id } });
+    await Product.update({ estado: state }, { where: { id_producto: id } });
+    // Retorna el producto actualizado con sus relaciones
+    return Product.findByPk(id, {
+        include: [
+            { model: Category, as: 'categoria' },
+            {
+                model: Datasheet,
+                as: 'fichas_tecnicas',
+                include: [
+                    { model: Feature, as: 'caracteristica' }
+                ]
+            }
+        ]
+    });
 };
 
 module.exports = {
