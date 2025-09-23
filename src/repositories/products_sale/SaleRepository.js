@@ -38,7 +38,18 @@ const getSaleById = async (id) => {
 
 // ✅ Actualizar venta
 const updateSale = async (id, sale) => {
-    return Sale.update(sale, { where: { id_venta: id } });
+    await Sale.update(sale, { where: { id_venta: id } });
+    // Retorna la venta actualizada con cliente y detalles
+    return Sale.findByPk(id, {
+        include: [
+            { model: Client, as: 'cliente' },
+            {
+                model: SaleDetail,
+                as: 'detalles',
+                include: [{ model: Product, as: 'producto' }]
+            }
+        ]
+    });
 };
 
 // ✅ Eliminar venta
@@ -61,7 +72,18 @@ const deleteSale = async (id) => {
 
 // ✅ Cambiar estado de la venta (ej: Registrada ⇆ Anulada)
 const changeSaleState = async (id, state) => {
-    return Sale.update({ estado: state }, { where: { id_venta: id } });
+    await Sale.update({ estado: state }, { where: { id_venta: id } });
+    // Retorna la venta actualizada con cliente y detalles
+    return Sale.findByPk(id, {
+        include: [
+            { model: Client, as: 'cliente' },
+            {
+                model: SaleDetail,
+                as: 'detalles',
+                include: [{ model: Product, as: 'producto' }]
+            }
+        ]
+    });
 };
 
 module.exports = {

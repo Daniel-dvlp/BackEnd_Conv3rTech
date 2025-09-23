@@ -58,7 +58,8 @@ const updateSale = async (req, res) => {
     }
     try {
         await saleService.updateSale(req.params.id, req.body);
-        res.status(201).json({ message: 'Venta actualizada exitosamente' });
+        const updatedSale = await saleService.getSaleById(req.params.id);
+        res.status(200).json({ message: 'Venta actualizada exitosamente', data: updatedSale });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -85,8 +86,8 @@ const changeSaleState = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        await saleService.changeSaleState(req.params.id, req.body.estado);
-        res.status(201).json({ message: 'Estado de la venta actualizado exitosamente' });
+        const updatedSale = await saleService.changeSaleState(req.params.id, req.body.estado);
+        res.status(200).json({ message: 'Estado de la venta actualizado exitosamente', data: updatedSale });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

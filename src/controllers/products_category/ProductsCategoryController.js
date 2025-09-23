@@ -45,12 +45,12 @@ const updateCategory = async (req, res) => {
         return res.status(400).json({errors: errors.array()})
     }
     try {
-        await categoryService.updateCategory(req.params.id, req.body);
-        res.status(201).json({ message: 'Categoría actualizada exitosamente' });
+        const category = await categoryService.updateCategory(req.params.id, req.body);
+        res.status(200).json({ message: 'Categoría actualizada exitosamente', data: category });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
-}
+};
 
 const deleteCategory = async (req, res) => {
     const errors = validationResult(req);
@@ -71,8 +71,8 @@ const changeStateCategory = async (req, res) => {
         return res.status(400).json({errors: errors.array()})
     }
     try {
-        await categoryService.changeStateCategory(req.params.id, req.body.state);
-        res.status(204).end();
+        const category = await categoryService.changeStateCategory(req.params.id, req.body.estado);
+        res.status(200).json({ message: 'Categoría actualizada exitosamente', data: category });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
