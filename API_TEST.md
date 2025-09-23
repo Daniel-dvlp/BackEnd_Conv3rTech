@@ -1068,9 +1068,347 @@ Authorization: Bearer {token}
 
 ---
 
-## 15. HEALTH CHECK
+## 15. GESTIÓN DE PROYECTOS
 
-### 15.1 Verificar Estado de la API
+Base URL: `{{baseUrl}}` (por defecto `http://localhost:3006/api`)
+
+Headers comunes:
+
+- Authorization: `Bearer {{token}}`
+- Content-Type: `application/json` cuando aplique
+
+### 15.1 Listar Proyectos
+
+- GET `/projects`
+- Query opcionales: `search`, `estado` (Pendiente|En Progreso|Completado|Cancelado), `prioridad` (Baja|Media|Alta), `page`, `limit`
+
+Ejemplo:
+
+```bash
+GET {{baseUrl}}/projects
+Authorization: Bearer {{token}}
+```
+
+Respuesta 200:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "numeroContrato": "CT-2025-001",
+      "nombre": "Instalación Sistema CCTV",
+      "cliente": "Constructora XYZ",
+      "responsable": { "nombre": "Daniela V.", "avatarSeed": "Daniela" },
+      "fechaInicio": "2025-10-01",
+      "fechaFin": "2025-11-15",
+      "estado": "En Progreso",
+      "progreso": 10,
+      "prioridad": "Alta",
+      "ubicacion": "Carrera 48 #20-115",
+      "empleadosAsociados": [],
+      "descripcion": null,
+      "materiales": [],
+      "servicios": [],
+      "costos": { "manoDeObra": 0 },
+      "observaciones": null,
+      "sedes": []
+    }
+  ],
+  "total": 1
+}
+```
+
+### 15.2 Obtener Proyecto por ID
+
+- GET `/projects/:id`
+
+```bash
+GET {{baseUrl}}/projects/1
+Authorization: Bearer {{token}}
+```
+
+Respuesta 200: igual a un objeto del array anterior.
+
+### 15.3 Crear Proyecto
+
+- POST `/projects`
+
+Body JSON mínimo:
+
+```json
+{
+  "numero_contrato": "CT-2024-001",
+  "nombre": "Instalación Sistema de Seguridad Empresa XYZ",
+  "id_cliente": 1,
+  "id_responsable": 1,
+  "fecha_inicio": "2024-01-15",
+  "fecha_fin": "2024-03-15",
+  "estado": "Pendiente",
+  "progreso": 0,
+  "prioridad": "Alta",
+  "ubicacion": "Carrera 15 # 45-67, Bogotá, Colombia",
+  "descripcion": "Instalación completa de sistema de seguridad con cámaras, sensores y sistema de monitoreo 24/7 para la empresa XYZ",
+  "observaciones": "Cliente requiere instalación en horario nocturno para no afectar operaciones diarias",
+  "costo_mano_obra": 5000000,
+  "materiales": [
+    {
+      "id_producto": 1,
+      "cantidad": 10
+    },
+    {
+      "id_producto": 2,
+      "cantidad": 5
+    }
+  ],
+  "servicios": [
+    {
+      "id_servicio": 1,
+      "cantidad": 1
+    },
+    {
+      "id_servicio": 2,
+      "cantidad": 2
+    }
+  ],
+  "empleadosAsociados": [
+    {
+      "id_usuario": 2
+    },
+    {
+      "id_usuario": 3
+    }
+  ],
+  "sedes": [
+    {
+      "id_direccion": 1,
+      "nombre": "Sede Principal - Oficinas",
+      "presupuesto_materiales": 3000000,
+      "presupuesto_servicios": 1500000,
+      "presupuesto_total": 4500000,
+      "presupuesto_restante": 4500000,
+      "materialesAsignados": [
+        {
+          "id_producto": 1,
+          "cantidad": 6
+        },
+        {
+          "id_producto": 2,
+          "cantidad": 3
+        }
+      ],
+      "serviciosAsignados": [
+        {
+          "id_servicio": 1,
+          "cantidad": 1
+        },
+        {
+          "id_servicio": 2,
+          "cantidad": 1
+        }
+      ]
+    },
+    {
+      "nombre": "Sede Secundaria - Manual",
+      "ubicacion": "Dirección manual sin usar direcciones del cliente",
+      "presupuesto_materiales": 2000000,
+      "presupuesto_servicios": 1000000,
+      "presupuesto_total": 3000000,
+      "presupuesto_restante": 3000000,
+      "materialesAsignados": [
+        {
+          "id_producto": 1,
+          "cantidad": 4
+        }
+      ],
+      "serviciosAsignados": [
+        {
+          "id_servicio": 2,
+          "cantidad": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+Respuesta 201:
+
+```json
+{
+  "success": true,
+  "message": "Proyecto creado exitosamente",
+  "data": {
+    /* Objeto proyecto transformado para frontend */
+  }
+}
+```
+
+### 15.4 Actualizar Proyecto
+
+- PUT `/projects/:id`
+
+Body JSON (parcial):
+
+```json
+{
+  "nombre": "Proyecto Actualizado",
+  "fecha_fin": "2025-12-01",
+  "estado": "En Progreso",
+  "progreso": 35,
+  "prioridad": "Media",
+  "observaciones": "Actualización de alcance"
+}
+```
+
+Respuesta 200 similar a creación.
+
+### 15.5 Eliminar Proyecto
+
+- DELETE `/projects/:id`
+
+Respuesta 200:
+
+```json
+{ "success": true, "message": "Proyecto eliminado exitosamente" }
+```
+
+### 15.6 Proyectos por Cliente
+
+- GET `/projects/client/:clientId`
+
+### 15.7 Proyectos por Responsable
+
+- GET `/projects/responsible/:responsibleId`
+
+### 15.8 Actualizar Progreso
+
+- PATCH `/projects/:id/progress`
+
+Body:
+
+```json
+{ "progreso": 60 }
+```
+
+### 15.9 Actualizar Estado
+
+- PATCH `/projects/:id/status`
+
+Body:
+
+```json
+{ "estado": "Completado" }
+```
+
+### 15.10 Registrar Salida de Material
+
+- POST `/projects/salida-material`
+
+Body:
+
+```json
+{
+  "id_proyecto": 1,
+  "id_proyecto_sede": 2,
+  "id_producto": 10,
+  "cantidad": 5,
+  "id_entregador": 2,
+  "receptor": "Juan Pérez",
+  "observaciones": "Entrega inicial",
+  "costo_total": 750000,
+  "fecha_salida": "2025-09-15T10:30:00"
+}
+```
+
+Respuesta 201:
+
+```json
+{
+  "success": true,
+  "message": "Salida de material registrada exitosamente",
+  "salida": {
+    "id_salida_material": 1,
+    "id_proyecto": 1,
+    "id_proyecto_sede": 2,
+    "id_producto": 10,
+    "cantidad": 5,
+    "id_entregador": 2,
+    "receptor": "Juan Pérez",
+    "observaciones": "Entrega inicial",
+    "costo_total": 750000,
+    "fecha_salida": "2025-09-15T10:30:00"
+  }
+}
+```
+
+### 15.11 Listar Salidas de Material
+
+- GET `/projects/:idProyecto/salidas-material`
+- Query opcional: `idSede`
+
+Respuesta 200:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "material": "Cámara IP Domo 4MP",
+      "cantidad": 5,
+      "entregador": "Nombre Apellido",
+      "receptor": "Juan Pérez",
+      "observaciones": "Entrega inicial",
+      "costoTotal": 750000,
+      "fecha": "2025-09-15T10:30:00",
+      "sede": "Oficina Principal"
+    }
+  ],
+  "total": 1
+}
+```
+
+### 15.12 Estadísticas de Proyectos
+
+- GET `/projects/stats`
+
+Respuesta 200 (ejemplo):
+
+```json
+{
+  "success": true,
+  "data": {
+    "total": 12,
+    "activos": 4,
+    "porEstado": [
+      { "estado": "Pendiente", "count": 3 },
+      { "estado": "En Progreso", "count": 4 },
+      { "estado": "Completado", "count": 5 }
+    ]
+  }
+}
+```
+
+### 15.13 Exportar Proyectos (JSON para Excel)
+
+- GET `/projects/export`
+
+Respuesta 200:
+
+```json
+{
+  "success": true,
+  "message": "Datos preparados para exportación",
+  "data": [{ "Número de Contrato": "CT-2025-001", "Nombre": "..." }],
+  "filename": "Reporte_Proyectos_2025-09-10.xlsx"
+}
+```
+
+## 16. HEALTH CHECK
+
+### 16.1 Verificar Estado de la API
 
 ```http
 GET /health
