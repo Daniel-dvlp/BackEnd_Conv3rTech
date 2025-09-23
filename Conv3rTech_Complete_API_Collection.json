@@ -1,0 +1,1211 @@
+{
+  "info": {
+    "name": "Conv3rTech - Complete API Testing Collection",
+    "description": "Colección completa para probar TODOS los módulos de Conv3rTech según API_TEST.md - Base URL: http://localhost:3006/api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3006/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "role_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "permission_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privilege_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_category_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feature_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "datasheet_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "address_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "supplier_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "purchase_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_category_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_sede_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verificar que la API esté funcionando"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', response.data.token);",
+                  "        console.log('Token guardado:', response.data.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@conv3rtech.com\",\n  \"contrasena\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login para obtener token de autenticación"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Renovar token de autenticación"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Obtener perfil del usuario autenticado"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Admin\",\n  \"apellido\": \"User\",\n  \"correo\": \"admin@conv3rtech.com\",\n  \"celular\": \"3001234567\",\n  \"documento\": \"1234567890\",\n  \"tipoDocumento\": \"CC\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Actualizar perfil del usuario"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"admin123\",\n  \"newPassword\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            },
+            "description": "Cambiar contraseña del usuario"
+          }
+        },
+        {
+          "name": "Get Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "permissions"]
+            },
+            "description": "Obtener permisos del usuario autenticado"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Cerrar sesión"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Roles Management",
+      "item": [
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["roles"]
+            },
+            "description": "Obtener todos los roles"
+          }
+        },
+        {
+          "name": "Create Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_rol) {",
+                  "        pm.collectionVariables.set('role_id', response.data.id_rol);",
+                  "        console.log('Role ID guardado:', response.data.id_rol);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_rol\": \"Editor\",\n  \"descripcion\": \"Rol de editor con permisos limitados\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["roles"]
+            },
+            "description": "Crear nuevo rol"
+          }
+        },
+        {
+          "name": "Get Roles with Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/roles-with-permissions",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "roles-with-permissions"]
+            },
+            "description": "Obtener roles con sus permisos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔑 Permissions Management",
+      "item": [
+        {
+          "name": "Get All Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Obtener todos los permisos"
+          }
+        },
+        {
+          "name": "Create Permission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_permiso) {",
+                  "        pm.collectionVariables.set('permission_id', response.data.id_permiso);",
+                  "        console.log('Permission ID guardado:', response.data.id_permiso);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_permiso\": \"read_products\",\n  \"descripcion\": \"Permiso para leer productos\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Crear nuevo permiso"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Privileges Management",
+      "item": [
+        {
+          "name": "Get All Privileges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/privileges",
+              "host": ["{{base_url}}"],
+              "path": ["privileges"]
+            },
+            "description": "Obtener todos los privilegios"
+          }
+        },
+        {
+          "name": "Create Privilege",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_privilegio) {",
+                  "        pm.collectionVariables.set('privilege_id', response.data.id_privilegio);",
+                  "        console.log('Privilege ID guardado:', response.data.id_privilegio);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_privilegio\": \"create\",\n  \"descripcion\": \"Privilegio para crear recursos\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/privileges",
+              "host": ["{{base_url}}"],
+              "path": ["privileges"]
+            },
+            "description": "Crear nuevo privilegio"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔗 Role-Permission Assignment",
+      "item": [
+        {
+          "name": "Assign Permission to Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permisos\": [\n    {\n      \"id_permiso\": {{permission_id}},\n      \"privilegios\": [\n        {\n          \"id_privilegio\": {{privilege_id}}\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/{{role_id}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "{{role_id}}", "permissions"]
+            },
+            "description": "Asignar permiso a rol"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Obtener todos los usuarios"
+          }
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_usuario) {",
+                  "        pm.collectionVariables.set('user_id', response.data.id_usuario);",
+                  "        console.log('User ID guardado:', response.data.id_usuario);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Pérez\",\n  \"correo\": \"juan@conv3rtech.com\",\n  \"contrasena\": \"password123\",\n  \"id_rol\": 2,\n  \"documento\": \"1234567890\",\n  \"tipo_documento\": \"CC\",\n  \"celular\": \"3001234567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Crear nuevo usuario"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Products Management",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/products",
+              "host": ["{{base_url}}"],
+              "path": ["products", "products"]
+            },
+            "description": "Obtener todos los productos"
+          }
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_producto) {",
+                  "        pm.collectionVariables.set('product_id', response.data.id_producto);",
+                  "        console.log('Product ID guardado:', response.data.id_producto);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cable UTP Cat6 305m\",\n  \"modelo\": \"CAT6-305M\",\n  \"id_categoria\": {{product_category_id}},\n  \"unidad_medida\": \"metros\",\n  \"precio\": 25000,\n  \"stock\": 50,\n  \"garantia\": 24,\n  \"codigo_barra\": \"7891234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/products",
+              "host": ["{{base_url}}"],
+              "path": ["products", "products"]
+            },
+            "description": "Crear nuevo producto"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Product Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/productsCategory",
+              "host": ["{{base_url}}"],
+              "path": ["productsCategory"]
+            },
+            "description": "Obtener todas las categorías"
+          }
+        },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_categoria) {",
+                  "        pm.collectionVariables.set('product_category_id', response.data.id_categoria);",
+                  "        console.log('Product Category ID guardado:', response.data.id_categoria);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cables y Conectores\",\n  \"descripcion\": \"Cables eléctricos, conectores RJ45, fibra óptica y accesorios de conexión\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/productsCategory",
+              "host": ["{{base_url}}"],
+              "path": ["productsCategory"]
+            },
+            "description": "Crear nueva categoría"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Clients Management",
+      "item": [
+        {
+          "name": "Get All Clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/clients",
+              "host": ["{{base_url}}"],
+              "path": ["clients"]
+            },
+            "description": "Obtener todos los clientes"
+          }
+        },
+        {
+          "name": "Create Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_cliente) {",
+                  "        pm.collectionVariables.set('client_id', response.data.id_cliente);",
+                  "        console.log('Client ID guardado:', response.data.id_cliente);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documento\": \"901234567\",\n  \"tipo_documento\": \"NIT\",\n  \"nombre\": \"Empresa ABC S.A.S\",\n  \"apellido\": null,\n  \"telefono\": \"+573001234567\",\n  \"correo\": \"contacto@empresaabc.com\",\n  \"credito\": true,\n  \"estado_cliente\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/clients",
+              "host": ["{{base_url}}"],
+              "path": ["clients"]
+            },
+            "description": "Crear cliente"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📍 Client Addresses",
+      "item": [
+        {
+          "name": "Create Client Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": {{client_id}},\n  \"nombre_direccion\": \"Oficina Principal\",\n  \"direccion\": \"Calle 123 #45-67, Piso 5\",\n  \"ciudad\": \"Bogotá\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/address-clients",
+              "host": ["{{base_url}}"],
+              "path": ["address-clients"]
+            },
+            "description": "Crear dirección para el cliente"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Service Categories",
+      "item": [
+        {
+          "name": "Get All Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/service-categories",
+              "host": ["{{base_url}}"],
+              "path": ["service-categories"]
+            },
+            "description": "Obtener todas las categorías de servicios"
+          }
+        },
+        {
+          "name": "Create Service Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_categoria_servicio) {",
+                  "        pm.collectionVariables.set('service_category_id', response.data.id_categoria_servicio);",
+                  "        console.log('Service Category ID guardado:', response.data.id_categoria_servicio);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Instalación de Redes\",\n  \"descripcion\": \"Servicios de instalación y configuración de redes de datos\",\n  \"url_imagen\": \"https://example.com/redes.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/service-categories",
+              "host": ["{{base_url}}"],
+              "path": ["service-categories"]
+            },
+            "description": "Crear categoría de servicios"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Services Management",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/services",
+              "host": ["{{base_url}}"],
+              "path": ["services"]
+            },
+            "description": "Obtener todos los servicios"
+          }
+        },
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_servicio) {",
+                  "        pm.collectionVariables.set('service_id', response.data.id_servicio);",
+                  "        console.log('Service ID guardado:', response.data.id_servicio);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Instalación de Cableado Estructurado\",\n  \"descripcion\": \"Instalación completa de cableado estructurado para redes de datos\",\n  \"precio\": 150000,\n  \"id_categoria_servicio\": {{service_category_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/services",
+              "host": ["{{base_url}}"],
+              "path": ["services"]
+            },
+            "description": "Crear servicio"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏗️ Projects Management (COMPLETO)",
+      "item": [
+        {
+          "name": "Get All Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Obtener todos los proyectos"
+          }
+        },
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_proyecto) {",
+                  "        pm.collectionVariables.set('project_id', response.data.id_proyecto);",
+                  "        console.log('Project ID guardado:', response.data.id_proyecto);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero_contrato\": \"CT-2024-001\",\n  \"nombre\": \"Instalación Red Corporativa Empresa ABC\",\n  \"id_cliente\": {{client_id}},\n  \"id_responsable\": {{user_id}},\n  \"fecha_inicio\": \"2024-01-15\",\n  \"fecha_fin\": \"2024-03-15\",\n  \"estado\": \"Pendiente\",\n  \"progreso\": 0,\n  \"prioridad\": \"Alta\",\n  \"ubicacion\": \"Oficina Principal - Calle 123 #45-67, Piso 5, Bogotá\",\n  \"descripcion\": \"Instalación completa de red de datos para oficina corporativa con 50 puntos de red\",\n  \"observaciones\": \"Proyecto prioritario para el cliente\",\n  \"costo_mano_obra\": 5000000,\n  \"costo_total_materiales\": 15000000,\n  \"costo_total_servicios\": 8000000,\n  \"costo_total_proyecto\": 28000000,\n  \"materiales\": [\n    {\n      \"id_producto\": {{product_id}},\n      \"cantidad\": 100\n    }\n  ],\n  \"servicios\": [\n    {\n      \"id_servicio\": {{service_id}},\n      \"cantidad\": 1\n    }\n  ],\n  \"empleadosAsociados\": [\n    {\n      \"id_usuario\": {{user_id}}\n    }\n  ],\n  \"sedes\": [\n    {\n      \"nombre\": \"Sede Principal - Piso 5\",\n      \"ubicacion\": \"Piso 5 - Área administrativa\",\n      \"presupuesto_materiales\": 10000000,\n      \"presupuesto_servicios\": 5000000,\n      \"presupuesto_total\": 15000000,\n      \"presupuesto_restante\": 15000000,\n      \"materialesAsignados\": [\n        {\n          \"id_producto\": {{product_id}},\n          \"cantidad\": 50\n        }\n      ],\n      \"serviciosAsignados\": [\n        {\n          \"id_servicio\": {{service_id}},\n          \"cantidad\": 1\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Crear proyecto completo con materiales, servicios, empleados y sedes"
+          }
+        },
+        {
+          "name": "Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Obtener proyecto específico con todas sus relaciones"
+          }
+        },
+        {
+          "name": "Update Project Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"En Progreso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "status"]
+            },
+            "description": "Actualizar estado del proyecto"
+          }
+        },
+        {
+          "name": "Update Project Progress",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progreso\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "progress"]
+            },
+            "description": "Actualizar progreso del proyecto"
+          }
+        },
+        {
+          "name": "Get Projects by Client",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/client/{{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "client", "{{client_id}}"]
+            },
+            "description": "Obtener proyectos por cliente"
+          }
+        },
+        {
+          "name": "Get Projects by Responsible",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/responsible/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "responsible", "{{user_id}}"]
+            },
+            "description": "Obtener proyectos por responsable"
+          }
+        },
+        {
+          "name": "Get Project Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/stats",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "stats"]
+            },
+            "description": "Obtener estadísticas de proyectos"
+          }
+        },
+        {
+          "name": "Export Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/export",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "export"]
+            },
+            "description": "Exportar proyectos a Excel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📤 Material Outputs",
+      "item": [
+        {
+          "name": "Create Material Output",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_proyecto\": {{project_id}},\n  \"id_proyecto_sede\": {{project_sede_id}},\n  \"id_producto\": {{product_id}},\n  \"cantidad\": 50,\n  \"id_entregador\": {{user_id}},\n  \"receptor\": \"Juan Pérez\",\n  \"observaciones\": \"Material entregado para instalación en piso 5\",\n  \"costo_total\": 1250000,\n  \"fecha_salida\": \"2024-01-20T10:30:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/salida-material",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "salida-material"]
+            },
+            "description": "Crear salida de material"
+          }
+        },
+        {
+          "name": "Get Material Outputs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/salidas-material",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "salidas-material"]
+            },
+            "description": "Obtener salidas de material del proyecto"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ Service Management",
+      "item": [
+        {
+          "name": "Mark Service as Completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/servicios/1/completar",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "servicios", "1", "completar"]
+            },
+            "description": "Marcar servicio como completado"
+          }
+        },
+        {
+          "name": "Mark Service as Pending",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/servicios/1/pendiente",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "servicios", "1", "pendiente"]
+            },
+            "description": "Marcar servicio como pendiente"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏭 Suppliers Management",
+      "item": [
+        {
+          "name": "Get All Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": ["{{base_url}}"],
+              "path": ["suppliers"]
+            },
+            "description": "Obtener todos los proveedores"
+          }
+        },
+        {
+          "name": "Create Supplier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_proveedor) {",
+                  "        pm.collectionVariables.set('supplier_id', response.data.id_proveedor);",
+                  "        console.log('Supplier ID guardado:', response.data.id_proveedor);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nit\": \"123456789-0\",\n  \"nombre_encargado\": \"Juan Pérez\",\n  \"nombre_empresa\": \"Proveedor Test\",\n  \"telefono\": \"123456789\",\n  \"correo\": \"proveedor@test.com\",\n  \"direccion\": \"Dirección del proveedor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": ["{{base_url}}"],
+              "path": ["suppliers"]
+            },
+            "description": "Crear nuevo proveedor"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛒 Purchases Management",
+      "item": [
+        {
+          "name": "Get All Purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/purchases",
+              "host": ["{{base_url}}"],
+              "path": ["purchases"]
+            },
+            "description": "Obtener todas las compras"
+          }
+        },
+        {
+          "name": "Create Purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data && response.data.id_compra) {",
+                  "        pm.collectionVariables.set('purchase_id', response.data.id_compra);",
+                  "        console.log('Purchase ID guardado:', response.data.id_compra);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplierId\": {{supplier_id}},\n  \"total\": 1000.00,\n  \"status\": \"pendiente\",\n  \"details\": [\n    {\n      \"productId\": {{product_id}},\n      \"quantity\": 10,\n      \"unitPrice\": 100.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/purchases",
+              "host": ["{{base_url}}"],
+              "path": ["purchases"]
+            },
+            "description": "Crear nueva compra"
+          }
+        }
+      ]
+    }
+  ]
+}
