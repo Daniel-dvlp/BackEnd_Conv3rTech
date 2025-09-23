@@ -42,6 +42,8 @@ setupAssociations();
 // Importar asociaciones de autenticación
 
 require("./models/auth/associations");
+// Asociaciones de proyectos
+require("./models/projects/associations");
 
 // ====================== RUTAS ======================
 
@@ -61,9 +63,9 @@ app.use("/api/permissions", permissionsRoutes);
 const privilegesRoutes = require("./routes/auth/PrivilegesRoutes");
 app.use("/api/privileges", privilegesRoutes);
 
-// Rutas de proyectos (comentadas temporalmente)
-// const ProjectRoutes = require("./routes/projects/ProjectRoutes");
-// app.use("/api/projects", ProjectRoutes);
+// Rutas de proyectos
+const ProjectRoutes = require("./routes/projects/ProjectRoutes");
+app.use("/api/projects", ProjectRoutes);
 
 // Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
