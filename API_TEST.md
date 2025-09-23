@@ -1498,3 +1498,145 @@ La asignación de permisos y privilegios a roles ahora usa la estructura correct
 - `403` - No autorizado (sin permisos)
 - `404` - Recurso no encontrado
 - `500` - Error interno del servidor
+
+
+## 17. GESTIÓN DE PAGOS DE PROYECTOS
+
+Base de rutas para pagos anidados bajo proyectos. Debes montar el router de pagos bajo el prefijo /api/projects en tu servidor:
+- Ejemplo de montaje: app.use('/api/projects', paymentsInstallmentsRoutes)
+
+Reglas de negocio clave:
+- Si el cliente del proyecto tiene credito = false:
+  - Solo se permite UN único pago aprobado.
+  - El monto debe ser exactamente igual al saldo pendiente.
+  - Se rechazan pagos parciales y un segundo pago con 409 y código payments.single_payment_required.
+- Si el cliente del proyecto tiene credito = true:
+  - Se permiten múltiples pagos parciales mientras la suma no exceda el total del proyecto.
+  - Si el pago excede el saldo, 409 con código payments.over_total.
+- Si el proyecto ya está liquidado (pendiente = 0):
+  - Rechazar nuevos pagos con 409 y código payments.already_settled.
+- El saldo pendiente siempre se calcula con base en pagos aprobados (estado=true).
+
+Headers comunes:
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+- Idempotency-Key: {{uuid}} (opcional en esta versión; reservado para control de reintentos)
+
+Modelo de datos de pago (persistido en tabla pagos_abonos):
+- id_pago_abono (PK autoincrement)
+- id_proyecto (FK)
+- fecha (Date, default NOW)
+- monto (Decimal(10,2))
+- metodo_pago (Efectivo | Transferencia | Tarjeta | Cheque)
+- estado (Boolean, true=aprobado/activo; false=anulado)
+
+Estructura de respuesta unificada:
+- Éxito: { "data": ..., "meta": { ... } }
+- Error: { "error": { "code": "payments.rule_violation", "message": "..." } }
+
+Códigos de error internos típicos:
+- payments.rule_violation
+- payments.over_total
+- payments.single_payment_required
+- payments.already_settled
+- payments.not_found
+
+### 17.1 Crear pago para un proyecto
+POST /projects/:projectId/payments
+
+Headers:
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+- Idempotency-Key: 3f6d6d8e-1e7b-4a9f-9a7c-1f2a9a0a9a7c (opcional)
+
+Body:
+{
+  "monto": 250000.00,
+  "metodo_pago": "Transferencia",
+  "fecha": "2025-09-18T10:30:00" // opcional
+}
+
+Respuesta 201:
+{
+  "data": {
+    "id_pago_abono": 12,
+    "id_proyecto": 3,
+    "fecha": "2025-09-18T10:30:00.000Z",
+    "monto": 250000.00,
+    "metodo_pago": "Transferencia",
+    "estado": true
+  },
+  "meta": { "message": "Pago creado" }
+}
+
+Posibles 409 (conflicto):
+- Cliente sin crédito intentando pago parcial o segundo pago:
+  { "error": { "code": "payments.single_payment_required", "message": "El monto debe ser exactamente igual al saldo pendiente" } }
+- Monto excede el saldo pendiente:
+  { "error": { "code": "payments.over_total", "message": "El monto excede el total pendiente" } }
+- Proyecto ya liquidado:
+  { "error": { "code": "payments.already_settled", "message": "Proyecto ya liquidado" } }
+
+### 17.2 Listar pagos de un proyecto
+GET /projects/:projectId/payments
+
+Respuesta 200:
+{
+  "data": [
+    { "id_pago_abono": 10, "id_proyecto": 3, "fecha": "2025-09-10T12:00:00.000Z", "monto": 150000.00, "metodo_pago": "Efectivo", "estado": true },
+    { "id_pago_abono": 8, "id_proyecto": 3, "fecha": "2025-09-01T09:00:00.000Z", "monto": 100000.00, "metodo_pago": "Tarjeta", "estado": false }
+  ],
+  "meta": { "total": 2 }
+}
+
+### 17.3 Obtener un pago específico del proyecto
+GET /projects/:projectId/payments/:paymentId
+
+Respuesta 200:
+{
+  "data": {
+    "id_pago_abono": 10,
+    "id_proyecto": 3,
+    "fecha": "2025-09-10T12:00:00.000Z",
+    "monto": 150000.00,
+    "metodo_pago": "Efectivo",
+    "estado": true
+  },
+  "meta": {}
+}
+
+Respuesta 404:
+{ "error": { "code": "payments.not_found", "message": "Pago no encontrado" } }
+
+### 17.4 Actualizar un pago
+No soportado por reglas del negocio. No se permite modificar pagos existentes; solo se admite crear, listar, buscar, obtener por id, obtener por proyecto y cancelar (anular).
+
+### 17.5 Anular (cancelar) un pago del proyecto
+DELETE /projects/:projectId/payments/:paymentId
+
+Descripción:
+- Anula un pago aprobándolo en estado=false (soft cancel). Si ya está anulado o no existe, se responde acorde.
+
+Respuesta 204:
+Sin cuerpo.
+
+Errores comunes:
+- 404 cuando el pago no existe o no pertenece al proyecto:
+  { "error": { "code": "payments.not_found", "message": "Pago no encontrado" } }
+- 409 cuando ya estaba anulado:
+  { "error": { "code": "payments.rule_violation", "message": "El pago/abono ya fue anulado o no existe" } }
+
+### 17.6 Notas de cálculo de saldo pendiente
+- El pendiente se calcula como: costo_total_proyecto - SUM(monto) de pagos con estado=true.
+- Cambios de estado afectarán el saldo pendiente de forma inmediata.
+- La validación de reglas se realiza de forma transaccional para evitar condiciones de carrera.
+
+### 17.7 Endpoints legacy (compatibilidad)
+También se mantienen endpoints legacy bajo el router de payments_installments:
+- POST /payments-installments
+- GET /payments-installments
+- GET /payments-installments/buscar/:term
+- GET /payments-installments/:id
+- PATCH /payments-installments/:id/cancelar
+
+Estos endpoints aceptan "monto" o "monto_pagado" en POST por compatibilidad; se recomienda migrar a las rutas anidadas de proyectos.

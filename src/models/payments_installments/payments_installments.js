@@ -12,10 +12,6 @@ const PagosAbonos = sequelize.define("pagos_abonos", {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  id_venta: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
   fecha: {
     type: DataTypes.DATE,
     allowNull: false,
