@@ -126,7 +126,7 @@ const deleteProjectPayment = async (req, res) => {
 
     await Service.cancelPagoAbono(paymentId);
     // 204 sin cuerpo para DELETE
-    return res.status(204).send();
+    return res.status(204).send().json({ message: 'Pago anulado' });
   } catch (error) {
     return err(res, error);
   }

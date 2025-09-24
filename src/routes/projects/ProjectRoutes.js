@@ -16,6 +16,12 @@ router.get(
   ProjectValidations.searchProjectsValidation,
   ProjectController.getAllProjects
 );
+// Búsqueda rápida para seleccionar proyecto (por número de contrato, nombre, cliente)
+router.get(
+  "/search",
+  ProjectValidations.quickSearchProjectsValidation,
+  ProjectController.quickSearchProjects
+);
 router.get("/stats", ProjectController.getProjectStats);
 router.get("/export", ProjectController.exportProjects);
 
@@ -29,6 +35,12 @@ router.get(
   "/:id",
   ProjectValidations.getProjectByIdValidation,
   ProjectController.getProjectById
+);
+// Saldo pendiente del proyecto (totales y pendiente)
+router.get(
+  "/:id/outstanding",
+  ProjectValidations.getProjectByIdValidation,
+  ProjectController.getProjectOutstanding
 );
 router.put(
   "/:id",

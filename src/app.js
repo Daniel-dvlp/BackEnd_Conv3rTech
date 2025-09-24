@@ -66,6 +66,9 @@ app.use("/api/privileges", privilegesRoutes);
 // Rutas de proyectos
 const ProjectRoutes = require("./routes/projects/ProjectRoutes");
 app.use("/api/projects", ProjectRoutes);
+// Rutas anidadas de pagos por proyecto (REST)
+const ProjectPaymentsRoutes = require('./routes/projects/ProjectPaymentsRoutes');
+app.use('/api/projects', ProjectPaymentsRoutes);
 
 // Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
@@ -117,9 +120,9 @@ app.use("/api/service-categories", ServiceCategoryRoutes);
 const ServicesRoutes = require("./routes/services/ServicesRoutes");
 app.use("/api/services", ServicesRoutes);
 
-//Rutas para pagos y abonos
-// const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
-// app.use('/api/payments-installments', PaymentsInstallmentsRoutes);
+// Rutas legacy de pagos y abonos (deprecated)
+const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
+app.use('/api/payments-installments', PaymentsInstallmentsRoutes);
 
 // ====================== UTILIDADES ======================
 
