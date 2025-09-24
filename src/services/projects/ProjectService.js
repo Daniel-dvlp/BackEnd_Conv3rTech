@@ -80,34 +80,6 @@ class ProjectService {
         projectData.fecha_fin
       );
 
-      // Obtener precios automáticamente para materiales
-      if (projectData.materiales && projectData.materiales.length > 0) {
-        projectData.materiales = await this.enrichMaterialData(
-          projectData.materiales
-        );
-      }
-
-      // Obtener precios automáticamente para servicios
-      if (projectData.servicios && projectData.servicios.length > 0) {
-        projectData.servicios = await this.enrichServiceData(
-          projectData.servicios
-        );
-      }
-
-      // Crear sedes basadas en direcciones del cliente
-      if (projectData.sedes && projectData.sedes.length > 0) {
-        projectData.sedes = await this.enrichSedeData(
-          projectData.sedes,
-          projectData.id_cliente
-        );
-      }
-
-      // Calcular costos totales del proyecto
-      const costosCalculados = this.calculateProjectCosts(projectData);
-      projectData.costo_total_materiales = costosCalculados.totalMateriales;
-      projectData.costo_total_servicios = costosCalculados.totalServicios;
-      projectData.costo_total_proyecto = costosCalculados.totalProyecto;
-
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales);
 
@@ -135,34 +107,6 @@ class ProjectService {
         projectData.fecha_inicio,
         projectData.fecha_fin
       );
-
-      // Obtener precios automáticamente para materiales
-      if (projectData.materiales && projectData.materiales.length > 0) {
-        projectData.materiales = await this.enrichMaterialData(
-          projectData.materiales
-        );
-      }
-
-      // Obtener precios automáticamente para servicios
-      if (projectData.servicios && projectData.servicios.length > 0) {
-        projectData.servicios = await this.enrichServiceData(
-          projectData.servicios
-        );
-      }
-
-      // Crear sedes basadas en direcciones del cliente
-      if (projectData.sedes && projectData.sedes.length > 0) {
-        projectData.sedes = await this.enrichSedeData(
-          projectData.sedes,
-          projectData.id_cliente
-        );
-      }
-
-      // Calcular costos totales del proyecto
-      const costosCalculados = this.calculateProjectCosts(projectData);
-      projectData.costo_total_materiales = costosCalculados.totalMateriales;
-      projectData.costo_total_servicios = costosCalculados.totalServicios;
-      projectData.costo_total_proyecto = costosCalculados.totalProyecto;
 
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales, id);
@@ -420,15 +364,7 @@ class ProjectService {
           cantidad: serv.cantidad,
           precio: parseFloat(serv.precio_unitario),
         })) || [],
-      costos: {
-        ...projectTotals,
-        totalMaterialesCalculado: parseFloat(
-          project.costo_total_materiales || 0
-        ),
-        totalServiciosCalculado: parseFloat(project.costo_total_servicios || 0),
-        totalProyectoCalculado: parseFloat(project.costo_total_proyecto || 0),
-        costoManoDeObraCalculado: parseFloat(project.costo_mano_obra || 0),
-      },
+      costos: projectTotals,
       observaciones: project.observaciones,
       sedes:
         project.sedes?.map((sede) => ({
@@ -601,193 +537,6 @@ class ProjectService {
     const currentYear = new Date().getFullYear();
     const projectCount = projects.length + 1;
     return `CT-${currentYear}-${projectCount.toString().padStart(3, "0")}`;
-  }
-
-  // Enriquecer datos de materiales con información del producto
-  async enrichMaterialData(materiales) {
-    const Product = require("../../models/products/Product");
-
-    const enrichedMateriales = [];
-
-    for (const material of materiales) {
-      const producto = await Product.findByPk(material.id_producto);
-
-      if (!producto) {
-        throw new Error(
-          `Producto con ID ${material.id_producto} no encontrado`
-        );
-      }
-
-      enrichedMateriales.push({
-        id_producto: material.id_producto,
-        cantidad: material.cantidad,
-        precio_unitario: parseFloat(producto.precio), // Usar el precio del producto
-        precio_total: material.cantidad * parseFloat(producto.precio),
-      });
-    }
-
-    return enrichedMateriales;
-  }
-
-  // Enriquecer datos de servicios con información del servicio
-  async enrichServiceData(servicios) {
-    const Service = require("../../models/services/Service");
-
-    const enrichedServicios = [];
-
-    for (const servicio of servicios) {
-      const servicioData = await Service.findByPk(servicio.id_servicio);
-
-      if (!servicioData) {
-        throw new Error(
-          `Servicio con ID ${servicio.id_servicio} no encontrado`
-        );
-      }
-
-      enrichedServicios.push({
-        id_servicio: servicio.id_servicio,
-        cantidad: servicio.cantidad,
-        precio_unitario: parseFloat(servicioData.precio), // Usar el precio del servicio
-        precio_total: servicio.cantidad * parseFloat(servicioData.precio),
-      });
-    }
-
-    return enrichedServicios;
-  }
-
-  // Enriquecer datos de sedes basadas en direcciones del cliente
-  async enrichSedeData(sedes, idCliente) {
-    const AddressClients = require("../../models/clients/AddressClients");
-
-    const enrichedSedes = [];
-
-    for (const sede of sedes) {
-      // Si se proporciona id_direccion, obtener datos de la dirección
-      if (sede.id_direccion) {
-        const direccion = await AddressClients.findByPk(sede.id_direccion);
-
-        if (!direccion) {
-          throw new Error(
-            `Dirección con ID ${sede.id_direccion} no encontrada`
-          );
-        }
-
-        // Verificar que la dirección pertenece al cliente
-        if (direccion.id_cliente !== idCliente) {
-          throw new Error(
-            `La dirección ${sede.id_direccion} no pertenece al cliente ${idCliente}`
-          );
-        }
-
-        enrichedSedes.push({
-          nombre: sede.nombre || direccion.nombre_direccion,
-          ubicacion:
-            sede.ubicacion || `${direccion.direccion}, ${direccion.ciudad}`,
-          presupuesto_materiales: sede.presupuesto_materiales || 0,
-          presupuesto_servicios: sede.presupuesto_servicios || 0,
-          presupuesto_total: sede.presupuesto_total || 0,
-          presupuesto_restante: sede.presupuesto_restante || 0,
-          materialesAsignados: sede.materialesAsignados || [],
-          serviciosAsignados: sede.serviciosAsignados || [],
-        });
-      } else {
-        // Si no se proporciona id_direccion, usar datos manuales
-        enrichedSedes.push({
-          nombre: sede.nombre,
-          ubicacion: sede.ubicacion,
-          presupuesto_materiales: sede.presupuesto_materiales || 0,
-          presupuesto_servicios: sede.presupuesto_servicios || 0,
-          presupuesto_total: sede.presupuesto_total || 0,
-          presupuesto_restante: sede.presupuesto_restante || 0,
-          materialesAsignados: sede.materialesAsignados || [],
-          serviciosAsignados: sede.serviciosAsignados || [],
-        });
-      }
-    }
-
-    return enrichedSedes;
-  }
-
-  // Calcular costos totales del proyecto
-  calculateProjectCosts(projectData) {
-    let totalMateriales = 0;
-    let totalServicios = 0;
-    let totalSedesMateriales = 0;
-    let totalSedesServicios = 0;
-
-    // Calcular totales de materiales del proyecto
-    if (projectData.materiales && projectData.materiales.length > 0) {
-      totalMateriales = projectData.materiales.reduce((acc, material) => {
-        return (
-          acc +
-          parseFloat(material.precio_unitario) * parseFloat(material.cantidad)
-        );
-      }, 0);
-    }
-
-    // Calcular totales de servicios del proyecto
-    if (projectData.servicios && projectData.servicios.length > 0) {
-      totalServicios = projectData.servicios.reduce((acc, servicio) => {
-        return (
-          acc +
-          parseFloat(servicio.precio_unitario) * parseFloat(servicio.cantidad)
-        );
-      }, 0);
-    }
-
-    // Calcular totales de materiales en sedes
-    if (projectData.sedes && projectData.sedes.length > 0) {
-      projectData.sedes.forEach((sede) => {
-        if (sede.materialesAsignados && sede.materialesAsignados.length > 0) {
-          // Obtener precios de productos para materiales de sede
-          sede.materialesAsignados.forEach((material) => {
-            // Buscar el producto en los materiales del proyecto para obtener su precio
-            const productoEnProyecto = projectData.materiales?.find(
-              (p) => p.id_producto === material.id_producto
-            );
-            if (productoEnProyecto) {
-              totalSedesMateriales +=
-                parseFloat(productoEnProyecto.precio_unitario) *
-                parseFloat(material.cantidad);
-            }
-          });
-        }
-
-        if (sede.serviciosAsignados && sede.serviciosAsignados.length > 0) {
-          sede.serviciosAsignados.forEach((servicio) => {
-            // Buscar el servicio en los servicios del proyecto para obtener su precio
-            const servicioEnProyecto = projectData.servicios?.find(
-              (s) => s.id_servicio === servicio.id_servicio
-            );
-            if (servicioEnProyecto) {
-              totalSedesServicios +=
-                parseFloat(servicioEnProyecto.precio_unitario) *
-                parseFloat(servicio.cantidad);
-            }
-          });
-        }
-      });
-    }
-
-    // Sumar costos de mano de obra
-    const costoManoDeObra = parseFloat(projectData.costo_mano_obra || 0);
-
-    // Calcular totales
-    const totalMaterialesFinal = totalMateriales + totalSedesMateriales;
-    const totalServiciosFinal = totalServicios + totalSedesServicios;
-    const totalProyecto =
-      totalMaterialesFinal + totalServiciosFinal + costoManoDeObra;
-
-    return {
-      totalMateriales: parseFloat(totalMaterialesFinal.toFixed(2)),
-      totalServicios: parseFloat(totalServiciosFinal.toFixed(2)),
-      totalProyecto: parseFloat(totalProyecto.toFixed(2)),
-      costoManoDeObra: parseFloat(costoManoDeObra.toFixed(2)),
-      materialesProyecto: parseFloat(totalMateriales.toFixed(2)),
-      serviciosProyecto: parseFloat(totalServicios.toFixed(2)),
-      materialesSedes: parseFloat(totalSedesMateriales.toFixed(2)),
-      serviciosSedes: parseFloat(totalSedesServicios.toFixed(2)),
-    };
   }
 }
 
