@@ -13,6 +13,22 @@ class ProjectService {
     }
   }
 
+  // Búsqueda rápida por número de contrato, nombre de proyecto o nombre de cliente
+  async quickSearch(term, options = {}) {
+    try {
+      const limit = Number(options.limit || 10);
+      const rawResults = await ProjectRepository.quickSearch(term, { limit });
+      return rawResults.map((p) => ({
+        id: p.id_proyecto,
+        numeroContrato: p.numero_contrato,
+        nombre: p.nombre,
+        cliente: p.cliente?.nombre,
+      }));
+    } catch (error) {
+      throw new Error(`Error en búsqueda de proyectos: ${error.message}`);
+    }
+  }
+
   // Obtener un proyecto por ID
   async getProjectById(id) {
     try {
@@ -24,6 +40,26 @@ class ProjectService {
       return this.transformProjectData(project);
     } catch (error) {
       throw new Error(`Error al obtener proyecto: ${error.message}`);
+    }
+  }
+
+  // Saldo pendiente del proyecto integrando reglas de pagos
+  async getOutstandingByProjectId(projectId) {
+    try {
+      const { calculateOutstanding } = require("../payments_installments/payments_installmentsServices");
+      const { proyecto, totalProyecto, totalPagado, pendiente } = await calculateOutstanding(projectId);
+      return {
+        id: proyecto.id_proyecto,
+        numeroContrato: proyecto.numero_contrato,
+        nombre: proyecto.nombre,
+        cliente: proyecto.cliente?.nombre,
+        totalProyecto: parseFloat(totalProyecto),
+        totalPagado: parseFloat(totalPagado),
+        pendiente: parseFloat(pendiente),
+        credito: !!proyecto?.cliente?.credito,
+      };
+    } catch (error) {
+      throw new Error(error.statusCode === 404 ? "Proyecto no encontrado" : `Error al obtener saldo pendiente: ${error.message}`);
     }
   }
 
@@ -434,7 +470,7 @@ class ProjectService {
       return;
     }
 
-    const ProductRepository = require("../../repositories/products_category/ProductsCategoryRepository");
+    const ProductRepository = require("../../repositories/products/ProductRepository");
 
     for (const material of materiales) {
       const producto = await ProductRepository.getProductById(

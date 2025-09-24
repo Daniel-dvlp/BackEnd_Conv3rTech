@@ -26,6 +26,18 @@ class ProjectController {
     }
   }
 
+  // Búsqueda rápida para selección de proyecto al registrar pago
+  async quickSearchProjects(req, res) {
+    try {
+      const term = String(req.query.term || '').trim();
+      const limit = Number(req.query.limit || 10);
+      const results = await ProjectService.quickSearch(term, { limit });
+      res.status(200).json({ success: true, data: results, total: results.length });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   // Obtener un proyecto por ID
   async getProjectById(req, res) {
     try {
@@ -47,6 +59,21 @@ class ProjectController {
           success: false,
           message: error.message,
         });
+      }
+    }
+  }
+
+  // Saldo pendiente del proyecto (para pagos)
+  async getProjectOutstanding(req, res) {
+    try {
+      const { id } = req.params;
+      const outstanding = await ProjectService.getOutstandingByProjectId(id);
+      res.status(200).json({ success: true, data: outstanding });
+    } catch (error) {
+      if (error.message === "Proyecto no encontrado") {
+        res.status(404).json({ success: false, message: error.message });
+      } else {
+        res.status(500).json({ success: false, message: error.message });
       }
     }
   }
