@@ -4,47 +4,9 @@ const Controller = require('../../controllers/payments_installments/payments_ins
 const Validations = require('../../middlewares/payments_installments/payments_installmentsMiddlewares');
 const { authMiddleware } = require('../../middlewares/auth/AuthMiddleware');
 
-// ===================== Endpoints legacy (colección plana) =====================
+// Todas las rutas aquí son ANIDADAS bajo /api/projects
 
-// Crear pago/abono
-router.post(
-  '/',
-  authMiddleware,
-  Validations.createPagoAbonoValidation,
-  Controller.createPagoAbono
-);
-
-// Listar todos
-router.get('/', authMiddleware, Controller.getAllPagosAbonos);
-
-// Buscar por término
-router.get(
-  '/buscar/:term',
-  authMiddleware,
-  Validations.searchPagosAbonosValidation,
-  Controller.searchPagosAbonos
-);
-
-// Obtener por id
-router.get(
-  '/:id',
-  authMiddleware,
-  Validations.findPagoAbonoByIdValidation,
-  Controller.getPagoAbonoById
-);
-
-// Anular
-router.patch(
-  '/:id/cancelar',
-  authMiddleware,
-  Validations.cancelPagoAbonoValidation,
-  Controller.cancelPagoAbono
-);
-
-// ============ Endpoints anidados /projects/:projectId/payments ============
-// Nota: monta este router bajo el prefijo /api/projects para que estas rutas queden activas.
-// Ejemplo: app.use('/api/projects', paymentsInstallmentsRoutes);
-
+// Crear pago para un proyecto
 router.post(
   '/:projectId/payments',
   authMiddleware,
@@ -52,6 +14,7 @@ router.post(
   Controller.createProjectPayment
 );
 
+// Listar pagos del proyecto
 router.get(
   '/:projectId/payments',
   authMiddleware,
@@ -59,6 +22,7 @@ router.get(
   Controller.listProjectPayments
 );
 
+// Obtener pago específico del proyecto
 router.get(
   '/:projectId/payments/:paymentId',
   authMiddleware,
@@ -66,7 +30,7 @@ router.get(
   Controller.getProjectPayment
 );
 
-
+// Anular (cancelar) un pago del proyecto
 router.delete(
   '/:projectId/payments/:paymentId',
   authMiddleware,
