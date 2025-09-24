@@ -128,6 +128,30 @@ class ProjectRepository {
     });
   }
 
+  // Búsqueda rápida por número de contrato, nombre de proyecto o nombre de cliente
+  async quickSearch(term, { limit = 10 } = {}) {
+    const whereClause = {
+      [Op.or]: [
+        { nombre: { [Op.like]: `%${term}%` } },
+        { numero_contrato: { [Op.like]: `%${term}%` } },
+        { "$cliente.nombre$": { [Op.like]: `%${term}%` } },
+      ],
+    };
+
+    return Project.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: require("../../models/clients/Clients"),
+          as: "cliente",
+          attributes: ["id_cliente", "nombre"],
+        },
+      ],
+      order: [["fecha_creacion", "DESC"]],
+      limit,
+    });
+  }
+
   // Obtener un proyecto por ID
   async getProjectById(id) {
     return Project.findByPk(id, {

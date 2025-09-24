@@ -468,6 +468,16 @@ const searchProjectsValidation = [
     .withMessage("El límite debe ser un número entero entre 1 y 100"),
 ];
 
+// Búsqueda rápida para pagos: permite 'term' y limita resultado
+const quickSearchProjectsValidation = [
+  query("term")
+    .notEmpty()
+    .withMessage("term es obligatorio")
+    .isLength({ max: 100 })
+    .withMessage("El término no puede exceder los 100 caracteres"),
+  query("limit").optional().isInt({ min: 1, max: 50 }),
+];
+
 module.exports = {
   createProjectValidation,
   updateProjectValidation,
@@ -478,4 +488,5 @@ module.exports = {
   updateProgressValidation,
   updateStatusValidation,
   searchProjectsValidation,
+  quickSearchProjectsValidation,
 };
