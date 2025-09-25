@@ -187,6 +187,97 @@ class RoleController {
     }
   }
 
+  // Métodos para CRUD de privilegios
+  async createPrivilege(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const privilegeData = req.body;
+      const privilege = await roleService.createPrivilege(privilegeData);
+
+      res.status(201).json({
+        success: true,
+        message: "Privilegio creado exitosamente",
+        data: privilege,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async getPrivilegeById(req, res) {
+    try {
+      const { id } = req.params;
+      const privilege = await roleService.getPrivilegeById(id);
+
+      res.status(200).json({
+        success: true,
+        data: privilege,
+        message: "Privilegio obtenido exitosamente",
+      });
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async updatePrivilege(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const { id } = req.params;
+      const privilegeData = req.body;
+      const privilege = await roleService.updatePrivilege(id, privilegeData);
+
+      res.status(200).json({
+        success: true,
+        message: "Privilegio actualizado exitosamente",
+        data: privilege,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async deletePrivilege(req, res) {
+    try {
+      const { id } = req.params;
+      await roleService.deletePrivilege(id);
+
+      res.status(200).json({
+        success: true,
+        message: "Privilegio eliminado exitosamente",
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // Métodos para CRUD de permisos
   async createPermission(req, res) {
     try {
