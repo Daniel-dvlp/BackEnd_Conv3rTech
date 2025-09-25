@@ -1,15 +1,31 @@
-const ProjectRepository = require('../../repositories/projects/ProjectRepository');
+const ProjectRepository = require("../../repositories/projects/ProjectRepository");
 
 class ProjectService {
   // Obtener todos los proyectos
   async getAllProjects(filters = {}) {
     try {
       const projects = await ProjectRepository.getAllProjects(filters);
-      
+
       // Transformar datos para que coincidan con el frontend
-      return projects.map(project => this.transformProjectData(project));
+      return projects.map((project) => this.transformProjectData(project));
     } catch (error) {
       throw new Error(`Error al obtener proyectos: ${error.message}`);
+    }
+  }
+
+  // Búsqueda rápida por número de contrato, nombre de proyecto o nombre de cliente
+  async quickSearch(term, options = {}) {
+    try {
+      const limit = Number(options.limit || 10);
+      const rawResults = await ProjectRepository.quickSearch(term, { limit });
+      return rawResults.map((p) => ({
+        id: p.id_proyecto,
+        numeroContrato: p.numero_contrato,
+        nombre: p.nombre,
+        cliente: p.cliente?.nombre,
+      }));
+    } catch (error) {
+      throw new Error(`Error en búsqueda de proyectos: ${error.message}`);
     }
   }
 
@@ -18,12 +34,32 @@ class ProjectService {
     try {
       const project = await ProjectRepository.getProjectById(id);
       if (!project) {
-        throw new Error('Proyecto no encontrado');
+        throw new Error("Proyecto no encontrado");
       }
-      
+
       return this.transformProjectData(project);
     } catch (error) {
       throw new Error(`Error al obtener proyecto: ${error.message}`);
+    }
+  }
+
+  // Saldo pendiente del proyecto integrando reglas de pagos
+  async getOutstandingByProjectId(projectId) {
+    try {
+      const { calculateOutstanding } = require("../payments_installments/payments_installmentsServices");
+      const { proyecto, totalProyecto, totalPagado, pendiente } = await calculateOutstanding(projectId);
+      return {
+        id: proyecto.id_proyecto,
+        numeroContrato: proyecto.numero_contrato,
+        nombre: proyecto.nombre,
+        cliente: proyecto.cliente?.nombre,
+        totalProyecto: parseFloat(totalProyecto),
+        totalPagado: parseFloat(totalPagado),
+        pendiente: parseFloat(pendiente),
+        credito: !!proyecto?.cliente?.credito,
+      };
+    } catch (error) {
+      throw new Error(error.statusCode === 404 ? "Proyecto no encontrado" : `Error al obtener saldo pendiente: ${error.message}`);
     }
   }
 
@@ -32,18 +68,21 @@ class ProjectService {
     try {
       // Validar datos requeridos
       this.validateProjectData(projectData);
-      
+
       // Generar número de contrato si no se proporciona
       if (!projectData.numero_contrato) {
         projectData.numero_contrato = await this.generateContractNumber();
       }
-      
+
       // Validar fechas
-      this.validateProjectDates(projectData.fecha_inicio, projectData.fecha_fin);
-      
+      this.validateProjectDates(
+        projectData.fecha_inicio,
+        projectData.fecha_fin
+      );
+
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales);
-      
+
       const project = await ProjectRepository.createProject(projectData);
       return this.transformProjectData(project);
     } catch (error) {
@@ -57,18 +96,21 @@ class ProjectService {
       // Verificar que el proyecto existe
       const existingProject = await ProjectRepository.getProjectById(id);
       if (!existingProject) {
-        throw new Error('Proyecto no encontrado');
+        throw new Error("Proyecto no encontrado");
       }
-      
+
       // Validar datos requeridos
       this.validateProjectData(projectData);
-      
+
       // Validar fechas
-      this.validateProjectDates(projectData.fecha_inicio, projectData.fecha_fin);
-      
+      this.validateProjectDates(
+        projectData.fecha_inicio,
+        projectData.fecha_fin
+      );
+
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales, id);
-      
+
       const project = await ProjectRepository.updateProject(id, projectData);
       return this.transformProjectData(project);
     } catch (error) {
@@ -81,9 +123,9 @@ class ProjectService {
     try {
       const deleted = await ProjectRepository.deleteProject(id);
       if (!deleted) {
-        throw new Error('Proyecto no encontrado');
+        throw new Error("Proyecto no encontrado");
       }
-      return { success: true, message: 'Proyecto eliminado exitosamente' };
+      return { success: true, message: "Proyecto eliminado exitosamente" };
     } catch (error) {
       throw new Error(`Error al eliminar proyecto: ${error.message}`);
     }
@@ -94,26 +136,30 @@ class ProjectService {
     try {
       // Validar datos de salida
       this.validateSalidaData(salidaData);
-      
+
       // Verificar que el proyecto existe
-      const project = await ProjectRepository.getProjectById(salidaData.id_proyecto);
+      const project = await ProjectRepository.getProjectById(
+        salidaData.id_proyecto
+      );
       if (!project) {
-        throw new Error('Proyecto no encontrado');
+        throw new Error("Proyecto no encontrado");
       }
-      
+
       // Verificar que la sede existe si se especifica
       if (salidaData.id_proyecto_sede) {
-        const sede = project.sedes.find(s => s.id_proyecto_sede === salidaData.id_proyecto_sede);
+        const sede = project.sedes.find(
+          (s) => s.id_proyecto_sede === salidaData.id_proyecto_sede
+        );
         if (!sede) {
-          throw new Error('Sede no encontrada');
+          throw new Error("Sede no encontrada");
         }
       }
-      
+
       const salida = await ProjectRepository.createSalidaMaterial(salidaData);
       return {
         success: true,
-        message: 'Salida de material registrada exitosamente',
-        salida: salida
+        message: "Salida de material registrada exitosamente",
+        salida: salida,
       };
     } catch (error) {
       throw new Error(`Error al crear salida de material: ${error.message}`);
@@ -123,17 +169,22 @@ class ProjectService {
   // Obtener salidas de material
   async getSalidasMaterial(idProyecto, idSede = null) {
     try {
-      const salidas = await ProjectRepository.getSalidasMaterial(idProyecto, idSede);
-      return salidas.map(salida => ({
+      const salidas = await ProjectRepository.getSalidasMaterial(
+        idProyecto,
+        idSede
+      );
+      return salidas.map((salida) => ({
         id: salida.id_salida_material,
-        material: salida.producto?.nombre || 'Material no encontrado',
+        material: salida.producto?.nombre || "Material no encontrado",
         cantidad: salida.cantidad,
-        entregador: `${salida.entregador?.nombre || ''} ${salida.entregador?.apellido || ''}`.trim(),
+        entregador: `${salida.entregador?.nombre || ""} ${
+          salida.entregador?.apellido || ""
+        }`.trim(),
         receptor: salida.receptor,
         observaciones: salida.observaciones,
         costoTotal: parseFloat(salida.costo_total),
         fecha: salida.fecha_salida,
-        sede: salida.sede?.nombre || 'Sin sede específica'
+        sede: salida.sede?.nombre || "Sin sede específica",
       }));
     } catch (error) {
       throw new Error(`Error al obtener salidas de material: ${error.message}`);
@@ -149,18 +200,143 @@ class ProjectService {
     }
   }
 
+  // Marcar servicio como completado
+  async markServiceAsCompleted(idSedeServicio) {
+    try {
+      const SedeServicio = require("../../models/projects/SedeServicio");
+
+      const servicio = await SedeServicio.findByPk(idSedeServicio);
+      if (!servicio) {
+        throw new Error("Servicio no encontrado");
+      }
+
+      await servicio.update({
+        estado: "completado",
+        fecha_completado: new Date(),
+      });
+
+      return {
+        success: true,
+        message: "Servicio marcado como completado exitosamente",
+      };
+    } catch (error) {
+      throw new Error(
+        `Error al marcar servicio como completado: ${error.message}`
+      );
+    }
+  }
+
+  // Marcar servicio como pendiente
+  async markServiceAsPending(idSedeServicio) {
+    try {
+      const SedeServicio = require("../../models/projects/SedeServicio");
+
+      const servicio = await SedeServicio.findByPk(idSedeServicio);
+      if (!servicio) {
+        throw new Error("Servicio no encontrado");
+      }
+
+      await servicio.update({
+        estado: "pendiente",
+        fecha_completado: null,
+      });
+
+      return {
+        success: true,
+        message: "Servicio marcado como pendiente exitosamente",
+      };
+    } catch (error) {
+      throw new Error(
+        `Error al marcar servicio como pendiente: ${error.message}`
+      );
+    }
+  }
+
   // Métodos auxiliares privados
 
   // Transformar datos del proyecto para el frontend
   transformProjectData(project) {
+    // Calcular totales a nivel de sede usando el objeto crudo de sequelize
+    const calculateSedeTotals = (sedeRaw) => {
+      const totalMateriales = (sedeRaw.materialesAsignados || []).reduce(
+        (acc, mat) => {
+          const unit = parseFloat(mat.producto?.precio ?? 0);
+          const qty = parseFloat(mat.cantidad ?? 0);
+          return acc + unit * qty;
+        },
+        0
+      );
+
+      const totalServicios = (sedeRaw.serviciosAsignados || []).reduce(
+        (acc, serv) => {
+          const unit = parseFloat(
+            serv.precio_unitario ?? serv.servicio?.precio ?? 0
+          );
+          const qty = parseFloat(serv.cantidad ?? 0);
+          return acc + unit * qty;
+        },
+        0
+      );
+
+      const ejecutadoPorSalidas = (sedeRaw.salidasMaterial || []).reduce(
+        (acc, s) => {
+          return acc + parseFloat(s.costo_total ?? 0);
+        },
+        0
+      );
+
+      const presupuestoTotal = parseFloat(sedeRaw.presupuesto_total ?? 0);
+      const restante = presupuestoTotal
+        ? Math.max(0, presupuestoTotal - ejecutadoPorSalidas)
+        : undefined;
+
+      return {
+        materiales: parseFloat(totalMateriales.toFixed(2)),
+        servicios: parseFloat(totalServicios.toFixed(2)),
+        total: parseFloat((totalMateriales + totalServicios).toFixed(2)),
+        ejecutadoPorSalidas: parseFloat(ejecutadoPorSalidas.toFixed(2)),
+        restante:
+          restante !== undefined ? parseFloat(restante.toFixed(2)) : undefined,
+      };
+    };
+
+    // Calcular totales a nivel de proyecto usando el objeto crudo de sequelize
+    const calculateProjectTotals = (projectRaw) => {
+      const totalMateriales = (projectRaw.materiales || []).reduce((acc, m) => {
+        const unit = parseFloat(m.precio_unitario ?? 0);
+        const qty = parseFloat(m.cantidad ?? 0);
+        return acc + unit * qty;
+      }, 0);
+
+      const totalServicios = (projectRaw.servicios || []).reduce((acc, s) => {
+        const unit = parseFloat(s.precio_unitario ?? 0);
+        const qty = parseFloat(s.cantidad ?? 0);
+        return acc + unit * qty;
+      }, 0);
+
+      const manoDeObra = parseFloat(projectRaw.costo_mano_obra ?? 0);
+      const total = totalMateriales + totalServicios + manoDeObra;
+
+      return {
+        materiales: parseFloat(totalMateriales.toFixed(2)),
+        servicios: parseFloat(totalServicios.toFixed(2)),
+        manoDeObra: parseFloat(manoDeObra.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
+      };
+    };
+
+    const projectTotals = calculateProjectTotals(project);
+
     return {
       id: project.id_proyecto,
       numeroContrato: project.numero_contrato,
       nombre: project.nombre,
-      cliente: project.cliente?.nombre || 'Cliente no encontrado',
+      cliente: project.cliente?.nombre || "Cliente no encontrado",
       responsable: {
-        nombre: `${project.responsable?.nombre || ''} ${project.responsable?.apellido || ''}`.trim(),
-        avatarSeed: project.responsable?.nombre || 'User'
+        nombre: `${project.responsable?.nombre || ""} ${
+          project.responsable?.apellido || ""
+        }`.trim(),
+        avatarSeed: project.responsable?.nombre || "User",
       },
       fechaInicio: project.fecha_inicio,
       fechaFin: project.fecha_fin,
@@ -168,85 +344,105 @@ class ProjectService {
       progreso: project.progreso,
       prioridad: project.prioridad,
       ubicacion: project.ubicacion,
-      empleadosAsociados: project.empleadosAsociados?.map(emp => ({
-        nombre: `${emp.empleado?.nombre || ''} ${emp.empleado?.apellido || ''}`.trim(),
-        avatarSeed: emp.empleado?.nombre || 'User'
-      })) || [],
+      empleadosAsociados:
+        project.empleadosAsociados?.map((emp) => ({
+          nombre: `${emp.empleado?.nombre || ""} ${
+            emp.empleado?.apellido || ""
+          }`.trim(),
+          avatarSeed: emp.empleado?.nombre || "User",
+        })) || [],
       descripcion: project.descripcion,
-      materiales: project.materiales?.map(mat => ({
-        item: mat.producto?.nombre || 'Material no encontrado',
-        cantidad: mat.cantidad,
-        precio: parseFloat(mat.precio_unitario)
-      })) || [],
-      servicios: project.servicios?.map(serv => ({
-        servicio: serv.servicio?.nombre || 'Servicio no encontrado',
-        cantidad: serv.cantidad,
-        precio: parseFloat(serv.precio_unitario)
-      })) || [],
-      costos: {
-        manoDeObra: parseFloat(project.costo_mano_obra)
-      },
-      observaciones: project.observaciones,
-      sedes: project.sedes?.map(sede => ({
-        nombre: sede.nombre,
-        ubicacion: sede.ubicacion,
-        materialesAsignados: sede.materialesAsignados?.map(mat => ({
-          item: mat.producto?.nombre || 'Material no encontrado',
-          cantidad: mat.cantidad
+      materiales:
+        project.materiales?.map((mat) => ({
+          item: mat.producto?.nombre || "Material no encontrado",
+          cantidad: mat.cantidad,
+          precio: parseFloat(mat.precio_unitario),
         })) || [],
-        serviciosAsignados: sede.serviciosAsignados?.map(serv => ({
-          servicio: serv.servicio?.nombre || 'Servicio no encontrado',
+      servicios:
+        project.servicios?.map((serv) => ({
+          servicio: serv.servicio?.nombre || "Servicio no encontrado",
           cantidad: serv.cantidad,
-          precio: parseFloat(serv.precio_unitario)
+          precio: parseFloat(serv.precio_unitario),
         })) || [],
-        presupuesto: {
-          materiales: parseFloat(sede.presupuesto_materiales),
-          servicios: parseFloat(sede.presupuesto_servicios),
-          total: parseFloat(sede.presupuesto_total),
-          restante: parseFloat(sede.presupuesto_restante)
-        },
-        salidasMaterial: sede.salidasMaterial?.map(salida => ({
-          id: salida.id_salida_material,
-          fecha: salida.fecha_salida,
-          material: salida.producto?.nombre || 'Material no encontrado',
-          cantidad: salida.cantidad,
-          entregador: `${salida.entregador?.nombre || ''} ${salida.entregador?.apellido || ''}`.trim(),
-          receptor: salida.receptor,
-          observaciones: salida.observaciones,
-          costoTotal: parseFloat(salida.costo_total)
-        })) || []
-      })) || []
+      costos: projectTotals,
+      observaciones: project.observaciones,
+      sedes:
+        project.sedes?.map((sede) => ({
+          nombre: sede.nombre,
+          ubicacion: sede.ubicacion,
+          materialesAsignados:
+            sede.materialesAsignados?.map((mat) => ({
+              item: mat.producto?.nombre || "Material no encontrado",
+              cantidad: mat.cantidad,
+            })) || [],
+          serviciosAsignados:
+            sede.serviciosAsignados?.map((serv) => ({
+              id: serv.id_sede_servicio,
+              servicio: serv.servicio?.nombre || "Servicio no encontrado",
+              cantidad: serv.cantidad,
+              precio: parseFloat(serv.precio_unitario),
+              estado: serv.estado || "pendiente",
+              fechaCompletado: serv.fecha_completado,
+              categoria: serv.servicio?.categoria
+                ? {
+                    id: serv.servicio.categoria.id,
+                    nombre: serv.servicio.categoria.nombre,
+                    descripcion: serv.servicio.categoria.descripcion,
+                  }
+                : null,
+            })) || [],
+          presupuesto: {
+            materiales: parseFloat(sede.presupuesto_materiales),
+            servicios: parseFloat(sede.presupuesto_servicios),
+            total: parseFloat(sede.presupuesto_total),
+            restante: parseFloat(sede.presupuesto_restante),
+          },
+          totales: calculateSedeTotals(sede),
+          salidasMaterial:
+            sede.salidasMaterial?.map((salida) => ({
+              id: salida.id_salida_material,
+              fecha: salida.fecha_salida,
+              material: salida.producto?.nombre || "Material no encontrado",
+              cantidad: salida.cantidad,
+              entregador: `${salida.entregador?.nombre || ""} ${
+                salida.entregador?.apellido || ""
+              }`.trim(),
+              receptor: salida.receptor,
+              observaciones: salida.observaciones,
+              costoTotal: parseFloat(salida.costo_total),
+            })) || [],
+        })) || [],
     };
   }
 
   // Validar datos del proyecto
   validateProjectData(projectData) {
     if (!projectData.nombre || !projectData.nombre.trim()) {
-      throw new Error('El nombre del proyecto es obligatorio');
+      throw new Error("El nombre del proyecto es obligatorio");
     }
-    
+
     if (!projectData.id_cliente) {
-      throw new Error('El cliente es obligatorio');
+      throw new Error("El cliente es obligatorio");
     }
-    
+
     if (!projectData.id_responsable) {
-      throw new Error('El responsable es obligatorio');
+      throw new Error("El responsable es obligatorio");
     }
-    
+
     if (!projectData.fecha_inicio) {
-      throw new Error('La fecha de inicio es obligatoria');
+      throw new Error("La fecha de inicio es obligatoria");
     }
-    
+
     if (!projectData.fecha_fin) {
-      throw new Error('La fecha de fin es obligatoria');
+      throw new Error("La fecha de fin es obligatoria");
     }
-    
+
     if (!projectData.estado) {
-      throw new Error('El estado es obligatorio');
+      throw new Error("El estado es obligatorio");
     }
-    
+
     if (!projectData.prioridad) {
-      throw new Error('La prioridad es obligatoria');
+      throw new Error("La prioridad es obligatoria");
     }
   }
 
@@ -256,13 +452,15 @@ class ProjectService {
     const fin = new Date(fechaFin);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    
+
     if (inicio < hoy) {
-      throw new Error('La fecha de inicio no puede ser anterior al día actual');
+      throw new Error("La fecha de inicio no puede ser anterior al día actual");
     }
-    
+
     if (fin < inicio) {
-      throw new Error('La fecha de fin no puede ser anterior a la fecha de inicio');
+      throw new Error(
+        "La fecha de fin no puede ser anterior a la fecha de inicio"
+      );
     }
   }
 
@@ -271,33 +469,41 @@ class ProjectService {
     if (!materiales || materiales.length === 0) {
       return;
     }
-    
-    const ProductRepository = require('../../repositories/products_category/ProductsCategoryRepository');
-    
+
+    const ProductRepository = require("../../repositories/products/ProductRepository");
+
     for (const material of materiales) {
-      const producto = await ProductRepository.getProductById(material.id_producto);
+      const producto = await ProductRepository.getProductById(
+        material.id_producto
+      );
       if (!producto) {
-        throw new Error(`Producto con ID ${material.id_producto} no encontrado`);
+        throw new Error(
+          `Producto con ID ${material.id_producto} no encontrado`
+        );
       }
-      
+
       // Calcular stock disponible (excluyendo el proyecto actual si se está actualizando)
       let stockDisponible = producto.stock;
-      
+
       if (projectId) {
         // Obtener cantidad asignada en otros proyectos
         const proyectosConMaterial = await ProjectRepository.getAllProjects();
         for (const proyecto of proyectosConMaterial) {
           if (proyecto.id_proyecto !== projectId) {
-            const materialEnProyecto = proyecto.materiales?.find(m => m.id_producto === material.id_producto);
+            const materialEnProyecto = proyecto.materiales?.find(
+              (m) => m.id_producto === material.id_producto
+            );
             if (materialEnProyecto) {
               stockDisponible -= materialEnProyecto.cantidad;
             }
           }
         }
       }
-      
+
       if (material.cantidad > stockDisponible) {
-        throw new Error(`Stock insuficiente para ${producto.nombre}. Disponible: ${stockDisponible}, Solicitado: ${material.cantidad}`);
+        throw new Error(
+          `Stock insuficiente para ${producto.nombre}. Disponible: ${stockDisponible}, Solicitado: ${material.cantidad}`
+        );
       }
     }
   }
@@ -305,23 +511,23 @@ class ProjectService {
   // Validar datos de salida
   validateSalidaData(salidaData) {
     if (!salidaData.id_proyecto) {
-      throw new Error('El ID del proyecto es obligatorio');
+      throw new Error("El ID del proyecto es obligatorio");
     }
-    
+
     if (!salidaData.id_producto) {
-      throw new Error('El ID del producto es obligatorio');
+      throw new Error("El ID del producto es obligatorio");
     }
-    
+
     if (!salidaData.cantidad || salidaData.cantidad <= 0) {
-      throw new Error('La cantidad debe ser mayor a 0');
+      throw new Error("La cantidad debe ser mayor a 0");
     }
-    
+
     if (!salidaData.id_entregador) {
-      throw new Error('El entregador es obligatorio');
+      throw new Error("El entregador es obligatorio");
     }
-    
+
     if (!salidaData.receptor || !salidaData.receptor.trim()) {
-      throw new Error('El receptor es obligatorio');
+      throw new Error("El receptor es obligatorio");
     }
   }
 
@@ -330,7 +536,7 @@ class ProjectService {
     const projects = await ProjectRepository.getAllProjects();
     const currentYear = new Date().getFullYear();
     const projectCount = projects.length + 1;
-    return `CT-${currentYear}-${projectCount.toString().padStart(3, '0')}`;
+    return `CT-${currentYear}-${projectCount.toString().padStart(3, "0")}`;
   }
 }
 
