@@ -1,6 +1,7 @@
 const  {validationResult} = require('express-validator');
 const ClientsServices = require('../../services/clients/ClientsServices');
 const Clients = require('../../models/clients/Clients');
+const AddressClients = require('../../models/clients/AddressClients');
 
 const createClient = async (req, res) => {
     const errors = validationResult(req);
@@ -35,7 +36,10 @@ const updateClient = async (req, res) => {
         const { id } = req.params;
         const { addresses, ...clientData } = req.body;
         await ClientsServices.updateClient(id, clientData, addresses);
-        const updatedClient = await Clients.findOne({ where: { id_cliente: id } });
+        const updatedClient = await Clients.findOne({
+            where: { id_cliente: id },
+            include: [{ model: AddressClients, as: 'AddressClients' }]
+        });
         if (!updatedClient) {
             return res.status(404).json({ error: 'Cliente no encontrado' });
         }
