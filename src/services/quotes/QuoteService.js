@@ -3,6 +3,9 @@ const QuoteRepository = require('../../repositories/quotes/QuoteRepository');
 const QuoteDetail = require('../../models/quotes/QuoteDetails');
 const ProductRepository = require('../../repositories/products/ProductRepository');
 const ServiceRepository = require('../../repositories/services/ServiceRepository');
+const ProjectService = require('../../services/projects/ProjectService');
+const Project = require('../../models/projects/Project');
+const Users = require('../../models/users/Users');
 
 // ✅ Crear cotización (con sus detalles)
 const createQuote = async (quote) => {
@@ -109,7 +112,47 @@ const deleteQuote = async (id) => {
 
 // ✅ Cambiar estado de la cotización
 const changeQuoteState = async (id, state) => {
-    return QuoteRepository.changeQuoteState(id, state);
+    const updatedQuote = await QuoteRepository.changeQuoteState(id, state);
+
+    // Si se aprueba la cotización, crear proyecto automáticamente (1-1)
+    if (state === 'Aprobada') {
+        // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
+        const existingProject = await Project.findOne({ where: { id_cotizacion: id } });
+        if (!existingProject) {
+            // Fecha de inicio en zona horaria local (YYYY-MM-DD)
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const todayLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+            // El responsable se asignará manualmente al modificar el proyecto
+            const projectData = {
+                numero_contrato: undefined, // se genera en ProjectService si falta
+                nombre: updatedQuote.nombre_cotizacion,
+                id_cliente: updatedQuote.id_cliente,
+                // No incluir id_responsable para que use el valor por defecto de la BD
+                fecha_inicio: updatedQuote.fecha_creacion,
+                fecha_fin: updatedQuote.fecha_vencimiento,
+                estado: 'Pendiente',
+                prioridad: 'Media',
+                ubicacion: undefined,
+                descripcion: undefined,
+                observaciones: updatedQuote.observaciones || undefined,
+                costo_mano_obra: 0,
+                costo_total_materiales: parseFloat(updatedQuote.subtotal_productos || 0),
+                costo_total_servicios: parseFloat(updatedQuote.subtotal_servicios || 0),
+                costo_total_proyecto: parseFloat(updatedQuote.monto_cotizacion || 0),
+                id_cotizacion: updatedQuote.id_cotizacion,
+                materiales: [],
+                servicios: [],
+                empleadosAsociados: [],
+                sedes: []
+            };
+
+            await ProjectService.createProject(projectData);
+        }
+    }
+
+    return updatedQuote;
 };
 
 module.exports = {

@@ -28,6 +28,9 @@ const quoteBaseValidation = [
         .custom(validateClientExistence),
     body('fecha_vencimiento')
         .isISO8601().withMessage('La fecha de vencimiento debe tener un formato válido'),
+    body('observaciones')
+        .optional()
+        .isString().withMessage('Las observaciones deben ser texto'),
     body('estado')
         .optional()
         .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
@@ -60,6 +63,9 @@ const updateQuoteValidation = [
     body('fecha_vencimiento')
         .optional()
         .isISO8601().withMessage('La fecha de vencimiento debe tener un formato válido'),
+    body('observaciones')
+        .optional()
+        .isString().withMessage('Las observaciones deben ser texto'),
     body('estado')
         .optional()
         .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
