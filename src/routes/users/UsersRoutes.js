@@ -7,26 +7,26 @@ const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
   "/",
-  authMiddleware,
+  
   UsuariosValidations.createUserValidation,
   UsersControllers.createUser
 );
-router.get("/", authMiddleware, UsersControllers.getAllUsers);
+router.get("/",  UsersControllers.getAllUsers);
 router.get(
   "/:id",
-  authMiddleware,
+  
   UsuariosValidations.findUserByIdValidation,
   UsersControllers.getUserById
 );
 router.put(
   "/:id",
-  authMiddleware,
+  
   UsuariosValidations.updateUserValidation,
   UsersControllers.updateUser
 );
 router.delete(
   "/:id",
-  authMiddleware,
+  
   UsuariosValidations.deleteUserValidation,
   UsersControllers.deleteUser
 );
