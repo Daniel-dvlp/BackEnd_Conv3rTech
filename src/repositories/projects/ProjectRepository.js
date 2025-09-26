@@ -328,25 +328,35 @@ class ProjectRepository {
 
       // Crear materiales del proyecto
       if (projectData.materiales && projectData.materiales.length > 0) {
-        const materiales = projectData.materiales.map((material) => ({
-          id_proyecto: project.id_proyecto,
-          id_producto: material.id_producto,
-          cantidad: material.cantidad,
-          precio_unitario: material.precio_unitario,
-          precio_total: material.cantidad * material.precio_unitario,
-        }));
+        const materiales = projectData.materiales.map((material) => {
+          const qty = Number.isFinite(Number(material.cantidad)) ? Number(material.cantidad) : 0;
+          const unit = Number.isFinite(Number(material.precio_unitario)) ? Number(material.precio_unitario) : 0;
+          const total = Number.isFinite(Number(qty * unit)) ? Number((qty * unit).toFixed(2)) : 0;
+          return {
+            id_proyecto: project.id_proyecto,
+            id_producto: material.id_producto,
+            cantidad: qty,
+            precio_unitario: unit,
+            precio_total: total,
+          };
+        });
         await ProjectMaterial.bulkCreate(materiales, { transaction });
       }
 
       // Crear servicios del proyecto
       if (projectData.servicios && projectData.servicios.length > 0) {
-        const servicios = projectData.servicios.map((servicio) => ({
-          id_proyecto: project.id_proyecto,
-          id_servicio: servicio.id_servicio,
-          cantidad: servicio.cantidad,
-          precio_unitario: servicio.precio_unitario,
-          precio_total: servicio.cantidad * servicio.precio_unitario,
-        }));
+        const servicios = projectData.servicios.map((servicio) => {
+          const qty = Number.isFinite(Number(servicio.cantidad)) ? Number(servicio.cantidad) : 0;
+          const unit = Number.isFinite(Number(servicio.precio_unitario)) ? Number(servicio.precio_unitario) : 0;
+          const total = Number.isFinite(Number(qty * unit)) ? Number((qty * unit).toFixed(2)) : 0;
+          return {
+            id_proyecto: project.id_proyecto,
+            id_servicio: servicio.id_servicio,
+            cantidad: qty,
+            precio_unitario: unit,
+            precio_total: total,
+          };
+        });
         await ProjectServicio.bulkCreate(servicios, { transaction });
       }
 
@@ -365,15 +375,15 @@ class ProjectRepository {
       // Crear sedes del proyecto
       if (projectData.sedes && projectData.sedes.length > 0) {
         for (const sedeData of projectData.sedes) {
-          const sede = await ProjectSede.create(
+            const sede = await ProjectSede.create(
             {
               id_proyecto: project.id_proyecto,
               nombre: sedeData.nombre,
               ubicacion: sedeData.ubicacion,
-              presupuesto_materiales: sedeData.presupuesto_materiales || 0,
-              presupuesto_servicios: sedeData.presupuesto_servicios || 0,
-              presupuesto_total: sedeData.presupuesto_total || 0,
-              presupuesto_restante: sedeData.presupuesto_restante || 0,
+                presupuesto_materiales: Number.isFinite(Number(sedeData.presupuesto_materiales)) ? Number(sedeData.presupuesto_materiales) : 0,
+                presupuesto_servicios: Number.isFinite(Number(sedeData.presupuesto_servicios)) ? Number(sedeData.presupuesto_servicios) : 0,
+                presupuesto_total: Number.isFinite(Number(sedeData.presupuesto_total)) ? Number(sedeData.presupuesto_total) : 0,
+                presupuesto_restante: Number.isFinite(Number(sedeData.presupuesto_restante)) ? Number(sedeData.presupuesto_restante) : 0,
             },
             { transaction }
           );
@@ -465,13 +475,18 @@ class ProjectRepository {
         });
 
         if (projectData.materiales.length > 0) {
-          const materiales = projectData.materiales.map((material) => ({
-            id_proyecto: id,
-            id_producto: material.id_producto,
-            cantidad: material.cantidad,
-            precio_unitario: material.precio_unitario,
-            precio_total: material.cantidad * material.precio_unitario,
-          }));
+          const materiales = projectData.materiales.map((material) => {
+            const qty = Number.isFinite(Number(material.cantidad)) ? Number(material.cantidad) : 0;
+            const unit = Number.isFinite(Number(material.precio_unitario)) ? Number(material.precio_unitario) : 0;
+            const total = Number.isFinite(Number(qty * unit)) ? Number((qty * unit).toFixed(2)) : 0;
+            return {
+              id_proyecto: id,
+              id_producto: material.id_producto,
+              cantidad: qty,
+              precio_unitario: unit,
+              precio_total: total,
+            };
+          });
           await ProjectMaterial.bulkCreate(materiales, { transaction });
         }
       }
@@ -484,13 +499,18 @@ class ProjectRepository {
         });
 
         if (projectData.servicios.length > 0) {
-          const servicios = projectData.servicios.map((servicio) => ({
-            id_proyecto: id,
-            id_servicio: servicio.id_servicio,
-            cantidad: servicio.cantidad,
-            precio_unitario: servicio.precio_unitario,
-            precio_total: servicio.cantidad * servicio.precio_unitario,
-          }));
+          const servicios = projectData.servicios.map((servicio) => {
+            const qty = Number.isFinite(Number(servicio.cantidad)) ? Number(servicio.cantidad) : 0;
+            const unit = Number.isFinite(Number(servicio.precio_unitario)) ? Number(servicio.precio_unitario) : 0;
+            const total = Number.isFinite(Number(qty * unit)) ? Number((qty * unit).toFixed(2)) : 0;
+            return {
+              id_proyecto: id,
+              id_servicio: servicio.id_servicio,
+              cantidad: qty,
+              precio_unitario: unit,
+              precio_total: total,
+            };
+          });
           await ProjectServicio.bulkCreate(servicios, { transaction });
         }
       }
@@ -544,10 +564,10 @@ class ProjectRepository {
                 id_proyecto: id,
                 nombre: sedeData.nombre,
                 ubicacion: sedeData.ubicacion,
-                presupuesto_materiales: sedeData.presupuesto_materiales || 0,
-                presupuesto_servicios: sedeData.presupuesto_servicios || 0,
-                presupuesto_total: sedeData.presupuesto_total || 0,
-                presupuesto_restante: sedeData.presupuesto_restante || 0,
+                presupuesto_materiales: Number.isFinite(Number(sedeData.presupuesto_materiales)) ? Number(sedeData.presupuesto_materiales) : 0,
+                presupuesto_servicios: Number.isFinite(Number(sedeData.presupuesto_servicios)) ? Number(sedeData.presupuesto_servicios) : 0,
+                presupuesto_total: Number.isFinite(Number(sedeData.presupuesto_total)) ? Number(sedeData.presupuesto_total) : 0,
+                presupuesto_restante: Number.isFinite(Number(sedeData.presupuesto_restante)) ? Number(sedeData.presupuesto_restante) : 0,
               },
               { transaction }
             );

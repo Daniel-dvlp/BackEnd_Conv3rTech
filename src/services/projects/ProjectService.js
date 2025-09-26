@@ -162,7 +162,7 @@ class ProjectService {
         salida: salida,
       };
     } catch (error) {
-      throw new Error(`Error al crear salida de material: ${error.message}`);
+      throw new Error(`salida de material: ${error.message}`);
     }
   }
 
