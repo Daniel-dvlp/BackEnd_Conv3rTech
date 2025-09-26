@@ -12,6 +12,7 @@ const Cliente = require("../clients/Clients");
 const Usuario = require("../users/Users");
 const Producto = require("../products/Product");
 const Servicio = require("../services/Service");
+const Quote = require("../quotes/Quote");
 
 // Asociaciones del Proyecto principal
 Project.belongsTo(Cliente, {
@@ -22,6 +23,18 @@ Project.belongsTo(Cliente, {
 Project.belongsTo(Usuario, {
   foreignKey: "id_responsable",
   as: "responsable",
+});
+
+// Un proyecto pertenece a una cotización
+Project.belongsTo(Quote, {
+  foreignKey: "id_cotizacion",
+  as: "cotizacion",
+});
+
+// Una cotización tiene un único proyecto 
+Quote.hasOne(Project, {
+  foreignKey: "id_cotizacion",
+  as: "proyecto",
 });
 
 // Un proyecto tiene muchas sedes

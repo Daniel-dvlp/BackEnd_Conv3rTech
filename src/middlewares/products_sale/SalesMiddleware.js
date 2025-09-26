@@ -21,6 +21,7 @@ const validateClientExistence = async (id_cliente) => {
 // ✅ Validaciones base para ventas (sin los cálculos automáticos)
 const saleBaseValidation = [
     body('numero_venta')
+        .optional()
         .isLength({ min: 3 })
         .withMessage('El número de venta debe tener al menos 3 caracteres'),
     body('id_cliente')
@@ -40,12 +41,14 @@ const saleBaseValidation = [
 // ✅ Crear venta
 const createSaleValidation = [
     ...saleBaseValidation,
-    body('numero_venta').custom(async (value) => {
-        const existing = await Sale.findOne({ where: { numero_venta: value } });
-        if (existing) {
-            return Promise.reject('El número de venta ya existe');
-        }
-    })
+    body('numero_venta')
+        .optional()
+        .custom(async (value) => {
+            const existing = await Sale.findOne({ where: { numero_venta: value } });
+            if (existing) {
+                return Promise.reject('El número de venta ya existe');
+            }
+        })
 ];
 
 // ✅ Actualizar venta
