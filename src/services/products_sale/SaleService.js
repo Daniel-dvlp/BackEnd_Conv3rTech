@@ -2,6 +2,7 @@ const SaleRepository = require('../../repositories/products_sale/SaleRepository'
 const ProductRepository = require('../../repositories/products/ProductRepository');
 const sequelize = require('../../config/database'); // necesario para transacciones
 const SaleDetail = require('../../models/products_sale/SaleDetails');
+const Sale = require('../../models/products_sale/Sale');
 
 // Crear venta 
 const createSale = async (sale) => {
@@ -48,9 +49,25 @@ const createSale = async (sale) => {
         const montoIva = subtotalVenta * iva;
         const montoVenta = subtotalVenta + montoIva;
 
+        // Generar número de venta si no se proporciona
+        let numeroVenta = sale.numero_venta;
+        if (!numeroVenta) {
+            const currentYear = new Date().getFullYear();
+            // Compatible con MySQL/MariaDB: YEAR(fecha_registro) = currentYear
+            const countThisYear = await Sale.count({
+                where: sequelize.where(
+                    sequelize.fn('YEAR', sequelize.col('fecha_registro')),
+                    currentYear
+                )
+            });
+            const sequence = (countThisYear + 1).toString().padStart(3, '0');
+            numeroVenta = `VT-${currentYear}-${sequence}`;
+        }
+
         // Crear venta principal
         const newSale = await SaleRepository.createSale({
             ...sale,
+            numero_venta: numeroVenta,
             subtotal_venta: subtotalVenta,
             monto_iva: montoIva,
             monto_venta: montoVenta

@@ -44,6 +44,11 @@ class ProjectRepository {
           attributes: ["id_cliente", "nombre", "documento"],
         },
         {
+          model: require("../../models/quotes/Quote"),
+          as: "cotizacion",
+          attributes: ["id_cotizacion", "nombre_cotizacion", "estado"],
+        },
+        {
           model: require("../../models/users/Users"),
           as: "responsable",
           attributes: ["id_usuario", "nombre", "apellido"],
@@ -160,6 +165,11 @@ class ProjectRepository {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre", "documento"],
+        },
+        {
+          model: require("../../models/quotes/Quote"),
+          as: "cotizacion",
+          attributes: ["id_cotizacion", "nombre_cotizacion", "estado", "monto_cotizacion"],
         },
         {
           model: require("../../models/users/Users"),
@@ -288,27 +298,33 @@ class ProjectRepository {
 
     try {
       // Crear el proyecto principal
-      const project = await Project.create(
-        {
-          numero_contrato: projectData.numero_contrato,
-          nombre: projectData.nombre,
-          id_cliente: projectData.id_cliente,
-          id_responsable: projectData.id_responsable,
-          fecha_inicio: projectData.fecha_inicio,
-          fecha_fin: projectData.fecha_fin,
-          estado: projectData.estado,
-          progreso: projectData.progreso || 0,
-          prioridad: projectData.prioridad,
-          ubicacion: projectData.ubicacion,
-          descripcion: projectData.descripcion,
-          observaciones: projectData.observaciones,
-          costo_mano_obra: projectData.costo_mano_obra || 0,
-          costo_total_materiales: projectData.costo_total_materiales || 0,
-          costo_total_servicios: projectData.costo_total_servicios || 0,
-          costo_total_proyecto: projectData.costo_total_proyecto || 0,
-        },
-        { transaction }
-      );
+      const projectDataToCreate = {
+        numero_contrato: projectData.numero_contrato,
+        nombre: projectData.nombre,
+        id_cliente: projectData.id_cliente,
+        id_cotizacion: projectData.id_cotizacion,
+        fecha_inicio: projectData.fecha_inicio,
+        fecha_fin: projectData.fecha_fin,
+        estado: projectData.estado,
+        progreso: projectData.progreso || 0,
+        prioridad: projectData.prioridad,
+        ubicacion: projectData.ubicacion,
+        descripcion: projectData.descripcion,
+        observaciones: projectData.observaciones,
+        costo_mano_obra: projectData.costo_mano_obra || 0,
+        costo_total_materiales: projectData.costo_total_materiales || 0,
+        costo_total_servicios: projectData.costo_total_servicios || 0,
+        costo_total_proyecto: projectData.costo_total_proyecto || 0,
+      };
+
+      // Incluir id_responsable con valor por defecto si no está definido
+      if (projectData.id_responsable !== undefined) {
+        projectDataToCreate.id_responsable = projectData.id_responsable;
+      } else {
+        projectDataToCreate.id_responsable = null;
+      }
+
+      const project = await Project.create(projectDataToCreate, { transaction });
 
       // Crear materiales del proyecto
       if (projectData.materiales && projectData.materiales.length > 0) {
@@ -409,31 +425,37 @@ class ProjectRepository {
 
     try {
       // Actualizar el proyecto principal
-      await Project.update(
-        {
-          numero_contrato: projectData.numero_contrato,
-          nombre: projectData.nombre,
-          id_cliente: projectData.id_cliente,
-          id_responsable: projectData.id_responsable,
-          fecha_inicio: projectData.fecha_inicio,
-          fecha_fin: projectData.fecha_fin,
-          estado: projectData.estado,
-          progreso: projectData.progreso,
-          prioridad: projectData.prioridad,
-          ubicacion: projectData.ubicacion,
-          descripcion: projectData.descripcion,
-          observaciones: projectData.observaciones,
-          costo_mano_obra: projectData.costo_mano_obra,
-          costo_total_materiales: projectData.costo_total_materiales,
-          costo_total_servicios: projectData.costo_total_servicios,
-          costo_total_proyecto: projectData.costo_total_proyecto,
-          fecha_actualizacion: new Date(),
-        },
-        {
-          where: { id_proyecto: id },
-          transaction,
-        }
-      );
+      const updateData = {
+        numero_contrato: projectData.numero_contrato,
+        nombre: projectData.nombre,
+        id_cliente: projectData.id_cliente,
+        id_cotizacion: projectData.id_cotizacion,
+        fecha_inicio: projectData.fecha_inicio,
+        fecha_fin: projectData.fecha_fin,
+        estado: projectData.estado,
+        progreso: projectData.progreso,
+        prioridad: projectData.prioridad,
+        ubicacion: projectData.ubicacion,
+        descripcion: projectData.descripcion,
+        observaciones: projectData.observaciones,
+        costo_mano_obra: projectData.costo_mano_obra,
+        costo_total_materiales: projectData.costo_total_materiales,
+        costo_total_servicios: projectData.costo_total_servicios,
+        costo_total_proyecto: projectData.costo_total_proyecto,
+        fecha_actualizacion: new Date(),
+      };
+
+      // Incluir id_responsable con valor por defecto si no está definido
+      if (projectData.id_responsable !== undefined) {
+        updateData.id_responsable = projectData.id_responsable;
+      } else {
+        updateData.id_responsable = null;
+      }
+
+      await Project.update(updateData, {
+        where: { id_proyecto: id },
+        transaction,
+      });
 
       // Actualizar materiales (eliminar existentes y crear nuevos)
       if (projectData.materiales) {
