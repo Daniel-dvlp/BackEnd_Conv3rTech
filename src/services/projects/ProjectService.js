@@ -332,11 +332,14 @@ class ProjectService {
       numeroContrato: project.numero_contrato,
       nombre: project.nombre,
       cliente: project.cliente?.nombre || "Cliente no encontrado",
-      responsable: {
-        nombre: `${project.responsable?.nombre || ""} ${
-          project.responsable?.apellido || ""
+      responsable: project.responsable ? {
+        nombre: `${project.responsable.nombre || ""} ${
+          project.responsable.apellido || ""
         }`.trim(),
-        avatarSeed: project.responsable?.nombre || "User",
+        avatarSeed: project.responsable.nombre || "User",
+      } : {
+        nombre: "Sin asignar",
+        avatarSeed: "User",
       },
       fechaInicio: project.fecha_inicio,
       fechaFin: project.fecha_fin,
@@ -425,9 +428,10 @@ class ProjectService {
       throw new Error("El cliente es obligatorio");
     }
 
-    if (!projectData.id_responsable) {
-      throw new Error("El responsable es obligatorio");
-    }
+    // El responsable es opcional en la creación, se puede asignar después
+    // if (!projectData.id_responsable) {
+    //   throw new Error("El responsable es obligatorio");
+    // }
 
     if (!projectData.fecha_inicio) {
       throw new Error("La fecha de inicio es obligatoria");
@@ -451,11 +455,13 @@ class ProjectService {
     const inicio = new Date(fechaInicio);
     const fin = new Date(fechaFin);
     const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
-    if (inicio < hoy) {
-      throw new Error("La fecha de inicio no puede ser anterior al día actual");
-    }
+    
+    // Crear fechas solo con año, mes y día para comparación
+    const inicioDate = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+    const hoyDate = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    
+    // Nota: Permitimos fecha de inicio en el pasado (p.ej., fecha de creación de la cotización)
+    // Únicamente validamos que fecha_fin no sea anterior a fecha_inicio.
 
     if (fin < inicio) {
       throw new Error(

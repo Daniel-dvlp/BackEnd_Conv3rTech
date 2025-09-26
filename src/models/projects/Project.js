@@ -27,9 +27,19 @@ const Project = sequelize.define(
         key: "id_cliente",
       },
     },
+    id_cotizacion: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      unique: true,
+      references: {
+        model: "cotizaciones",
+        key: "id_cotizacion",
+      },
+    },
     id_responsable: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true, // Permitir null temporalmente hasta asignar responsable
+      defaultValue: null, // Valor por defecto explícito
       references: {
         model: "usuarios",
         key: "id_usuario",
