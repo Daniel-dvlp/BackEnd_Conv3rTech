@@ -20,8 +20,7 @@ const createProjectValidation = [
     .withMessage("El ID del cliente debe ser un número entero"),
 
   body("id_responsable")
-    .notEmpty()
-    .withMessage("El responsable es obligatorio")
+    .optional()
     .isInt()
     .withMessage("El ID del responsable debe ser un número entero"),
 
