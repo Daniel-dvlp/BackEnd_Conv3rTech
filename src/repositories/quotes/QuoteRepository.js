@@ -82,6 +82,19 @@ const changeQuoteState = async (id, state) => {
     await Quote.update({ estado: state }, { where: { id_cotizacion: id } });
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion', 
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios', 
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'estado'
+        ],
         include: [
             { model: Client, as: 'cliente' },
             {

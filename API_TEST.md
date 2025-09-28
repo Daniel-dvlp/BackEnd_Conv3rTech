@@ -1406,9 +1406,389 @@ Respuesta 200:
 }
 ```
 
-## 16. HEALTH CHECK
+## 16. GESTIÓN DE COTIZACIONES
 
-### 16.1 Verificar Estado de la API
+### 16.1 Obtener Todas las Cotizaciones
+
+```http
+GET /quotes
+Authorization: Bearer {token}
+```
+
+### 16.2 Obtener Cotización por ID
+
+```http
+GET /quotes/{id}
+Authorization: Bearer {token}
+```
+
+### 16.3 Crear Nueva Cotización (con observaciones)
+
+```http
+POST /quotes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "nombre_cotizacion": "Cotización Sistema CCTV",
+  "id_cliente": 1,
+  "fecha_vencimiento": "2025-12-31",
+  "observaciones": "Cliente requiere instalación en horario nocturno. Incluir capacitación del personal.",
+  "detalles": [
+    {
+      "id_producto": 1,
+      "cantidad": 10
+    },
+    {
+      "id_servicio": 1,
+      "cantidad": 2
+    }
+  ]
+}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "message": "Cotización registrada exitosamente",
+  "data": {
+    "id_cotizacion": 1,
+    "nombre_cotizacion": "Cotización Sistema CCTV",
+    "observaciones": "Cliente requiere instalación en horario nocturno...",
+    "monto_cotizacion": 214500.00,
+    "estado": "Pendiente",
+    "cliente": { "nombre": "Cliente Test" },
+    "detalles": [...]
+  }
+}
+```
+
+### 16.4 Actualizar Cotización
+
+```http
+PUT /quotes/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "nombre_cotizacion": "Cotización Sistema CCTV Actualizada",
+  "observaciones": "Observaciones actualizadas del proyecto",
+  "fecha_vencimiento": "2025-11-30"
+}
+```
+
+### 16.5 Aprobar Cotización (Crea Proyecto Automáticamente)
+
+```http
+PATCH /quotes/{id}/estado
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "estado": "Aprobada"
+}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "message": "Estado de la cotización actualizado exitosamente",
+  "data": {
+    "id_cotizacion": 1,
+    "estado": "Aprobada",
+    "observaciones": "Cliente requiere instalación en horario nocturno...",
+    "cliente": { "nombre": "Cliente Test" }
+  }
+}
+```
+
+**Nota:** Al aprobar la cotización, se crea automáticamente un proyecto 1-1 vinculado con los costos calculados de la cotización. El responsable se asignará manualmente al modificar el proyecto.
+
+### 16.6 Eliminar Cotización
+
+```http
+DELETE /quotes/{id}
+Authorization: Bearer {token}
+```
+
+### 16.7 Obtener Detalles de Cotización
+
+```http
+GET /quotes/{id}/detalles
+Authorization: Bearer {token}
+```
+
+---
+
+## 17. GESTIÓN DE VENTAS DE PRODUCTOS
+
+### 17.1 Obtener Todas las Ventas
+
+```http
+GET /sales
+Authorization: Bearer {token}
+```
+
+### 17.2 Obtener Venta por ID
+
+```http
+GET /sales/{id}
+Authorization: Bearer {token}
+```
+
+### 17.3 Crear Nueva Venta (con numeración automática)
+
+```http
+POST /sales
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "id_cliente": 1,
+  "fecha_venta": "2025-01-15T10:30:00.000Z",
+  "metodo_pago": "Efectivo",
+  "detalles": [
+    {
+      "id_producto": 1,
+      "cantidad": 2
+    }
+  ]
+}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "message": "Venta registrada exitosamente",
+  "data": {
+    "id_venta": 1,
+    "numero_venta": "VT-2025-001",
+    "id_cliente": 1,
+    "fecha_venta": "2025-01-15T10:30:00.000Z",
+    "metodo_pago": "Efectivo",
+    "estado": "Registrada",
+    "subtotal_venta": 100000.00,
+    "monto_iva": 19000.00,
+    "monto_venta": 119000.00,
+    "detalles": [...]
+  }
+}
+```
+
+**Nota:** El `numero_venta` se genera automáticamente con formato `VT-YYYY-XXX`.
+
+### 17.4 Crear Venta con Número Personalizado
+
+```http
+POST /sales
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "numero_venta": "VT-CUSTOM-001",
+  "id_cliente": 1,
+  "fecha_venta": "2025-01-15T10:30:00.000Z",
+  "metodo_pago": "Transferencia",
+  "detalles": [
+    {
+      "id_producto": 1,
+      "cantidad": 1
+    }
+  ]
+}
+```
+
+### 17.5 Actualizar Venta
+
+```http
+PUT /sales/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "metodo_pago": "Tarjeta",
+  "estado": "Registrada"
+}
+```
+
+### 17.6 Cambiar Estado de Venta
+
+```http
+PATCH /sales/{id}/estado
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "estado": "Anulada"
+}
+```
+
+### 17.7 Eliminar Venta
+
+```http
+DELETE /sales/{id}
+Authorization: Bearer {token}
+```
+
+### 17.8 Obtener Detalles de Venta
+
+```http
+GET /sales/details
+Authorization: Bearer {token}
+```
+
+---
+
+## 18. RELACIÓN COTIZACIÓN-PROYECTO
+
+### 18.1 Verificar Proyecto Creado por Cotización
+
+```http
+GET /projects
+Authorization: Bearer {token}
+```
+
+**Respuesta esperada (proyecto con cotización vinculada):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Cotización Sistema CCTV",
+      "estado": "Pendiente",
+      "observaciones": "Cliente requiere instalación en horario nocturno...",
+      "cotizacion": {
+        "id_cotizacion": 1,
+        "nombre_cotizacion": "Cotización Sistema CCTV",
+        "estado": "Aprobada",
+        "monto_cotizacion": 214500.00
+      },
+      "cliente": { "nombre": "Cliente Test" },
+      "responsable": { "nombre": "Sin asignar" },
+      "costos": {
+        "materiales": 100000.00,
+        "servicios": 75000.00,
+        "manoDeObra": 0.00,
+        "total": 214500.00
+      }
+    }
+  ]
+}
+```
+
+### 18.2 Obtener Proyecto con Cotización
+
+```http
+GET /projects/{id}
+Authorization: Bearer {token}
+```
+
+### 18.3 Asignar Responsable al Proyecto
+
+```http
+PUT /projects/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "id_responsable": 1
+}
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "success": true,
+  "message": "Proyecto actualizado exitosamente",
+  "data": {
+    "id": 1,
+    "nombre": "Cotización Sistema CCTV",
+    "responsable": {
+      "nombre": "Admin User",
+      "avatarSeed": "Admin"
+    },
+    "cotizacion": {
+      "id_cotizacion": 1,
+      "nombre_cotizacion": "Cotización Sistema CCTV",
+      "estado": "Aprobada"
+    }
+  }
+}
+```
+
+---
+
+## 19. FLUJO COMPLETO DE PRUEBAS
+
+### 19.1 Script de Pruebas Automáticas
+
+Ejecutar el script completo de pruebas:
+
+```bash
+node test_complete_flow.js
+```
+
+### 19.2 Flujo Manual Recomendado
+
+1. **Crear Cliente**
+   ```http
+   POST /clients
+   ```
+
+2. **Crear Producto**
+   ```http
+   POST /products/products
+   ```
+
+3. **Crear Servicio**
+   ```http
+   POST /services
+   ```
+
+4. **Crear Cotización con Observaciones**
+   ```http
+   POST /quotes
+   ```
+
+5. **Aprobar Cotización (crea proyecto automáticamente)**
+   ```http
+   PATCH /quotes/{id}/estado
+   ```
+
+6. **Verificar Proyecto Creado**
+   ```http
+   GET /projects
+   ```
+
+7. **Asignar Responsable al Proyecto**
+   ```http
+   PUT /projects/{id}
+   {
+     "id_responsable": 1
+   }
+   ```
+
+8. **Crear Venta (numeración automática)**
+   ```http
+   POST /sales
+   ```
+
+9. **Verificar Numeración Secuencial**
+   ```http
+   POST /sales
+   ```
+
+---
+
+## 20. HEALTH CHECK
+
+### 20.1 Verificar Estado de la API
 
 ```http
 GET /health
