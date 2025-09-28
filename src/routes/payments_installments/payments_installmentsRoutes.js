@@ -9,18 +9,16 @@ const Validations = require('../../middlewares/payments_installments/payments_in
 // Crear pago/abono
 router.post(
   '/',
-  
   Validations.createPagoAbonoValidation,
   Controller.createPagoAbono
 );
 
 // Listar todos
-router.get('/',  Controller.getAllPagosAbonos);
+router.get('/', Controller.getAllPagosAbonos);
 
 // Buscar por término
 router.get(
   '/buscar/:term',
-  
   Validations.searchPagosAbonosValidation,
   Controller.searchPagosAbonos
 );
@@ -28,7 +26,6 @@ router.get(
 // Obtener por id
 router.get(
   '/:id',
-  
   Validations.findPagoAbonoByIdValidation,
   Controller.getPagoAbonoById
 );
@@ -36,7 +33,6 @@ router.get(
 // Anular
 router.patch(
   '/:id/cancelar',
-  
   Validations.cancelPagoAbonoValidation,
   Controller.cancelPagoAbono
 );
@@ -47,21 +43,18 @@ router.patch(
 
 router.post(
   '/:projectId/payments',
-  
   Validations.createProjectPaymentValidation,
   Controller.createProjectPayment
 );
 
 router.get(
   '/:projectId/payments',
-  
   Validations.listProjectPaymentsValidation,
   Controller.listProjectPayments
 );
 
 router.get(
   '/:projectId/payments/:paymentId',
-  
   Validations.getProjectPaymentValidation,
   Controller.getProjectPayment
 );
@@ -69,7 +62,6 @@ router.get(
 
 router.delete(
   '/:projectId/payments/:paymentId',
-  
   Validations.deleteProjectPaymentValidation,
   Controller.deleteProjectPayment
 );
