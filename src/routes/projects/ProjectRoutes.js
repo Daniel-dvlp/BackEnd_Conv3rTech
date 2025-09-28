@@ -8,7 +8,7 @@ const {
 } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authenticateToken);
+//router.use(authenticateToken);
 
 // Rutas principales de proyectos
 router.get(
