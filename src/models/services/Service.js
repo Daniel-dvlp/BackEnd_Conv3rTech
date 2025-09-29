@@ -20,6 +20,10 @@ const Service = sequelize.define('Service', {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false
     },
+    url_imagen: {
+        type: DataTypes.STRING(250),
+        allowNull: true
+    },
     estado: {
         type: DataTypes.STRING(10),
         allowNull: false,
