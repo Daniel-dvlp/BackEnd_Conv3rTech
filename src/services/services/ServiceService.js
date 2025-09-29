@@ -16,8 +16,20 @@ const getServiceById = async (id) => {
 };
 
 const updateService = async (id, data) => {
+    // Primero verificar que el servicio existe
+    const existingService = await Service.findOne({ where: { id_servicio: id } });
+    if (!existingService) {
+        throw new Error('Servicio no encontrado');
+    }
+    
+    // Actualizar el servicio
     await Service.update(data, { where: { id_servicio: id } });
-    return await Service.findOne({ where: { id_servicio: id }, include: 'categoria' });
+    
+    // Retornar el servicio actualizado con la categoría
+    return await Service.findOne({ 
+        where: { id_servicio: id }, 
+        include: 'categoria' 
+    });
 };
 
 const deleteService = async (id) => {
