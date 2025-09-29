@@ -41,6 +41,10 @@ const Quote = sequelize.define('Quote', {
         defaultValue: 0,
         validate: { min: 0 }
     },
+    observaciones: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     estado: {
         type: DataTypes.ENUM('Pendiente', 'Aprobada', 'Rechazada'),
         allowNull: false,
