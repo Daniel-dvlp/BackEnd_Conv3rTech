@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -8,6 +10,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// --- NUEVO: Servir la carpeta uploads como pública ---
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- NUEVO: Configuración de multer para subir imágenes ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'uploads'));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+// --- NUEVO: Endpoint para subir imágenes ---
+app.post('/api/upload', upload.single('imagen'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No se subió ninguna imagen.' });
+    }
+    const url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.json({ url });
+});
+
+// ...existing code...
 
 // --- Nuevo bloque de código para las asociaciones de Sequelize ---
 // 1. Importar todos los modelos que tienen asociaciones
@@ -123,6 +150,11 @@ app.use("/api/services", ServicesRoutes);
 // Rutas legacy de pagos y abonos (deprecated)
 const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
 app.use('/api/payments-installments', PaymentsInstallmentsRoutes);
+
+// Rutas para citas
+const AppointmentsRoutes = require('./routes/appointments/AppointmentsRoutes');
+app.use('/api/appointments', AppointmentsRoutes);
+
 
 // ====================== UTILIDADES ======================
 
