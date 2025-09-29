@@ -12,7 +12,8 @@ const validateProductExistence = async (id) => {
 
 // Validar que la categoría existe en BD
 const validateCategoryExistence = async (id_categoria) => {
-    const category = await Category.findByPk(id_categoria);
+    const categoryId = parseInt(id_categoria);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
         return Promise.reject('La categoría no existe');
     }
@@ -22,8 +23,23 @@ const validateCategoryExistence = async (id_categoria) => {
 const validateUniqueProduct = async (value, { req }) => {
     const { nombre, modelo, id_categoria, unidad_medida, codigo_barra } = req.body;
 
+    // Construir la condición de búsqueda
+    const whereCondition = { 
+        nombre, 
+        modelo, 
+        id_categoria: parseInt(id_categoria), 
+        unidad_medida 
+    };
+
+    // Solo incluir codigo_barra si no es null o vacío
+    if (codigo_barra && codigo_barra.trim() !== '') {
+        whereCondition.codigo_barra = codigo_barra;
+    } else {
+        whereCondition.codigo_barra = null;
+    }
+
     const existing = await Product.findOne({
-        where: { nombre, modelo, id_categoria, unidad_medida, codigo_barra }
+        where: whereCondition
     });
 
     if (existing) {
@@ -41,21 +57,21 @@ const productBaseValidation = [
         .notEmpty()
         .withMessage('El modelo es obligatorio'),
     body('id_categoria')
-        .isInt().withMessage('La categoría debe ser un número entero')
+        .isNumeric().withMessage('La categoría debe ser un número válido')
         .custom(validateCategoryExistence),
     body('unidad_medida')
         .isIn(['unidad', 'metros', 'tramo 2 metros', 'tramo 3 metros', 'paquetes', 'kit'])
         .withMessage('Unidad de medida inválida'),
     body('precio')
-        .isDecimal({ decimal_digits: '0,2' }).withMessage('El precio debe ser un número decimal válido')
-        .custom(value => value >= 0).withMessage('El precio no puede ser negativo'),
+        .isNumeric().withMessage('El precio debe ser un número válido')
+        .custom(value => parseFloat(value) >= 0).withMessage('El precio no puede ser negativo'),
     body('stock')
         .optional()
-        .isInt({ min: 0 })
-        .withMessage('El stock debe ser un número entero mayor o igual a 0'),
+        .isNumeric().withMessage('El stock debe ser un número válido')
+        .custom(value => parseInt(value) >= 0).withMessage('El stock debe ser mayor o igual a 0'),
     body('garantia')
-        .isInt({ min: 12 })
-        .withMessage('La garantía debe ser igual o mayor a 12 meses'),
+        .isNumeric().withMessage('La garantía debe ser un número válido')
+        .custom(value => parseInt(value) >= 12).withMessage('La garantía debe ser igual o mayor a 12 meses'),
     body('codigo_barra')
         .optional()
         .isString()
@@ -96,8 +112,8 @@ const updateProductValidation = [
         .custom(value => value >= 0).withMessage('El precio no puede ser negativo'),
     body('stock')
         .optional()
-        .isInt({ min: 0 })
-        .withMessage('El stock debe ser un número entero mayor o igual a 0'),
+        .isNumeric().withMessage('El stock debe ser un número válido')
+        .custom(value => parseInt(value) >= 0).withMessage('El stock debe ser mayor o igual a 0'),
     body('garantia')
         .optional()
         .isInt({ min: 12 })
