@@ -5,14 +5,20 @@ const datasheetService = require('../../services/products/DatasheetService');
 const createProduct = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('Errores de validación:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
+    
     try {
+        console.log('Datos recibidos para crear producto:', req.body);
+        
         // 1. Crear el producto
         const product = await productService.createProduct(req.body);
+        console.log('Producto creado:', product);
 
         // 2. Crear fichas técnicas si vienen en el request
         if (req.body.fichas_tecnicas && req.body.fichas_tecnicas.length > 0) {
+            console.log('Creando fichas técnicas:', req.body.fichas_tecnicas);
             for (const ficha of req.body.fichas_tecnicas) {
                 await datasheetService.createDatasheet({
                     id_producto: product.id_producto,
@@ -30,6 +36,7 @@ const createProduct = async (req, res) => {
             data: productWithDetails
         });
     } catch (error) {
+        console.error('Error al crear producto:', error);
         res.status(400).json({ message: error.message });
     }
 };
