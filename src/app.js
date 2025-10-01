@@ -12,26 +12,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- NUEVO: Servir la carpeta uploads como pública ---
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- NUEVO: Configuración de multer para subir imágenes ---
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, 'uploads'));
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "uploads"));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
 });
 const upload = multer({ storage: storage });
 
-// --- NUEVO: Endpoint para subir imágenes ---
-app.post('/api/upload', upload.single('imagen'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: 'No se subió ninguna imagen.' });
-    }
-    const url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.json({ url });
+// --- NUEVO: Endpoint para subir imágenes (requiere autenticación) ---
+const { authMiddleware } = require("./middlewares/auth/AuthMiddleware");
+app.post("/api/upload", authMiddleware, upload.single("imagen"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No se subió ninguna imagen." });
+  }
+  const url = `${req.protocol}://${req.get("host")}/uploads/${
+    req.file.filename
+  }`;
+  res.json({ url });
 });
 
 // ...existing code...
@@ -94,8 +97,8 @@ app.use("/api/privileges", privilegesRoutes);
 const ProjectRoutes = require("./routes/projects/ProjectRoutes");
 app.use("/api/projects", ProjectRoutes);
 // Rutas anidadas de pagos por proyecto (REST)
-const ProjectPaymentsRoutes = require('./routes/projects/ProjectPaymentsRoutes');
-app.use('/api/projects', ProjectPaymentsRoutes);
+const ProjectPaymentsRoutes = require("./routes/projects/ProjectPaymentsRoutes");
+app.use("/api/projects", ProjectPaymentsRoutes);
 
 // Rutas de proveedores (comentadas temporalmente)
 const SupplierRoutes = require("./routes/supplier/SupplierRoutes");
@@ -148,13 +151,12 @@ const ServicesRoutes = require("./routes/services/ServicesRoutes");
 app.use("/api/services", ServicesRoutes);
 
 // Rutas legacy de pagos y abonos (deprecated)
-const PaymentsInstallmentsRoutes = require('./routes/payments_installments/payments_installmentsRoutes');
-app.use('/api/payments-installments', PaymentsInstallmentsRoutes);
+const PaymentsInstallmentsRoutes = require("./routes/payments_installments/payments_installmentsRoutes");
+app.use("/api/payments-installments", PaymentsInstallmentsRoutes);
 
 // Rutas para citas
-const AppointmentsRoutes = require('./routes/appointments/AppointmentsRoutes');
-app.use('/api/appointments', AppointmentsRoutes);
-
+const AppointmentsRoutes = require("./routes/appointments/AppointmentsRoutes");
+app.use("/api/appointments", AppointmentsRoutes);
 
 // ====================== UTILIDADES ======================
 
