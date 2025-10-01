@@ -1,38 +1,41 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Controller = require('../../controllers/payments_installments/payments_installmentsController');
-const Validations = require('../../middlewares/payments_installments/payments_installmentsMiddlewares');
-//const { authMiddleware } = require('../../middlewares/auth/AuthMiddleware');
+const Controller = require("../../controllers/payments_installments/payments_installmentsController");
+const Validations = require("../../middlewares/payments_installments/payments_installmentsMiddlewares");
+const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+
+// Middleware de autenticación para todas las rutas
+router.use(authMiddleware);
 
 // ===================== Endpoints legacy (colección plana) =====================
 
 // Crear pago/abono
 router.post(
-  '/',
+  "/",
   Validations.createPagoAbonoValidation,
   Controller.createPagoAbono
 );
 
 // Listar todos
-router.get('/', Controller.getAllPagosAbonos);
+router.get("/", Controller.getAllPagosAbonos);
 
 // Buscar por término
 router.get(
-  '/buscar/:term',
+  "/buscar/:term",
   Validations.searchPagosAbonosValidation,
   Controller.searchPagosAbonos
 );
 
 // Obtener por id
 router.get(
-  '/:id',
+  "/:id",
   Validations.findPagoAbonoByIdValidation,
   Controller.getPagoAbonoById
 );
 
 // Anular
 router.patch(
-  '/:id/cancelar',
+  "/:id/cancelar",
   Validations.cancelPagoAbonoValidation,
   Controller.cancelPagoAbono
 );
@@ -42,30 +45,27 @@ router.patch(
 // Ejemplo: app.use('/api/projects', paymentsInstallmentsRoutes);
 
 router.post(
-  '/:projectId/payments',
+  "/:projectId/payments",
   Validations.createProjectPaymentValidation,
   Controller.createProjectPayment
 );
 
 router.get(
-  '/:projectId/payments',
+  "/:projectId/payments",
   Validations.listProjectPaymentsValidation,
   Controller.listProjectPayments
 );
 
 router.get(
-  '/:projectId/payments/:paymentId',
+  "/:projectId/payments/:paymentId",
   Validations.getProjectPaymentValidation,
   Controller.getProjectPayment
 );
 
-
 router.delete(
-  '/:projectId/payments/:paymentId',
+  "/:projectId/payments/:paymentId",
   Validations.deleteProjectPaymentValidation,
   Controller.deleteProjectPayment
 );
 
 module.exports = router;
-
-
