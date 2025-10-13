@@ -5,7 +5,7 @@ const saleDetailMiddleware = require("../../middlewares/products_sale/SalesDetai
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 router.get("/", saleDetailController.getAllSaleDetails);
 router.get(
