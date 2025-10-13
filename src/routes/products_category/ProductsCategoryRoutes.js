@@ -6,7 +6,7 @@ const categoryValidations = require("../../middlewares/products_category/Product
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 router.get("/", categoryController.getAllCategories);
 router.get(
