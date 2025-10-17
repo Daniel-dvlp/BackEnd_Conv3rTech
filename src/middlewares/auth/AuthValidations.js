@@ -192,6 +192,64 @@ const assignPermissionsValidation = [
     .withMessage("El ID del privilegio debe ser un número entero"),
 ];
 
+// Validación flexible para aceptar también payloads del frontend en formato { permissions: { nombre_permiso: ["Privilegio", ...] } }
+const assignPermissionsFlexibleValidation = [
+  body().custom((_, { req }) => {
+    const { permisos, permissions } = req.body || {};
+
+    // Caso 1: Estructura tradicional con IDs
+    if (Array.isArray(permisos)) {
+      if (permisos.length === 0) {
+        throw new Error("Debe especificar al menos un permiso");
+      }
+      for (const perm of permisos) {
+        if (
+          !perm ||
+          typeof perm.id_permiso !== "number" ||
+          !Array.isArray(perm.privilegios) ||
+          perm.privilegios.length === 0
+        ) {
+          throw new Error(
+            "Cada permiso debe incluir id_permiso y al menos un privilegio"
+          );
+        }
+        for (const priv of perm.privilegios) {
+          if (!priv || typeof priv.id_privilegio !== "number") {
+            throw new Error("Cada privilegio debe incluir id_privilegio numérico");
+          }
+        }
+      }
+      return true;
+    }
+
+    // Caso 2: Objeto de mapeo por nombre
+    if (permissions && typeof permissions === "object" && !Array.isArray(permissions)) {
+      const keys = Object.keys(permissions);
+      if (keys.length === 0) {
+        throw new Error("Debe especificar al menos un permiso en 'permissions'");
+      }
+      for (const key of keys) {
+        const privs = permissions[key];
+        if (!Array.isArray(privs) || privs.length === 0) {
+          throw new Error(
+            `El permiso '${key}' debe incluir un array de privilegios seleccionado`
+          );
+        }
+        for (const p of privs) {
+          if (typeof p !== "string" || p.trim().length === 0) {
+            throw new Error("Los privilegios deben ser cadenas de texto válidas");
+          }
+        }
+      }
+      return true;
+    }
+
+    throw new Error(
+      "Debe enviar permisos válidos en 'permisos' (array con IDs) o 'permissions' (objeto por nombre)"
+    );
+  }),
+];
+
 module.exports = {
   loginValidation,
   updateProfileValidation,
@@ -206,4 +264,5 @@ module.exports = {
   permissionIdValidation,
   privilegeIdValidation,
   assignPermissionsValidation,
+  assignPermissionsFlexibleValidation,
 };

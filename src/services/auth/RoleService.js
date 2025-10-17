@@ -32,10 +32,19 @@ class RoleService {
 
   async updateRole(id, roleData) {
     try {
-      const updated = await roleRepository.update(id, roleData);
-      if (!updated) {
-        throw new Error("No se pudo actualizar el rol");
+      const existing = await roleRepository.findById(id);
+      if (!existing) {
+        throw new Error("Rol no encontrado");
       }
+      // Filtrar a campos válidos del modelo Role
+      const { nombre_rol, descripcion, estado } = roleData || {};
+      const payload = {};
+      if (typeof nombre_rol !== "undefined") payload.nombre_rol = nombre_rol;
+      if (typeof descripcion !== "undefined") payload.descripcion = descripcion;
+      if (typeof estado !== "undefined") payload.estado = estado;
+
+      // Intentar actualizar (idempotente: si no hay cambios, seguimos)
+      await roleRepository.update(id, payload);
       return await roleRepository.findById(id);
     } catch (error) {
       throw error;
@@ -57,6 +66,50 @@ class RoleService {
   async assignPermissionsToRole(roleId, permissions) {
     try {
       return await roleRepository.assignPermissions(roleId, permissions);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async assignPermissionsFromNames(roleId, permissionsByName) {
+    try {
+      // Obtener permisos y privilegios disponibles para mapear nombres a IDs
+      const [allPermissions, allPrivileges] = await Promise.all([
+        permissionRepository.findAllPermissions(),
+        permissionRepository.findAllPrivileges(),
+      ]);
+
+      const norm = (s) => (typeof s === "string" ? s.trim().toLowerCase() : "");
+
+      const permissionNameToId = new Map(
+        (allPermissions || []).map((p) => [norm(p.nombre_permiso), p.id_permiso])
+      );
+      const privilegeNameToId = new Map(
+        (allPrivileges || []).map((pr) => [norm(pr.nombre_privilegio), pr.id_privilegio])
+      );
+
+      const permisosArray = [];
+      for (const [permName, privNames] of Object.entries(permissionsByName || {})) {
+        const permId = permissionNameToId.get(norm(permName));
+        if (!permId) {
+          throw new Error(`Permiso desconocido: '${permName}'`);
+        }
+        if (!Array.isArray(privNames) || privNames.length === 0) {
+          throw new Error(`El permiso '${permName}' debe incluir al menos un privilegio`);
+        }
+        const privilegios = privNames.map((privName) => {
+          const privId = privilegeNameToId.get(norm(privName));
+          if (!privId) {
+            throw new Error(`Privilegio desconocido: '${privName}'`);
+          }
+          return { id_privilegio: privId };
+        });
+
+        permisosArray.push({ id_permiso: permId, privilegios });
+      }
+
+      await roleRepository.assignPermissions(roleId, permisosArray);
+      return true;
     } catch (error) {
       throw error;
     }
