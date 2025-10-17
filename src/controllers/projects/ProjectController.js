@@ -17,6 +17,7 @@ class ProjectController {
         success: true,
         data: projects,
         total: projects.length,
+        message: "Proyectos obtenidos exitosamente"
       });
     } catch (error) {
       res.status(500).json({
