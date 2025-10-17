@@ -119,9 +119,19 @@ class RoleController {
       }
 
       const { id } = req.params;
-      const { permisos } = req.body;
+      const { permisos, permissions } = req.body;
 
-      await roleService.assignPermissionsToRole(id, permisos);
+      if (Array.isArray(permisos)) {
+        await roleService.assignPermissionsToRole(id, permisos);
+      } else if (permissions && typeof permissions === "object") {
+        await roleService.assignPermissionsFromNames(id, permissions);
+      } else {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Formato de payload inválido. Use 'permisos' (array con IDs) o 'permissions' (objeto por nombre)",
+        });
+      }
 
       res.status(200).json({
         success: true,

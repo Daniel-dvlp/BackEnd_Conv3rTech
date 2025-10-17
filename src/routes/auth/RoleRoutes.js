@@ -10,6 +10,7 @@ const {
   updateRoleValidation,
   idValidation,
   assignPermissionsValidation,
+  assignPermissionsFlexibleValidation,
 } = require("../../middlewares/auth/AuthValidations");
 
 // Todas las rutas requieren autenticación y ser administrador
@@ -32,7 +33,7 @@ router.delete("/:id", idValidation, RoleController.deleteRole);
 router.post(
   "/:id/permissions",
   idValidation,
-  assignPermissionsValidation,
+  assignPermissionsFlexibleValidation,
   RoleController.assignPermissionsToRole
 );
 router.get("/:id/permissions", idValidation, RoleController.getRolePermissions);

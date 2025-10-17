@@ -31,17 +31,22 @@ class AuthService {
       // Generar JWT
       const token = this.generateToken(userWithPermissions);
 
+      // Formatear los datos del usuario para el frontend
+      const userData = {
+        id_usuario: user.id_usuario,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        correo: user.correo,
+        rol: user.rol.nombre_rol,
+        id_rol: user.rol.id_rol,
+        permisos: this.formatPermissions(userWithPermissions.rol.permisos)
+      };
+
       return {
         success: true,
         data: {
           token,
-          user: {
-            id_usuario: user.id_usuario,
-            nombre: user.nombre,
-            apellido: user.apellido,
-            correo: user.correo,
-            rol: user.rol.nombre_rol,
-          },
+          user: userData
         },
         message: "Login exitoso",
       };
