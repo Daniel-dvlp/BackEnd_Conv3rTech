@@ -141,10 +141,10 @@ class AuthController {
       const updateData = {
         nombre: req.body.nombre,
         apellido: req.body.apellido,
-        correo: req.body.email,
+        correo: req.body.email || req.body.correo, // Aceptar ambos formatos
         celular: req.body.celular,
         documento: req.body.documento,
-        tipo_documento: req.body.tipoDocumento,
+        tipo_documento: req.body.tipoDocumento || req.body.tipo_documento, // Aceptar ambos formatos
       };
 
       const updatedUser = await authService.updateProfile(userId, updateData);

@@ -5,7 +5,7 @@ const featureMiddleware = require("../../middlewares/products/FeatureMiddleware"
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 router.get("/", featureController.getAllFeatures);
 router.get(
