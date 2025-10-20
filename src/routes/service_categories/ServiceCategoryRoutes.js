@@ -10,7 +10,7 @@ const {
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 // LISTAR TODAS
 router.get("/", serviceCategoryController.getAllCategories);

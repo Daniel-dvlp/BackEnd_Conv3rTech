@@ -7,7 +7,7 @@ const {
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 // Crear una nueva programación laboral con validación
 router.post(
