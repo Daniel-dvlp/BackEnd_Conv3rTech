@@ -5,7 +5,7 @@ const Validations = require("../../middlewares/payments_installments/payments_in
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 // ===================== Endpoints legacy (colección plana) =====================
 
