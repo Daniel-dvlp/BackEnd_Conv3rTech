@@ -5,7 +5,7 @@ const UsuariosValidations = require("../../middlewares/users/UsuariosValidations
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
