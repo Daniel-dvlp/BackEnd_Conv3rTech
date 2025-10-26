@@ -5,7 +5,7 @@ const quoteDetailMiddleware = require("../../middlewares/quotes/QuoteDetailsMidd
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 // ✅ Rutas de detalles de cotización
 router.get("/", quoteDetailController.getAllQuoteDetails);

@@ -1,0 +1,369 @@
+// Usar en: https://dbdiagram.io
+// Generado: 21/10/2025, 11:01:03 a.m.
+
+Table roles {
+  id_rol int [pk, increment, not null]
+  nombre_rol varchar [unique, not null]
+  descripcion text
+  estado int
+}
+
+Table permisos {
+  id_permiso int [pk, increment, not null]
+  nombre_permiso varchar [unique, not null]
+  descripcion text
+  estado int
+}
+
+Table privilegios {
+  id_privilegio int [pk, increment, not null]
+  nombre_privilegio varchar [unique, not null]
+  descripcion text
+  estado int
+}
+
+Table permiso_privilegio {
+  id int [pk, increment, not null]
+  id_permiso int [not null]
+  id_privilegio int [not null]
+}
+
+Table usuarios {
+  id_usuario int [pk, increment, not null]
+  documento varchar [unique, not null]
+  tipo_documento varchar [not null]
+  nombre varchar [not null]
+  apellido varchar [not null]
+  celular varchar [not null]
+  correo varchar [unique, not null]
+  contrasena varchar [not null]
+  id_rol int [not null]
+  estado_usuario varchar [not null]
+  fecha_creacion datetime
+}
+
+Table clientes {
+  id_cliente int [pk, increment]
+  documento varchar [unique, not null]
+  tipo_documento varchar [not null]
+  nombre varchar [not null]
+  apellido varchar
+  telefono varchar [not null]
+  correo varchar [unique, not null]
+  credito int
+  estado_cliente int
+}
+
+Table direcciones_clientes {
+  id_direccion int [pk, increment]
+  id_cliente int [not null]
+  nombre_direccion varchar [not null]
+  direccion varchar [not null]
+  ciudad varchar [not null]
+}
+
+Table proveedores {
+  id_proveedor int [pk, increment]
+  nit varchar [unique, not null]
+  nombre_encargado varchar [not null]
+  nombre_empresa varchar [unique, not null]
+  telefono varchar [not null]
+  correo varchar [unique, not null]
+  direccion varchar [not null]
+  estado int
+  fecha_registro datetime
+}
+
+Table categoria_productos {
+  id_categoria int [pk, increment]
+  nombre varchar [unique, not null]
+  descripcion varchar
+  estado int
+}
+
+Table productos {
+  id_producto int [pk, increment]
+  fotos json
+  nombre varchar [not null]
+  modelo varchar [not null]
+  id_categoria int [not null]
+  unidad_medida varchar
+  precio decimal [not null]
+  stock int
+  garantia int [not null]
+  codigo_barra varchar
+  estado int
+}
+
+Table caracteristicas_productos {
+  id_caracteristica int [pk, increment]
+  nombre varchar [unique, not null]
+}
+
+Table fichas_tecnicas {
+  id_ficha_tecnica int [pk, increment]
+  id_producto int [not null]
+  id_caracteristica int [not null]
+  valor varchar [not null]
+}
+
+Table categorias_servicios {
+  id int [pk, increment]
+  url_imagen varchar [not null]
+  nombre varchar [unique, not null]
+  descripcion varchar [not null]
+  estado varchar [not null]
+  fecha_creacion datetime
+}
+
+Table servicios {
+  id_servicio int [pk, increment]
+  nombre varchar [not null]
+  descripcion varchar [not null]
+  precio decimal [not null]
+  url_imagen varchar
+  estado varchar [not null]
+  fecha_creacion datetime
+  id_categoria_servicio int [not null]
+}
+
+Table compras {
+  id_compra int [pk, increment]
+  numero_recibo varchar [unique, not null]
+  id_proveedor int [unique, not null]
+  monto decimal [not null]
+  fecha_registro datetime
+  estado varchar
+  fecha_recibo datetime [not null]
+  iva decimal [not null]
+}
+
+Table detalles_compras {
+  id_detalle_compra int [pk, increment]
+  id_compra int [not null]
+  id_producto int [not null]
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  subtotal_producto decimal [not null]
+  fecha_registro datetime
+}
+
+Table venta_productos {
+  id_venta int [pk, increment]
+  numero_venta varchar [unique, not null]
+  id_cliente int [not null]
+  fecha_venta datetime [not null]
+  fecha_registro datetime
+  metodo_pago varchar [not null]
+  estado varchar
+  subtotal_venta decimal [not null]
+  monto_iva decimal [not null]
+  monto_venta decimal [not null]
+}
+
+Table detalle_venta_productos {
+  id_detalle int [pk, increment]
+  id_venta int [not null]
+  id_producto int [not null]
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  subtotal_producto decimal [not null]
+}
+
+Table cotizaciones {
+  id_cotizacion int [pk, increment]
+  nombre_cotizacion varchar [not null]
+  id_cliente int [not null]
+  fecha_creacion date
+  fecha_vencimiento date [not null]
+  subtotal_productos decimal
+  subtotal_servicios decimal
+  monto_iva decimal
+  monto_cotizacion decimal
+  observaciones text
+  estado varchar [not null]
+}
+
+Table detalles_cotizacion {
+  id_detalle_cot int [pk, increment]
+  id_cotizacion int [not null]
+  id_producto int
+  id_servicio int
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  subtotal decimal [not null]
+}
+
+Table proyectos {
+  id_proyecto int [pk, increment, not null]
+  numero_contrato varchar [unique, not null]
+  nombre varchar [not null]
+  id_cliente int [not null]
+  id_cotizacion int [unique]
+  id_responsable int
+  fecha_inicio date [not null]
+  fecha_fin date [not null]
+  estado varchar [not null]
+  progreso int [not null]
+  prioridad varchar [not null]
+  ubicacion text
+  descripcion text
+  observaciones text
+  costo_mano_obra decimal [not null]
+  costo_total_materiales decimal [not null]
+  costo_total_servicios decimal [not null]
+  costo_total_proyecto decimal [not null]
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+}
+
+Table proyecto_empleados {
+  id_proyecto_empleado int [pk, increment, not null]
+  id_proyecto int [not null]
+  id_usuario int [not null]
+  fecha_asignacion datetime
+}
+
+Table proyecto_materiales {
+  id_proyecto_material int [pk, increment, not null]
+  id_proyecto int [not null]
+  id_producto int [not null]
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  precio_total decimal [not null]
+  fecha_creacion datetime
+}
+
+Table proyecto_sedes {
+  id_proyecto_sede int [pk, increment, not null]
+  id_proyecto int [not null]
+  nombre varchar [not null]
+  ubicacion text
+  presupuesto_materiales decimal [not null]
+  presupuesto_servicios decimal [not null]
+  presupuesto_total decimal [not null]
+  presupuesto_restante decimal [not null]
+  fecha_creacion datetime
+}
+
+Table proyecto_servicios {
+  id_proyecto_servicio int [pk, increment, not null]
+  id_proyecto int [not null]
+  id_servicio int [not null]
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  precio_total decimal [not null]
+  fecha_creacion datetime
+}
+
+Table salidas_material {
+  id_salida_material int [pk, increment, not null]
+  id_proyecto int [not null]
+  id_proyecto_sede int
+  id_producto int [not null]
+  cantidad int [not null]
+  id_entregador int [not null]
+  receptor varchar [not null]
+  observaciones text
+  costo_total decimal [not null]
+  fecha_salida datetime [not null]
+}
+
+Table sede_materiales {
+  id_sede_material int [pk, increment, not null]
+  id_proyecto_sede int [not null]
+  id_producto int [not null]
+  cantidad int [not null]
+  fecha_asignacion datetime
+}
+
+Table sede_servicios {
+  id_sede_servicio int [pk, increment, not null]
+  id_proyecto_sede int [not null]
+  id_servicio int [not null]
+  cantidad int [not null]
+  precio_unitario decimal [not null]
+  fecha_asignacion datetime
+  estado varchar [not null]
+  fecha_completado datetime
+}
+
+Table citas {
+  id_cita int [pk, increment]
+  fecha date [not null]
+  hora_inicio varchar [not null]
+  hora_fin varchar [not null]
+  direccion varchar
+  observaciones varchar
+  id_usuario int [not null]
+  id_cliente int [not null]
+  id_servicio int
+  estado varchar
+}
+
+Table programaciones_laborales {
+  id_programacion int [pk, increment]
+  fecha_inicio datetime [not null]
+  hora_inicio varchar [not null]
+  hora_fin varchar [not null]
+  id_usuario int [not null]
+}
+
+Table pagos_abonos {
+  id_pago_abono int [pk, increment, not null]
+  id_proyecto int [not null]
+  fecha datetime [not null]
+  monto decimal [not null]
+  metodo_pago varchar [not null]
+  estado int [not null]
+}
+
+Table rol_permiso_privilegio {
+  id int [pk, increment, not null]
+  id_rol int [not null]
+  id_permiso int [not null]
+  id_privilegio int [not null]
+}
+
+// Relaciones
+Ref: permiso_privilegio.id_permiso > permisos.id_permiso
+Ref: permiso_privilegio.id_privilegio > privilegios.id_privilegio
+Ref: usuarios.id_rol > roles.id_rol
+Ref: direcciones_clientes.id_cliente > clientes.id_cliente
+Ref: productos.id_categoria > categoria_productos.id_categoria
+Ref: fichas_tecnicas.id_producto > productos.id_producto
+Ref: fichas_tecnicas.id_caracteristica > caracteristicas_productos.id_caracteristica
+Ref: servicios.id_categoria_servicio > categorias_servicios.id_categoria_servicio
+Ref: detalles_compras.id_producto > productos.id_producto
+Ref: venta_productos.id_cliente > clientes.id_cliente
+Ref: detalle_venta_productos.id_venta > venta_productos.id_venta
+Ref: detalle_venta_productos.id_producto > productos.id_producto
+Ref: cotizaciones.id_cliente > clientes.id_cliente
+Ref: detalles_cotizacion.id_cotizacion > cotizaciones.id_cotizacion
+Ref: detalles_cotizacion.id_producto > productos.id_producto
+Ref: detalles_cotizacion.id_servicio > servicios.id_servicio
+Ref: proyectos.id_cliente > clientes.id_cliente
+Ref: proyectos.id_cotizacion > cotizaciones.id_cotizacion
+Ref: proyectos.id_responsable > usuarios.id_usuario
+Ref: proyecto_empleados.id_proyecto > proyectos.id_proyecto
+Ref: proyecto_empleados.id_usuario > usuarios.id_usuario
+Ref: proyecto_materiales.id_proyecto > proyectos.id_proyecto
+Ref: proyecto_materiales.id_producto > productos.id_producto
+Ref: proyecto_sedes.id_proyecto > proyectos.id_proyecto
+Ref: proyecto_servicios.id_proyecto > proyectos.id_proyecto
+Ref: proyecto_servicios.id_servicio > servicios.id_servicio
+Ref: salidas_material.id_proyecto > proyectos.id_proyecto
+Ref: salidas_material.id_proyecto_sede > proyecto_sedes.id_proyecto_sede
+Ref: salidas_material.id_producto > productos.id_producto
+Ref: salidas_material.id_entregador > usuarios.id_usuario
+Ref: sede_materiales.id_proyecto_sede > proyecto_sedes.id_proyecto_sede
+Ref: sede_materiales.id_producto > productos.id_producto
+Ref: sede_servicios.id_proyecto_sede > proyecto_sedes.id_proyecto_sede
+Ref: sede_servicios.id_servicio > servicios.id_servicio
+Ref: citas.id_usuario > usuarios.id_usuario
+Ref: citas.id_cliente > clientes.id_cliente
+Ref: citas.id_servicio > servicios.id_servicio
+Ref: programaciones_laborales.id_usuario > usuarios.id_usuario
+Ref: rol_permiso_privilegio.id_rol > roles.id_rol
+Ref: rol_permiso_privilegio.id_permiso > permisos.id_permiso
+Ref: rol_permiso_privilegio.id_privilegio > privilegios.id_privilegio
