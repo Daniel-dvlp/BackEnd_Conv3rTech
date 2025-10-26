@@ -10,7 +10,7 @@ const {
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 router.post("/", validateCreatePurchase, purchaseController.createPurchase);
 router.get("/", purchaseController.getAllPurchases);
