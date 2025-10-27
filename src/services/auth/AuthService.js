@@ -23,13 +23,14 @@ class AuthService {
         throw new Error("Usuario inactivo");
       }
 
-      // Obtener permisos del usuario
-      const userWithPermissions = await userRepository.findByIdWithPermissions(
-        user.id_usuario
+      // Derivar permisos del rol desde RolPermisoPrivilegio (evita privilegios globales)
+      const rolePermissionsRows = await roleRepository.getRolePermissions(
+        user.rol.id_rol
       );
+      const rolePermissionsObj = this.formatRolePivotPermissions(rolePermissionsRows);
 
-      // Generar JWT
-      const token = this.generateToken(userWithPermissions);
+      // Generar JWT usando permisos derivados del pivot de rol
+      const token = this.generateToken(user, rolePermissionsObj);
 
       // Formatear los datos del usuario para el frontend
       const userData = {
@@ -39,7 +40,7 @@ class AuthService {
         correo: user.correo,
         rol: user.rol.nombre_rol,
         id_rol: user.rol.id_rol,
-        permisos: this.formatPermissions(userWithPermissions.rol.permisos)
+        permisos: rolePermissionsObj
       };
 
       return {
@@ -55,11 +56,11 @@ class AuthService {
     }
   }
 
-  generateToken(user) {
+  generateToken(user, permisosObj) {
     const payload = {
       id_usuario: user.id_usuario,
       id_rol: user.rol.id_rol,
-      permisos: this.formatPermissions(user.rol.permisos),
+      permisos: permisosObj || this.formatPermissions(user?.rol?.permisos),
     };
 
     return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -69,14 +70,34 @@ class AuthService {
 
   formatPermissions(permisos) {
     const formattedPermissions = {};
-
+    if (!Array.isArray(permisos)) return formattedPermissions;
     permisos.forEach((permiso) => {
-      formattedPermissions[permiso.nombre_permiso] = permiso.privilegios.map(
-        (privilegio) => privilegio.nombre_privilegio
-      );
+      const nombrePermiso = permiso?.nombre_permiso;
+      const privilegios = Array.isArray(permiso?.privilegios)
+        ? permiso.privilegios.map((p) => p?.nombre_privilegio).filter(Boolean)
+        : [];
+      if (nombrePermiso && privilegios.length > 0) {
+        formattedPermissions[nombrePermiso] = privilegios;
+      }
     });
-
     return formattedPermissions;
+  }
+
+  // Formatea filas provenientes del repositorio de RolPermisoPrivilegio
+  // a la estructura { permiso: [privilegios] }
+  formatRolePivotPermissions(rows) {
+    const out = {};
+    if (!Array.isArray(rows)) return out;
+    for (const r of rows) {
+      const permiso = r?.permiso?.nombre_permiso;
+      const privilegio = r?.privilegio?.nombre_privilegio;
+      if (!permiso || !privilegio) continue;
+      if (!out[permiso]) out[permiso] = [];
+      if (!out[permiso].includes(privilegio)) {
+        out[permiso].push(privilegio);
+      }
+    }
+    return out;
   }
 
   async verifyToken(token) {
@@ -96,12 +117,13 @@ class AuthService {
 
   async getUserPermissions(userId) {
     try {
-      const user = await userRepository.findByIdWithPermissions(userId);
+      const user = await userRepository.findById(userId);
       if (!user) {
         throw new Error("Usuario no encontrado");
       }
 
-      return this.formatPermissions(user.rol.permisos);
+      const rows = await roleRepository.getRolePermissions(user.rol.id_rol);
+      return this.formatRolePivotPermissions(rows);
     } catch (error) {
       throw error;
     }
