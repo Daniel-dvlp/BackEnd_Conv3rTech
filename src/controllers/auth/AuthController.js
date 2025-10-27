@@ -38,21 +38,22 @@ class AuthController {
       const token = authHeader.substring(7);
       const decoded = await authService.verifyToken(token);
 
-      // Obtener usuario completo con permisos
+      // Obtener usuario
       const userRepository = require("../../repositories/auth/UserRepository");
-      const userWithPermissions = await userRepository.findByIdWithPermissions(
-        decoded.id_usuario
-      );
+      const user = await userRepository.findById(decoded.id_usuario);
 
-      if (!userWithPermissions) {
+      if (!user) {
         return res.status(401).json({
           success: false,
           message: "Usuario no encontrado",
         });
       }
 
-      // Generar nuevo token
-      const newToken = authService.generateToken(userWithPermissions);
+      // Derivar permisos actuales del rol y generar nuevo token
+      const roleRepository = require("../../repositories/auth/RoleRepository");
+      const rows = await roleRepository.getRolePermissions(user.rol.id_rol);
+      const permsObj = authService.formatRolePivotPermissions(rows);
+      const newToken = authService.generateToken(user, permsObj);
 
       res.status(200).json({
         success: true,
