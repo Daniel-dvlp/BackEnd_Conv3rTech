@@ -125,6 +125,12 @@ const permissions = [
     descripcion: "Gestión de pagos y abonos",
     estado: true,
   },
+  {
+    id_permiso: 17,
+    nombre_permiso: "Órdenes de servicio",
+    descripcion: "Gestión de órdenes de servicio",
+    estado: true,
+  },
 ];
 
 const privileges = [

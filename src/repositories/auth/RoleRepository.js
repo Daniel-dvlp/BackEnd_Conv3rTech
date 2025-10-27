@@ -63,22 +63,69 @@ class RoleRepository {
   }
 
   async assignPermissions(roleId, permissions) {
-    // Eliminar permisos existentes
-    await RolPermisoPrivilegio.destroy({
-      where: { id_rol: roleId },
-    });
+    // Validación básica del payload
+    if (!Array.isArray(permissions)) {
+      throw new Error("El payload de permisos debe ser un array");
+    }
 
-    // Asignar nuevos permisos
+    console.log(
+      "[RoleRepository.assignPermissions] roleId=",
+      roleId,
+      "permissionsCount=",
+      permissions.length
+    );
+
+    // Eliminar permisos existentes
+    await RolPermisoPrivilegio.destroy({ where: { id_rol: roleId } });
+
+    // Asignar nuevos permisos con deduplicación
     const rolePermissions = [];
+    const comboSet = new Set(); // evita duplicados (rol, permiso, privilegio)
+
     for (const permission of permissions) {
-      for (const privilege of permission.privilegios) {
+      const permId = permission?.id_permiso;
+      const privs = Array.isArray(permission?.privilegios)
+        ? permission.privilegios
+        : [];
+
+      if (typeof permId !== "number") {
+        console.log(
+          "[RoleRepository.assignPermissions] permiso inválido, id_permiso=",
+          permId
+        );
+        continue;
+      }
+
+      const privSet = new Set();
+      for (const privilege of privs) {
+        const privId = privilege?.id_privilegio;
+        if (typeof privId !== "number") {
+          console.log(
+            "[RoleRepository.assignPermissions] privilegio inválido, id_privilegio=",
+            privId
+          );
+          continue;
+        }
+        // dedupe por permiso
+        if (privSet.has(privId)) continue;
+        privSet.add(privId);
+
+        const key = `${roleId}-${permId}-${privId}`;
+        if (comboSet.has(key)) continue;
+        comboSet.add(key);
+
         rolePermissions.push({
           id_rol: roleId,
-          id_permiso: permission.id_permiso,
-          id_privilegio: privilege.id_privilegio,
+          id_permiso: permId,
+          id_privilegio: privId,
         });
       }
     }
+
+    console.log(
+      "[RoleRepository.assignPermissions] bulkCreate count=",
+      rolePermissions.length
+    );
 
     if (rolePermissions.length > 0) {
       await RolPermisoPrivilegio.bulkCreate(rolePermissions);
