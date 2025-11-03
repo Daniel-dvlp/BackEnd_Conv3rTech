@@ -24,6 +24,7 @@ const getAllQuotes = async () => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -54,6 +55,7 @@ const getQuoteById = async (id) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -89,6 +91,7 @@ const updateQuote = async (id, quote, transaction = null) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -143,6 +146,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -150,7 +154,10 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
             {
                 model: QuoteDetail,
                 as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
+                include: [
+                    { model: Product, as: 'producto' },
+                    { model: Service, as: 'servicio' }
+                ]
             }
         ]
     });
