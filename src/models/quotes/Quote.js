@@ -45,6 +45,10 @@ const Quote = sequelize.define('Quote', {
         type: DataTypes.TEXT,
         allowNull: true
     },
+    motivo_anulacion: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     estado: {
         type: DataTypes.ENUM('Pendiente', 'Aprobada', 'Rechazada'),
         allowNull: false,
