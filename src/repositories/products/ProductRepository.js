@@ -43,10 +43,14 @@ const getById = async (id) => {
 };
 
 // Actualizar stock del producto
-const updateStock = async (id, newStock) => {
+const updateStock = async (id, newStock, transaction = null) => {
+    const options = { where: { id_producto: id } };
+    if (transaction) {
+        options.transaction = transaction;
+    }
     return Product.update(
         { stock: newStock },
-        { where: { id_producto: id } }
+        options
     );
 };
 
