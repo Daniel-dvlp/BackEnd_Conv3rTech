@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const quoteService = require('../../services/quotes/QuoteService');
 const quoteDetailService = require('../../services/quotes/QuoteDetailsService');
+const ProductRepository = require('../../repositories/products/ProductRepository');
 
 // ✅ Crear cotización con detalles
 const createQuote = async (req, res) => {
@@ -104,6 +105,34 @@ const getQuoteDetails = async (req, res) => {
     }
 };
 
+// ✅ Validar stock de productos
+const validateStock = async (req, res) => {
+    try {
+        const { id_producto, cantidad } = req.body;
+
+        if (!id_producto || !cantidad) {
+            return res.status(400).json({ message: 'id_producto y cantidad son requeridos' });
+        }
+
+        const product = await ProductRepository.getById(id_producto);
+        if (!product) {
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+
+        const stockDisponible = product.stock || 0;
+        const esValido = cantidad <= stockDisponible;
+
+        res.status(200).json({
+            valido: esValido,
+            stock_disponible: stockDisponible,
+            cantidad_solicitada: cantidad,
+            mensaje: esValido ? 'Stock suficiente' : `Stock insuficiente. Disponible: ${stockDisponible}`
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createQuote,
     getAllQuotes,
@@ -111,5 +140,6 @@ module.exports = {
     updateQuote,
     deleteQuote,
     changeQuoteState,
-    getQuoteDetails
+    getQuoteDetails,
+    validateStock
 };
