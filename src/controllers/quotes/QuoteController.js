@@ -86,7 +86,8 @@ const changeQuoteState = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const updatedQuote = await quoteService.changeQuoteState(req.params.id, req.body.estado);
+        const motivoAnulacion = req.body.motivo_anulacion || null;
+        const updatedQuote = await quoteService.changeQuoteState(req.params.id, req.body.estado, motivoAnulacion);
         res.status(200).json({ message: 'Estado de la cotización actualizado exitosamente', data: updatedQuote });
     } catch (error) {
         res.status(400).json({ message: error.message });

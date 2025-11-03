@@ -44,8 +44,12 @@ const getQuoteById = async (id) => {
 };
 
 // ✅ Actualizar cotización
-const updateQuote = async (id, quote) => {
-    await Quote.update(quote, { where: { id_cotizacion: id } });
+const updateQuote = async (id, quote, transaction = null) => {
+    const options = { where: { id_cotizacion: id } };
+    if (transaction) {
+        options.transaction = transaction;
+    }
+    await Quote.update(quote, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
         include: [
@@ -53,7 +57,10 @@ const updateQuote = async (id, quote) => {
             {
                 model: QuoteDetail,
                 as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
+                include: [
+                    { model: Product, as: 'producto' },
+                    { model: Service, as: 'servicio' }
+                ]
             }
         ]
     });
@@ -78,8 +85,12 @@ const deleteQuote = async (id) => {
 };
 
 // ✅ Cambiar estado de la cotización
-const changeQuoteState = async (id, state) => {
-    await Quote.update({ estado: state }, { where: { id_cotizacion: id } });
+const changeQuoteState = async (id, state, motivoAnulacion = null) => {
+    const updateData = { estado: state };
+    if (motivoAnulacion) {
+        updateData.motivo_anulacion = motivoAnulacion;
+    }
+    await Quote.update(updateData, { where: { id_cotizacion: id } });
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
         attributes: [
@@ -93,6 +104,7 @@ const changeQuoteState = async (id, state) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
