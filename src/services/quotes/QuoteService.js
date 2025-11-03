@@ -102,7 +102,91 @@ const getQuoteById = async (id) => {
 
 // ✅ Actualizar cotización
 const updateQuote = async (id, quote) => {
-    return QuoteRepository.updateQuote(id, quote);
+    const transaction = await sequelize.transaction();
+
+    try {
+        // Si hay detalles en la actualización, actualizarlos también
+        if (quote.detalles && Array.isArray(quote.detalles)) {
+            let subtotalProductos = 0;
+            let subtotalServicios = 0;
+            const iva = 0.19;
+
+            // Eliminar todos los detalles existentes
+            await QuoteDetail.destroy({ where: { id_cotizacion: id }, transaction });
+
+            const detallesCalculados = [];
+
+            // Calcular nuevos detalles
+            for (const detail of quote.detalles) {
+                if (detail.id_producto) {
+                    // Producto
+                    const product = await ProductRepository.getById(detail.id_producto);
+                    if (!product) {
+                        throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
+                    }
+                    const precioUnitario = product.precio;
+                    const subtotal = detail.cantidad * precioUnitario;
+                    subtotalProductos += subtotal;
+                    detallesCalculados.push({
+                        id_producto: detail.id_producto,
+                        cantidad: detail.cantidad,
+                        precio_unitario: precioUnitario,
+                        subtotal
+                    });
+                } else if (detail.id_servicio) {
+                    // Servicio
+                    const service = await ServiceRepository.findById(detail.id_servicio);
+                    if (!service) {
+                        throw new Error(`Servicio con ID ${detail.id_servicio} no encontrado`);
+                    }
+                    const precioUnitario = service.precio;
+                    const subtotal = detail.cantidad * precioUnitario;
+                    subtotalServicios += subtotal;
+                    detallesCalculados.push({
+                        id_servicio: detail.id_servicio,
+                        cantidad: detail.cantidad,
+                        precio_unitario: precioUnitario,
+                        subtotal
+                    });
+                }
+            }
+
+            // Insertar nuevos detalles
+            for (const det of detallesCalculados) {
+                await QuoteDetail.create(
+                    { ...det, id_cotizacion: id },
+                    { transaction }
+                );
+            }
+
+            // Calcular y actualizar totales
+            const subtotalGeneral = subtotalProductos + subtotalServicios;
+            const montoIva = subtotalGeneral * iva;
+            const montoCotizacion = subtotalGeneral + montoIva;
+
+            // Actualizar cotización con totales
+            const quoteData = {
+                ...quote,
+                subtotal_productos: subtotalProductos,
+                subtotal_servicios: subtotalServicios,
+                monto_iva: montoIva,
+                monto_cotizacion: montoCotizacion
+            };
+            delete quoteData.detalles; // Eliminar detalles del objeto principal antes de actualizar
+
+            await QuoteRepository.updateQuote(id, quoteData, transaction);
+        } else {
+            // Si no hay detalles, solo actualizar campos base
+            await QuoteRepository.updateQuote(id, quote, transaction);
+        }
+
+        await transaction.commit();
+        // Retornar cotización actualizada
+        return QuoteRepository.getQuoteById(id);
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
 };
 
 // ✅ Eliminar cotización
@@ -111,8 +195,8 @@ const deleteQuote = async (id) => {
 };
 
 // ✅ Cambiar estado de la cotización
-const changeQuoteState = async (id, state) => {
-    const updatedQuote = await QuoteRepository.changeQuoteState(id, state);
+const changeQuoteState = async (id, state, motivoAnulacion = null) => {
+    const updatedQuote = await QuoteRepository.changeQuoteState(id, state, motivoAnulacion);
 
     // Si se aprueba la cotización, crear proyecto automáticamente (1-1)
     if (state === 'Aprobada') {
