@@ -1,6 +1,7 @@
 const sequelize = require('../../config/database');
 const QuoteRepository = require('../../repositories/quotes/QuoteRepository');
 const QuoteDetail = require('../../models/quotes/QuoteDetails');
+const Product = require('../../models/products/Product');
 const ProductRepository = require('../../repositories/products/ProductRepository');
 const ServiceRepository = require('../../repositories/services/ServiceRepository');
 const ProjectService = require('../../services/projects/ProjectService');
