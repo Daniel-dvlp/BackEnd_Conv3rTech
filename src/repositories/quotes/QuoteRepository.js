@@ -13,6 +13,19 @@ const createQuote = async (quote) => {
 // ✅ Obtener todas las cotizaciones
 const getAllQuotes = async () => {
     return Quote.findAll({
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'estado'
+        ],
         include: [
             { model: Client, as: 'cliente' },
             {
@@ -30,6 +43,19 @@ const getAllQuotes = async () => {
 // ✅ Obtener cotización por ID
 const getQuoteById = async (id) => {
     return Quote.findByPk(id, {
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'estado'
+        ],
         include: [
             { association: 'cliente' },
             {
@@ -52,6 +78,19 @@ const updateQuote = async (id, quote, transaction = null) => {
     await Quote.update(quote, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'estado'
+        ],
         include: [
             { model: Client, as: 'cliente' },
             {
@@ -95,16 +134,15 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
     return Quote.findByPk(id, {
         attributes: [
             'id_cotizacion',
-            'nombre_cotizacion', 
+            'nombre_cotizacion',
             'id_cliente',
             'fecha_creacion',
             'fecha_vencimiento',
             'subtotal_productos',
-            'subtotal_servicios', 
+            'subtotal_servicios',
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
-            'motivo_anulacion',
             'estado'
         ],
         include: [
