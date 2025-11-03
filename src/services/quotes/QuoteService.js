@@ -251,7 +251,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     if (newStock < 0) {
                         throw new Error(`Stock insuficiente para el producto ${detail.producto.nombre}. Stock disponible: ${detail.producto.stock}, requerido: ${detail.cantidad}`);
                     }
-                    await ProductRepository.updateStock(detail.id_producto, newStock);
+                    await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
                 }
             }
         }
