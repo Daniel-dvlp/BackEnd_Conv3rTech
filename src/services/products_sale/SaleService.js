@@ -4,11 +4,16 @@ const sequelize = require('../../config/database'); // necesario para transaccio
 const SaleDetail = require('../../models/products_sale/SaleDetails');
 const Sale = require('../../models/products_sale/Sale');
 
-// Crear venta 
+// Crear venta
 const createSale = async (sale) => {
     const transaction = await sequelize.transaction();
 
     try {
+        // Verificar que sale.detalles existe y es un array
+        if (!sale.detalles || !Array.isArray(sale.detalles) || sale.detalles.length === 0) {
+            throw new Error('Debe incluir al menos un detalle de venta');
+        }
+
         let subtotalVenta = 0;
         const iva = 0.19;
 
