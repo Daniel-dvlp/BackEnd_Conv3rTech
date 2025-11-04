@@ -5,8 +5,8 @@ const SaleDetail = require('../../models/products_sale/SaleDetails');
 const Product = require('../../models/products/Product');
 
 // ✅ Crear venta
-const createSale = async (sale) => {
-    return Sale.create(sale);
+const createSale = async (sale, options = {}) => {
+    return Sale.create(sale, options);
 };
 
 // ✅ Obtener todas las ventas
@@ -27,10 +27,11 @@ const getAllSales = async () => {
 const getSaleById = async (id) => {
     return Sale.findByPk(id, {
         include: [
-            { association: 'cliente' },
+            { model: Client, as: 'cliente' },
             {
-                association: 'detalles',
-                include: [{ association: 'producto' }]
+                model: SaleDetail,
+                as: 'detalles',
+                include: [{ model: Product, as: 'producto' }]
             }
         ]
     });

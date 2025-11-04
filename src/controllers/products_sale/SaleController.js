@@ -11,8 +11,25 @@ const createSale = async (req, res) => {
     try {
         const sale = await saleService.createSale(req.body);
 
+        // Validar que la venta se creó correctamente
+        if (!sale || !sale.id_venta) {
+            throw new Error('Error al crear la venta: no se recibió un ID válido');
+        }
+
         // Obtener venta con cliente y detalles
-        const saleWithDetails = await saleService.getSaleById(sale.id_venta);
+        let saleWithDetails;
+        try {
+            saleWithDetails = await saleService.getSaleById(sale.id_venta);
+            
+            // Validar que se encontró la venta
+            if (!saleWithDetails) {
+                throw new Error('Error al recuperar la venta creada');
+            }
+        } catch (getError) {
+            console.error('Error al obtener venta con detalles:', getError);
+            // Si falla obtener con detalles, al menos retornar la venta básica
+            saleWithDetails = sale;
+        }
 
         res.status(201).json({
             message: 'Venta registrada exitosamente',
@@ -20,6 +37,7 @@ const createSale = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear venta:', error);
+        console.error('Stack trace:', error.stack);
         res.status(400).json({ message: error.message || 'Error interno del servidor' });
     }
 };
