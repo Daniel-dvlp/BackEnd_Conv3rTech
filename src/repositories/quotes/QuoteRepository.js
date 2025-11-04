@@ -13,6 +13,20 @@ const createQuote = async (quote) => {
 // ✅ Obtener todas las cotizaciones
 const getAllQuotes = async () => {
     return Quote.findAll({
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'motivo_anulacion',
+            'estado'
+        ],
         include: [
             { model: Client, as: 'cliente' },
             {
@@ -30,6 +44,20 @@ const getAllQuotes = async () => {
 // ✅ Obtener cotización por ID
 const getQuoteById = async (id) => {
     return Quote.findByPk(id, {
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'motivo_anulacion',
+            'estado'
+        ],
         include: [
             { association: 'cliente' },
             {
@@ -44,16 +72,37 @@ const getQuoteById = async (id) => {
 };
 
 // ✅ Actualizar cotización
-const updateQuote = async (id, quote) => {
-    await Quote.update(quote, { where: { id_cotizacion: id } });
+const updateQuote = async (id, quote, transaction = null) => {
+    const options = { where: { id_cotizacion: id } };
+    if (transaction) {
+        options.transaction = transaction;
+    }
+    await Quote.update(quote, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
+        attributes: [
+            'id_cotizacion',
+            'nombre_cotizacion',
+            'id_cliente',
+            'fecha_creacion',
+            'fecha_vencimiento',
+            'subtotal_productos',
+            'subtotal_servicios',
+            'monto_iva',
+            'monto_cotizacion',
+            'observaciones',
+            'motivo_anulacion',
+            'estado'
+        ],
         include: [
             { model: Client, as: 'cliente' },
             {
                 model: QuoteDetail,
                 as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
+                include: [
+                    { model: Product, as: 'producto' },
+                    { model: Service, as: 'servicio' }
+                ]
             }
         ]
     });
@@ -78,21 +127,30 @@ const deleteQuote = async (id) => {
 };
 
 // ✅ Cambiar estado de la cotización
-const changeQuoteState = async (id, state) => {
-    await Quote.update({ estado: state }, { where: { id_cotizacion: id } });
+const changeQuoteState = async (id, state, motivoAnulacion = null, transaction = null) => {
+    const updateData = { estado: state };
+    if (motivoAnulacion) {
+        updateData.motivo_anulacion = motivoAnulacion;
+    }
+    const options = { where: { id_cotizacion: id } };
+    if (transaction) {
+        options.transaction = transaction;
+    }
+    await Quote.update(updateData, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
         attributes: [
             'id_cotizacion',
-            'nombre_cotizacion', 
+            'nombre_cotizacion',
             'id_cliente',
             'fecha_creacion',
             'fecha_vencimiento',
             'subtotal_productos',
-            'subtotal_servicios', 
+            'subtotal_servicios',
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -100,7 +158,10 @@ const changeQuoteState = async (id, state) => {
             {
                 model: QuoteDetail,
                 as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
+                include: [
+                    { model: Product, as: 'producto' },
+                    { model: Service, as: 'servicio' }
+                ]
             }
         ]
     });

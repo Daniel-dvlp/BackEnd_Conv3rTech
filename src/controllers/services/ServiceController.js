@@ -19,23 +19,40 @@ const createService = async (req, res) => {
 const getAllServices = async (req, res) => {
     try {
         const services = await serviceService.getAllServices();
-        res.status(200).json(services);
+        res.status(200).json({
+            success: true,
+            data: services,
+            message: "Servicios obtenidos exitosamente"
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ 
+            success: false,
+            message: error.message 
+        });
     }
 };
 
 const getServiceById = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ 
+            success: false,
+            errors: errors.array() 
+        });
     }
 
     try {
         const service = await serviceService.getServiceById(req.params.id);
-        res.status(200).json(service);
+        res.status(200).json({
+            success: true,
+            data: service,
+            message: "Servicio obtenido exitosamente"
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ 
+            success: false,
+            message: error.message 
+        });
     }
 };
 

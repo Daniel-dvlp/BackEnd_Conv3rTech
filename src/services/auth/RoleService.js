@@ -32,10 +32,19 @@ class RoleService {
 
   async updateRole(id, roleData) {
     try {
-      const updated = await roleRepository.update(id, roleData);
-      if (!updated) {
-        throw new Error("No se pudo actualizar el rol");
+      const existing = await roleRepository.findById(id);
+      if (!existing) {
+        throw new Error("Rol no encontrado");
       }
+      // Filtrar a campos válidos del modelo Role
+      const { nombre_rol, descripcion, estado } = roleData || {};
+      const payload = {};
+      if (typeof nombre_rol !== "undefined") payload.nombre_rol = nombre_rol;
+      if (typeof descripcion !== "undefined") payload.descripcion = descripcion;
+      if (typeof estado !== "undefined") payload.estado = estado;
+
+      // Intentar actualizar (idempotente: si no hay cambios, seguimos)
+      await roleRepository.update(id, payload);
       return await roleRepository.findById(id);
     } catch (error) {
       throw error;
@@ -57,6 +66,147 @@ class RoleService {
   async assignPermissionsToRole(roleId, permissions) {
     try {
       return await roleRepository.assignPermissions(roleId, permissions);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async assignPermissionsFromNames(roleId, permissionsByName) {
+    try {
+      // Obtener permisos y privilegios disponibles para mapear nombres a IDs
+      const [allPermissions, allPrivileges] = await Promise.all([
+        permissionRepository.findAllPermissions(),
+        permissionRepository.findAllPrivileges(),
+      ]);
+
+      const norm = (s) => (typeof s === "string" ? s.trim().toLowerCase() : "");
+      const stripAccents = (s) =>
+        norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      // Mapear nombres de permisos (con y sin acentos) a IDs
+      const permissionNameToId = new Map();
+      (allPermissions || []).forEach((p) => {
+        const n = norm(p.nombre_permiso);
+        const na = stripAccents(p.nombre_permiso);
+        permissionNameToId.set(n, p.id_permiso);
+        permissionNameToId.set(na, p.id_permiso);
+      });
+
+      // Mapear nombres de privilegios (con y sin acentos) a IDs
+      const privilegeNameToId = new Map();
+      (allPrivileges || []).forEach((pr) => {
+        const n = norm(pr.nombre_privilegio);
+        const na = stripAccents(pr.nombre_privilegio);
+        privilegeNameToId.set(n, pr.id_privilegio);
+        privilegeNameToId.set(na, pr.id_privilegio);
+      });
+
+      const permisosArray = [];
+      const warnings = { unknownPermissions: [], unknownPrivileges: [] };
+
+      // Sinónimos y normalización de nombres de permisos (frontend → backend)
+      const permSynonyms = new Map([
+        ["categoria de productos", "categoría de productos"],
+        ["categorias de productos", "categoría de productos"],
+        ["categoria de servicios", "categoría de servicios"],
+        ["categorias de servicios", "categoría de servicios"],
+        ["ordenes de servicio", "órdenes de servicio"],
+        ["ordenes de servicios", "órdenes de servicio"],
+        ["venta de productos", "venta de productos"],
+        ["pagos y abonos", "pagos y abonos"],
+        ["programacion laboral", "programación laboral"],
+        ["proyectos de servicio", "proyectos de servicio"],
+        ["compras", "compras"],
+        ["clientes", "clientes"],
+        ["proveedores", "proveedores"],
+        ["productos", "productos"],
+        ["usuarios", "usuarios"],
+        ["dashboard", "dashboard"],
+      ]);
+
+      // Sinónimos y normalización de nombres de privilegios
+      const privSynonyms = new Map([
+        ["crear", "crear"],
+        ["editar", "editar"],
+        ["ver", "ver"],
+        ["eliminar", "eliminar"],
+        ["anular", "eliminar"], // tratar "Anular" como "Eliminar" si no existe "anular" en backend
+        ["crear entrega", "crear_entrega"],
+        ["crear_entrega", "crear_entrega"],
+      ]);
+
+      for (const [permKey, privNames] of Object.entries(permissionsByName || {})) {
+        const keyRaw = typeof permKey === "string" ? permKey : "";
+        // Aceptar claves tipo "Módulo.Submódulo" y usar el último segmento como nombre de permiso
+        const splitKey = keyRaw.includes(".") ? keyRaw.split(".").pop() : keyRaw;
+        const candidates = [norm(splitKey), stripAccents(splitKey)];
+
+        let permId = null;
+        for (const cand of candidates) {
+          permId = permissionNameToId.get(cand);
+          if (permId) break;
+          const syn = permSynonyms.get(cand);
+          if (syn) {
+            const sn = norm(syn);
+            const sna = stripAccents(syn);
+            permId = permissionNameToId.get(sn) || permissionNameToId.get(sna);
+            if (permId) break;
+          }
+        }
+
+        if (!permId) {
+          warnings.unknownPermissions.push(keyRaw);
+          continue; // ignorar permisos desconocidos para evitar error
+        }
+
+        if (!Array.isArray(privNames) || privNames.length === 0) {
+          warnings.unknownPrivileges.push({ permission: keyRaw, detail: "sin privilegios" });
+          continue;
+        }
+
+        const privilegios = [];
+        for (const privName of privNames) {
+          const pnRaw = typeof privName === "string" ? privName : "";
+          const pnNorm = norm(pnRaw);
+          const pnNoAccents = stripAccents(pnRaw);
+
+          let privId =
+            privilegeNameToId.get(pnNorm) || privilegeNameToId.get(pnNoAccents);
+
+          if (!privId) {
+            const mapped = privSynonyms.get(pnNoAccents) || privSynonyms.get(pnNorm);
+            if (mapped) {
+              const mappedNorm = norm(mapped);
+              const mappedAcc = stripAccents(mapped);
+              privId =
+                privilegeNameToId.get(mappedNorm) ||
+                privilegeNameToId.get(mappedAcc);
+            }
+          }
+
+          if (!privId) {
+            warnings.unknownPrivileges.push({ permission: keyRaw, privilege: pnRaw });
+            continue; // ignorar privilegios desconocidos
+          }
+
+          privilegios.push({ id_privilegio: privId });
+        }
+
+        if (privilegios.length > 0) {
+          permisosArray.push({ id_permiso: permId, privilegios });
+        } else {
+          warnings.unknownPrivileges.push({ permission: keyRaw, detail: "sin privilegios válidos" });
+        }
+      }
+
+      if (permisosArray.length === 0) {
+        throw new Error(
+          "No se pudo asignar ningún permiso. Revise nombres y privilegios enviados."
+        );
+      }
+
+      await roleRepository.assignPermissions(roleId, permisosArray);
+      return { assignedCount: permisosArray.length, warnings };
     } catch (error) {
       throw error;
     }
