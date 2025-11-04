@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database');
 const Quote = require('./Quote');
-const Productp = require('../../models/products/Product');
+const Product = require('../../models/products/Product');
 const Service = require('../../models/services/Service'); 
 
 const QuoteDetail = sequelize.define('QuoteDetail', {
@@ -44,8 +44,8 @@ const QuoteDetail = sequelize.define('QuoteDetail', {
 QuoteDetail.belongsTo(Quote, { foreignKey: 'id_cotizacion', as: 'cotizacion' });
 Quote.hasMany(QuoteDetail, { foreignKey: 'id_cotizacion', as: 'detalles' });
 
-QuoteDetail.belongsTo(Productp, { foreignKey: 'id_producto', as: 'producto' });
-Productp.hasMany(QuoteDetail, { foreignKey: 'id_producto', as: 'detalles_cotizacion' });
+QuoteDetail.belongsTo(Product, { foreignKey: 'id_producto', as: 'producto' });
+Product.hasMany(QuoteDetail, { foreignKey: 'id_producto', as: 'detalles_cotizacion' });
 
 QuoteDetail.belongsTo(Service, { foreignKey: 'id_servicio', as: 'servicio' });
 Service.hasMany(QuoteDetail, { foreignKey: 'id_servicio', as: 'detalles_cotizacion' });
