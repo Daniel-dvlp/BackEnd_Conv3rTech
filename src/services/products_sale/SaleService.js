@@ -6,6 +6,8 @@ const Sale = require('../../models/products_sale/Sale');
 
 // Crear venta
 const createSale = async (sale) => {
+    console.log('Datos recibidos en createSale:', JSON.stringify(sale, null, 2));
+
     const transaction = await sequelize.transaction();
 
     try {
