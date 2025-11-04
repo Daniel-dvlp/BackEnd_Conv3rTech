@@ -19,7 +19,8 @@ const createSale = async (req, res) => {
             data: saleWithDetails
         });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error('Error al crear venta:', error);
+        res.status(400).json({ message: error.message || 'Error interno del servidor' });
     }
 };
 
