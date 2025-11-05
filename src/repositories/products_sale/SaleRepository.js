@@ -6,7 +6,9 @@ const Product = require('../../models/products/Product');
 
 // ✅ Crear venta
 const createSale = async (sale, options = {}) => {
-    return Sale.create(sale, options);
+    const createdSale = await Sale.create(sale, options);
+    // Retornar como instancia de Sequelize (no convertir aquí para mantener la transacción)
+    return createdSale;
 };
 
 // ✅ Obtener todas las ventas
@@ -25,16 +27,38 @@ const getAllSales = async () => {
 
 // ✅ Obtener venta por ID
 const getSaleById = async (id) => {
-    return Sale.findByPk(id, {
-        include: [
-            { model: Client, as: 'cliente' },
-            {
-                model: SaleDetail,
-                as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
-            }
-        ]
-    });
+    try {
+        const sale = await Sale.findByPk(id, {
+            include: [
+                { model: Client, as: 'cliente', required: false },
+                {
+                    model: SaleDetail,
+                    as: 'detalles',
+                    required: false,
+                    include: [{ model: Product, as: 'producto', required: false }]
+                }
+            ],
+            raw: false // Mantener instancias de Sequelize para poder usar get()
+        });
+        
+        // Convertir a objeto plano para evitar problemas de serialización
+        if (!sale) {
+            return null;
+        }
+        
+        // Usar toJSON() que es más seguro que get({ plain: true })
+        if (typeof sale.toJSON === 'function') {
+            return sale.toJSON();
+        } else if (typeof sale.get === 'function') {
+            return sale.get({ plain: true });
+        } else {
+            // Si ya es un objeto plano, retornarlo directamente
+            return sale;
+        }
+    } catch (error) {
+        console.error('Error en getSaleById:', error);
+        throw error;
+    }
 };
 
 // ✅ Actualizar venta
