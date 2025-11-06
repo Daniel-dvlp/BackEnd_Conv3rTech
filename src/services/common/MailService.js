@@ -4,6 +4,14 @@ function createTransport() {
   const provider = String(process.env.SMTP_PROVIDER || "").toLowerCase();
   const isDev = (process.env.NODE_ENV || "development") !== "production";
 
+  // Opciones comunes para mejorar resiliencia del SMTP
+  const pool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
+  const maxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
+  const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
+  const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
+  const socketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
+  const tlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
+
   // OAuth2 (Gmail) soporte directo
   const authType = String(process.env.SMTP_AUTH_TYPE || "").toLowerCase();
   if ((provider === "gmail" || provider === "google") && authType === "oauth2") {
@@ -21,6 +29,12 @@ function createTransport() {
           clientSecret,
           refreshToken,
         },
+        pool,
+        maxConnections,
+        connectionTimeout,
+        greetingTimeout,
+        socketTimeout,
+        tls: { rejectUnauthorized: tlsRejectUnauthorized },
       });
     }
   }
@@ -33,6 +47,12 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: brevoApiKey },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
     });
   }
 
@@ -44,6 +64,12 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: sendgridApiKey },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
     });
   }
 
@@ -55,7 +81,18 @@ function createTransport() {
   const pass = process.env.SMTP_PASS;
 
   if (host && user && pass) {
-    return nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
+    });
   }
 
   // Fallback automático de desarrollo (no envía correo real)

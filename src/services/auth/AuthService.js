@@ -268,8 +268,9 @@ class AuthService {
     // Buscar usuario por correo
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      // No revelar si existe o no: responder éxito genérico
-      return { success: true, message: "Si el correo existe, se envió el código" };
+      const err = new Error("Correo no existente");
+      err.code = "EMAIL_NOT_FOUND";
+      throw err;
     }
 
     // Generar y hashear código
@@ -282,9 +283,14 @@ class AuthService {
 
     await userRepository.setResetCodeByEmail(email, hash, expiresAt, sentAt);
 
-    // Enviar correo con plantilla y nombre del usuario
+    // Enviar correo con plantilla y nombre del usuario SIN bloquear la respuesta
     const displayName = [user.nombre, user.apellido].filter(Boolean).join(" ") || user.correo;
-    await mailService.sendPasswordRecoveryCode(email, code, displayName);
+    // Fire-and-forget para evitar que la latencia del proveedor SMTP aborte la solicitud
+    Promise.resolve()
+      .then(() => mailService.sendPasswordRecoveryCode(email, code, displayName))
+      .catch((err) => {
+        console.error("[AuthService.requestPasswordRecovery] Error enviando correo:", err?.message || err);
+      });
 
     return { success: true, message: "Código enviado al correo" };
   }
