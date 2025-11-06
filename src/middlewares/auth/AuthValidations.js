@@ -64,6 +64,43 @@ const changePasswordValidation = [
     .withMessage("La nueva contraseña debe tener al menos 6 caracteres"),
 ];
 
+// Validaciones para recuperación de contraseña
+const requestPasswordRecoveryValidation = [
+  body("correo")
+    .notEmpty()
+    .withMessage("El correo es obligatorio")
+    .isEmail()
+    .withMessage("El correo debe tener un formato válido"),
+];
+
+const resetPasswordWithCodeValidation = [
+  body("correo")
+    .notEmpty()
+    .withMessage("El correo es obligatorio")
+    .isEmail()
+    .withMessage("El correo debe tener un formato válido"),
+  body("codigo")
+    .notEmpty()
+    .withMessage("El código es obligatorio")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("El código debe tener 6 dígitos")
+    .isNumeric()
+    .withMessage("El código debe ser numérico"),
+  body("nuevaContrasena")
+    .notEmpty()
+    .withMessage("La nueva contraseña es obligatoria")
+    .isLength({ min: 6, max: 15 })
+    .withMessage("La contraseña debe tener entre 6 y 15 caracteres")
+    .matches(/[A-Z]/)
+    .withMessage("Debe incluir al menos una mayúscula")
+    .matches(/[a-z]/)
+    .withMessage("Debe incluir al menos una minúscula")
+    .matches(/\d/)
+    .withMessage("Debe incluir al menos un número")
+    .matches(/[^A-Za-z0-9]/)
+    .withMessage("Debe incluir al menos un carácter especial"),
+];
+
 // Validaciones para crear rol
 const createRoleValidation = [
   body("nombre_rol")
@@ -265,4 +302,6 @@ module.exports = {
   privilegeIdValidation,
   assignPermissionsValidation,
   assignPermissionsFlexibleValidation,
+  requestPasswordRecoveryValidation,
+  resetPasswordWithCodeValidation,
 };

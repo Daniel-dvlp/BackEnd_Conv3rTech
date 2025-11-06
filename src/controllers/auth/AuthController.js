@@ -210,6 +210,48 @@ class AuthController {
       });
     }
   }
+
+  async requestPasswordRecovery(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const { correo } = req.body;
+      const result = await authService.requestPasswordRecovery(correo);
+      res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  async resetPasswordWithCode(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const { correo, codigo, nuevaContrasena } = req.body;
+      const result = await authService.resetPasswordWithCode(
+        correo,
+        codigo,
+        nuevaContrasena
+      );
+      res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = new AuthController();
