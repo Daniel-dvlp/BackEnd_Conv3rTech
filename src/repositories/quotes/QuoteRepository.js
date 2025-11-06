@@ -24,6 +24,7 @@ const getAllQuotes = async () => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -54,6 +55,7 @@ const getQuoteById = async (id) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -89,6 +91,7 @@ const updateQuote = async (id, quote, transaction = null) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -124,12 +127,16 @@ const deleteQuote = async (id) => {
 };
 
 // ✅ Cambiar estado de la cotización
-const changeQuoteState = async (id, state, motivoAnulacion = null) => {
+const changeQuoteState = async (id, state, motivoAnulacion = null, transaction = null) => {
     const updateData = { estado: state };
     if (motivoAnulacion) {
         updateData.motivo_anulacion = motivoAnulacion;
     }
-    await Quote.update(updateData, { where: { id_cotizacion: id } });
+    const options = { where: { id_cotizacion: id } };
+    if (transaction) {
+        options.transaction = transaction;
+    }
+    await Quote.update(updateData, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
         attributes: [
@@ -143,6 +150,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
             'monto_iva',
             'monto_cotizacion',
             'observaciones',
+            'motivo_anulacion',
             'estado'
         ],
         include: [
@@ -150,7 +158,10 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
             {
                 model: QuoteDetail,
                 as: 'detalles',
-                include: [{ model: Product, as: 'producto' }]
+                include: [
+                    { model: Product, as: 'producto' },
+                    { model: Service, as: 'servicio' }
+                ]
             }
         ]
     });
