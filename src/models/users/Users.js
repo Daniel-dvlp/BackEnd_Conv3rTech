@@ -55,6 +55,19 @@ const Users = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    // Campos para recuperación de contraseña
+    reset_code_hash: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    reset_code_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    reset_code_sent_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     id_rol: {
       type: DataTypes.INTEGER,
       allowNull: false,
