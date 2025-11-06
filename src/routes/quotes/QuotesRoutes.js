@@ -5,7 +5,7 @@ const quoteMiddleware = require("../../middlewares/quotes/QuoteMiddleware");
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 // ✅ Rutas de cotizaciones
 router.get("/", quoteController.getAllQuotes);
@@ -37,5 +37,8 @@ router.patch(
 
 // ✅ Ruta adicional para traer detalles de una cotización
 router.get("/:id/detalles", quoteController.getQuoteDetails);
+
+// ✅ Ruta para validar stock de productos
+router.post("/validate-stock", quoteController.validateStock);
 
 module.exports = router;

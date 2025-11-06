@@ -48,7 +48,16 @@ const createSaleValidation = [
             if (existing) {
                 return Promise.reject('El número de venta ya existe');
             }
-        })
+        }),
+    body('detalles')
+        .isArray({ min: 1 })
+        .withMessage('Debe incluir al menos un detalle de venta'),
+    body('detalles.*.id_producto')
+        .isInt({ min: 1 })
+        .withMessage('El ID del producto debe ser un número entero positivo'),
+    body('detalles.*.cantidad')
+        .isInt({ min: 1 })
+        .withMessage('La cantidad debe ser un número entero positivo')
 ];
 
 // ✅ Actualizar venta

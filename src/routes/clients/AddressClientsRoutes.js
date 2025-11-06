@@ -5,7 +5,7 @@ const AddressClientsMiddlewares = require("../../middlewares/clients/AddressClie
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 // Rutas para direcciones de clientes
 router.post(

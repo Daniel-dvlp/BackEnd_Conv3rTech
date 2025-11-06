@@ -19,7 +19,7 @@ const Users = sequelize.define(
       },
     },
     tipo_documento: {
-      type: DataTypes.ENUM("CC", "CE", "PPT", "NIT", "PA"),
+      type: DataTypes.ENUM("CC", "CE", "PPT", "NIT", "PA", "TI"),
       allowNull: false,
     },
     nombre: {

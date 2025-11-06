@@ -31,6 +31,9 @@ const quoteBaseValidation = [
     body('observaciones')
         .optional()
         .isString().withMessage('Las observaciones deben ser texto'),
+    body('motivo_anulacion')
+        .optional()
+        .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
         .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
@@ -66,10 +69,25 @@ const updateQuoteValidation = [
     body('observaciones')
         .optional()
         .isString().withMessage('Las observaciones deben ser texto'),
+    body('motivo_anulacion')
+        .optional()
+        .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
         .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
         .withMessage('Estado inválido'),
+    body('detalles')
+        .optional()
+        .isArray().withMessage('Los detalles deben ser un array'),
+    body('detalles.*.id_producto')
+        .optional()
+        .isInt().withMessage('El id_producto debe ser un número entero'),
+    body('detalles.*.id_servicio')
+        .optional()
+        .isInt().withMessage('El id_servicio debe ser un número entero'),
+    body('detalles.*.cantidad')
+        .optional()
+        .isInt({ min: 1 }).withMessage('La cantidad debe ser un número entero mayor a 0'),
     param('id')
         .isInt().withMessage('El id de la cotización debe ser un número entero')
         .custom(validateQuoteExistence)
@@ -92,6 +110,9 @@ const changeQuoteStateValidation = [
     body('estado')
         .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
         .withMessage('El estado debe ser válido'),
+    body('motivo_anulacion')
+        .optional()
+        .isString().withMessage('El motivo de anulación debe ser texto'),
     param('id')
         .isInt().withMessage('El id de la cotización debe ser un número entero')
         .custom(validateQuoteExistence)
