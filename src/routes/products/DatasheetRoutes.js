@@ -5,7 +5,7 @@ const datasheetMiddleware = require("../../middlewares/products/DatasheetMiddlew
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-router.use(authMiddleware);
+//router.use(authMiddleware);
 
 router.get("/", datasheetController.getAllDatasheets);
 router.get(
