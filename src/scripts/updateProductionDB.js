@@ -67,8 +67,8 @@ async function run() {
     await sequelize.authenticate();
     console.log("✅ Conexión a BD ok");
 
-    // Sincronizar modelos (solo crea tablas faltantes)
-    await sequelize.sync();
+    // Sincronizar modelos y ALTER para añadir columnas nuevas
+    await sequelize.sync({ alter: true });
 
     // Sembrar RBAC
     await seedAuth();

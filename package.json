@@ -11,6 +11,7 @@
     "setup-db": "node src/scripts/setupDatabase.js",
     "seed-auth": "node src/scripts/seedAuth.js",
     "create-admin": "node src/scripts/createAdminUser.js",
+    "create-test-user": "node src/scripts/createTestUser.js",
     "setup-auth": "npm run setup-db && npm run seed-auth && npm run create-admin",
     "update:db": "node src/scripts/updateProductionDB.js",
     "test": "node test_complete.js",
@@ -36,6 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
+    "nodemailer": "^7.0.10",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
