@@ -35,6 +35,11 @@ const roleMiddleware = (allowedRoles) => {
         });
       }
 
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
+      }
+
       if (!allowedRoles.includes(req.user.id_rol)) {
         return res.status(403).json({
           success: false,
@@ -60,6 +65,11 @@ const permissionMiddleware = (permission, privilege) => {
           success: false,
           message: "Usuario no autenticado",
         });
+      }
+
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
       }
 
       // Aceptar tanto nombres de permiso (BD) como slugs del frontend
@@ -95,6 +105,11 @@ const anyPermissionMiddleware = (permissions) => {
           success: false,
           message: "Usuario no autenticado",
         });
+      }
+
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
       }
 
       // Normalizar todas las entradas a slugs
