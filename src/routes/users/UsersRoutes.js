@@ -2,30 +2,41 @@ const express = require("express");
 const router = express.Router();
 const UsersControllers = require("../../controllers/users/UsersControllers");
 const UsuariosValidations = require("../../middlewares/users/UsuariosValidations");
-const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const {
+  authMiddleware,
+  permissionMiddleware,
+} = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
   "/",
+  permissionMiddleware("Usuarios", "Crear"),
   UsuariosValidations.createUserValidation,
   UsersControllers.createUser
 );
-router.get("/", UsersControllers.getAllUsers);
+router.get(
+  "/",
+  permissionMiddleware("Usuarios", "Leer"),
+  UsersControllers.getAllUsers
+);
 router.get(
   "/:id",
+  permissionMiddleware("Usuarios", "Leer"),
   UsuariosValidations.findUserByIdValidation,
   UsersControllers.getUserById
 );
 router.put(
   "/:id",
+  permissionMiddleware("Usuarios", "Editar"),
   UsuariosValidations.updateUserValidation,
   UsersControllers.updateUser
 );
 router.delete(
   "/:id",
+  permissionMiddleware("Usuarios", "Eliminar"),
   UsuariosValidations.deleteUserValidation,
   UsersControllers.deleteUser
 );
