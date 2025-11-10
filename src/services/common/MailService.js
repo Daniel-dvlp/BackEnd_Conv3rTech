@@ -6,7 +6,8 @@ function createTransport() {
   const enableDebug = String(process.env.SMTP_DEBUG || "false").toLowerCase() === "true";
 
   // Opciones comunes para mejorar resiliencia del SMTP
-  const pool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
+  // Evita colisión de identificadores en entornos de build distintos
+  const smtpPool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
   const maxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
   const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
   const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
@@ -30,7 +31,7 @@ function createTransport() {
           clientSecret,
           refreshToken,
         },
-        pool,
+        pool: smtpPool,
         maxConnections,
         connectionTimeout,
         greetingTimeout,
@@ -50,7 +51,7 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: brevoApiKey },
-      pool,
+      pool: smtpPool,
       maxConnections,
       connectionTimeout,
       greetingTimeout,
@@ -69,7 +70,7 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: sendgridApiKey },
-      pool,
+      pool: smtpPool,
       maxConnections,
       connectionTimeout,
       greetingTimeout,
@@ -93,7 +94,7 @@ function createTransport() {
       port,
       secure,
       auth: { user, pass },
-      pool,
+      pool: smtpPool,
       maxConnections,
       connectionTimeout,
       greetingTimeout,
