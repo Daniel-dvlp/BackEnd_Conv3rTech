@@ -3,6 +3,23 @@ const nodemailer = require("nodemailer");
 function createTransport() {
   const provider = String(process.env.SMTP_PROVIDER || "").toLowerCase();
   const isDev = (process.env.NODE_ENV || "development") !== "production";
+  const enableDebug = String(process.env.SMTP_DEBUG || "false").toLowerCase() === "true";
+
+  // Opciones comunes para mejorar resiliencia del SMTP
+  const pool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
+  const maxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
+  const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
+  const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
+  const socketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
+  const tlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
+
+  // Opciones comunes para mejorar resiliencia del SMTP
+  const pool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
+  const maxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
+  const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
+  const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
+  const socketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
+  const tlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
 
   // OAuth2 (Gmail) soporte directo
   const authType = String(process.env.SMTP_AUTH_TYPE || "").toLowerCase();
@@ -21,6 +38,14 @@ function createTransport() {
           clientSecret,
           refreshToken,
         },
+        pool,
+        maxConnections,
+        connectionTimeout,
+        greetingTimeout,
+        socketTimeout,
+        logger: enableDebug,
+        debug: enableDebug,
+        tls: { rejectUnauthorized: tlsRejectUnauthorized },
       });
     }
   }
@@ -33,6 +58,14 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: brevoApiKey },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      logger: enableDebug,
+      debug: enableDebug,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
     });
   }
 
@@ -44,6 +77,14 @@ function createTransport() {
       port: 587,
       secure: false,
       auth: { user: "apikey", pass: sendgridApiKey },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      logger: enableDebug,
+      debug: enableDebug,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
     });
   }
 
@@ -55,7 +96,20 @@ function createTransport() {
   const pass = process.env.SMTP_PASS;
 
   if (host && user && pass) {
-    return nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+      pool,
+      maxConnections,
+      connectionTimeout,
+      greetingTimeout,
+      socketTimeout,
+      logger: enableDebug,
+      debug: enableDebug,
+      tls: { rejectUnauthorized: tlsRejectUnauthorized },
+    });
   }
 
   // Fallback automático de desarrollo (no envía correo real)
@@ -182,6 +236,44 @@ async function sendPasswordRecoveryCode(to, code) {
   return info;
 }
 
+async function verifyTransport() {
+  const transport = createTransport();
+  const info = {
+    provider: String(process.env.SMTP_PROVIDER || "").toLowerCase(),
+    host: transport.options?.host,
+    port: transport.options?.port,
+    secure: transport.options?.secure,
+    pool: transport.options?.pool,
+    logger: transport.options?.logger,
+    debug: transport.options?.debug,
+  };
+  try {
+    await transport.verify();
+    info.verified = true;
+    info.message = "SMTP verificado correctamente";
+  } catch (err) {
+    info.verified = false;
+    info.error = err.message;
+  }
+  return info;
+}
+
+async function sendGenericEmail({ to, subject, text, html, from }) {
+  const transport = createTransport();
+  const sender = from || process.env.SMTP_FROM || "no-reply@conv3rtech.com";
+  const payload = {
+    from: sender,
+    to,
+    subject: subject || "Prueba SMTP Conv3rTech",
+    text: text || "Este es un correo de prueba de Conv3rTech",
+    html,
+  };
+  const info = await transport.sendMail(payload);
+  return info;
+}
+
 module.exports = {
   sendPasswordRecoveryCode,
+  verifyTransport,
+  sendGenericEmail,
 };
