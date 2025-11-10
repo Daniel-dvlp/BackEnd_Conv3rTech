@@ -157,6 +157,9 @@ app.use("/api/payments-installments", PaymentsInstallmentsRoutes);
 // Rutas para citas
 const AppointmentsRoutes = require("./routes/appointments/AppointmentsRoutes");
 app.use("/api/appointments", AppointmentsRoutes);
+// Rutas de diagnóstico (SMTP y otros)
+const DebugMailRoutes = require("./routes/debug/DebugMailRoutes");
+app.use("/api/debug", DebugMailRoutes);
 
 // ====================== UTILIDADES ======================
 
