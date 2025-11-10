@@ -8,11 +8,11 @@ function createTransport() {
   // Opciones comunes para mejorar resiliencia del SMTP
   // Evita colisión de identificadores en entornos de build distintos
   const smtpPool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
-  const maxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
-  const connectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
-  const greetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
-  const socketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
-  const tlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
+  const smtpMaxConnections = Number(process.env.SMTP_MAX_CONNECTIONS || 1);
+  const smtpConnectionTimeout = Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10000); // 10s
+  const smtpGreetingTimeout = Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10000); // 10s
+  const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
+  const smtpTlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
 
   // Opciones comunes para mejorar resiliencia del SMTP
   const pool = String(process.env.SMTP_POOL || "true").toLowerCase() === "true";
@@ -40,13 +40,13 @@ function createTransport() {
           refreshToken,
         },
         pool: smtpPool,
-        maxConnections,
-        connectionTimeout,
-        greetingTimeout,
-        socketTimeout,
+        maxConnections: smtpMaxConnections,
+        connectionTimeout: smtpConnectionTimeout,
+        greetingTimeout: smtpGreetingTimeout,
+        socketTimeout: smtpSocketTimeout,
         logger: enableDebug,
         debug: enableDebug,
-        tls: { rejectUnauthorized: tlsRejectUnauthorized },
+        tls: { rejectUnauthorized: smtpTlsRejectUnauthorized },
       });
     }
   }
@@ -60,13 +60,13 @@ function createTransport() {
       secure: false,
       auth: { user: "apikey", pass: brevoApiKey },
       pool: smtpPool,
-      maxConnections,
-      connectionTimeout,
-      greetingTimeout,
-      socketTimeout,
+      maxConnections: smtpMaxConnections,
+      connectionTimeout: smtpConnectionTimeout,
+      greetingTimeout: smtpGreetingTimeout,
+      socketTimeout: smtpSocketTimeout,
       logger: enableDebug,
       debug: enableDebug,
-      tls: { rejectUnauthorized: tlsRejectUnauthorized },
+      tls: { rejectUnauthorized: smtpTlsRejectUnauthorized },
     });
   }
 
@@ -79,13 +79,13 @@ function createTransport() {
       secure: false,
       auth: { user: "apikey", pass: sendgridApiKey },
       pool: smtpPool,
-      maxConnections,
-      connectionTimeout,
-      greetingTimeout,
-      socketTimeout,
+      maxConnections: smtpMaxConnections,
+      connectionTimeout: smtpConnectionTimeout,
+      greetingTimeout: smtpGreetingTimeout,
+      socketTimeout: smtpSocketTimeout,
       logger: enableDebug,
       debug: enableDebug,
-      tls: { rejectUnauthorized: tlsRejectUnauthorized },
+      tls: { rejectUnauthorized: smtpTlsRejectUnauthorized },
     });
   }
 
@@ -103,13 +103,13 @@ function createTransport() {
       secure,
       auth: { user, pass },
       pool: smtpPool,
-      maxConnections,
-      connectionTimeout,
-      greetingTimeout,
-      socketTimeout,
+      maxConnections: smtpMaxConnections,
+      connectionTimeout: smtpConnectionTimeout,
+      greetingTimeout: smtpGreetingTimeout,
+      socketTimeout: smtpSocketTimeout,
       logger: enableDebug,
       debug: enableDebug,
-      tls: { rejectUnauthorized: tlsRejectUnauthorized },
+      tls: { rejectUnauthorized: smtpTlsRejectUnauthorized },
     });
   }
 
