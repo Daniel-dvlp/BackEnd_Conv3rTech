@@ -38,4 +38,7 @@ router.patch(
 // ✅ Ruta adicional para traer detalles de una cotización
 router.get("/:id/detalles", quoteController.getQuoteDetails);
 
+// ✅ Ruta para validar stock de productos
+router.post("/validate-stock", quoteController.validateStock);
+
 module.exports = router;
