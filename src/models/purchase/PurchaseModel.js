@@ -37,6 +37,11 @@ const Purchase = sequelize.define('Purchase', {
     iva: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: false
+    },
+    observaciones: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: 'compras',
