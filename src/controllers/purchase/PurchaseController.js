@@ -75,7 +75,7 @@ const changeStatePurchase = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        await purchaseService.changeStatePurchase(req.params.id, req.body.estado);
+        await purchaseService.changeStatePurchase(req.params.id, req.body.estado, req.body.motivo);
         res.status(204).end();
     } catch (error) {
         res.status(400).json({ error: error.message });
