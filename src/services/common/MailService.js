@@ -273,8 +273,46 @@ async function sendGenericEmail({ to, subject, text, html, from }) {
   return info;
 }
 
+async function verifyTransport() {
+  const transport = createTransport();
+  const info = {
+    provider: String(process.env.SMTP_PROVIDER || "").toLowerCase(),
+    host: transport.options?.host,
+    port: transport.options?.port,
+    secure: transport.options?.secure,
+    pool: transport.options?.pool,
+    logger: transport.options?.logger,
+    debug: transport.options?.debug,
+  };
+  try {
+    await transport.verify();
+    info.verified = true;
+    info.message = "SMTP verificado correctamente";
+  } catch (err) {
+    info.verified = false;
+    info.error = err.message;
+  }
+  return info;
+}
+
+async function sendGenericEmail({ to, subject, text, html, from }) {
+  const transport = createTransport();
+  const sender = from || process.env.SMTP_FROM || "no-reply@conv3rtech.com";
+  const payload = {
+    from: sender,
+    to,
+    subject: subject || "Prueba SMTP Conv3rTech",
+    text: text || "Este es un correo de prueba de Conv3rTech",
+    html,
+  };
+  const info = await transport.sendMail(payload);
+  return info;
+}
+
 module.exports = {
   sendPasswordRecoveryCode,
+  verifyTransport,
+  sendGenericEmail,
   verifyTransport,
   sendGenericEmail,
 };
