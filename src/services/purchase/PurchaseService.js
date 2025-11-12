@@ -22,8 +22,8 @@ const deletePurchase = async (id) => {
     return purchaseRepository.deletePurchase(id);
 };
 
-const changeStatePurchase = async (id, estado) => {
-    return purchaseRepository.changeStatePurchase(id, estado);
+const changeStatePurchase = async (id, estado, motivo) => {
+    return purchaseRepository.changeStatePurchase(id, estado, motivo);
 };
 
 module.exports = {

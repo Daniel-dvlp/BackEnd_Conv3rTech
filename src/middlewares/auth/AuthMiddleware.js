@@ -35,6 +35,11 @@ const roleMiddleware = (allowedRoles) => {
         });
       }
 
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
+      }
+
       if (!allowedRoles.includes(req.user.id_rol)) {
         return res.status(403).json({
           success: false,
@@ -62,16 +67,23 @@ const permissionMiddleware = (permission, privilege) => {
         });
       }
 
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
+      }
+
+      // Aceptar tanto nombres de permiso (BD) como slugs del frontend
+      const permissionSlug = authService.toPermissionSlug(permission);
       const hasPermission = authService.hasPermission(
         req.user.permisos,
-        permission,
+        permissionSlug,
         privilege
       );
 
       if (!hasPermission) {
         return res.status(403).json({
           success: false,
-          message: `No tienes el privilegio '${privilege}' para el permiso '${permission}'`,
+          message: `No tienes el privilegio '${privilege}' para el permiso '${permissionSlug}'`,
         });
       }
 
@@ -95,9 +107,22 @@ const anyPermissionMiddleware = (permissions) => {
         });
       }
 
+      // Bypass para administradores (id_rol = 1)
+      if (req.user.id_rol === 1) {
+        return next();
+      }
+
+      // Normalizar todas las entradas a slugs
+      const normalized = Array.isArray(permissions)
+        ? permissions.map(({ permission, privilege }) => ({
+            permission: authService.toPermissionSlug(permission),
+            privilege,
+          }))
+        : [];
+
       const hasAnyPermission = authService.hasAnyPermission(
         req.user.permisos,
-        permissions
+        normalized
       );
 
       if (!hasAnyPermission) {
@@ -127,9 +152,16 @@ const allPermissionsMiddleware = (permissions) => {
         });
       }
 
+      const normalized = Array.isArray(permissions)
+        ? permissions.map(({ permission, privilege }) => ({
+            permission: authService.toPermissionSlug(permission),
+            privilege,
+          }))
+        : [];
+
       const hasAllPermissions = authService.hasAllPermissions(
         req.user.permisos,
-        permissions
+        normalized
       );
 
       if (!hasAllPermissions) {

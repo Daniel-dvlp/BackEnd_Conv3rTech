@@ -87,6 +87,8 @@ class AuthService {
       "Venta de productos": "venta_productos",
       Citas: "citas",
       Cotizaciones: "cotizaciones",
+      // Alias común usado en rutas
+      Proyectos: "proyectos_servicios",
       "Proyectos de servicio": "proyectos_servicios",
       "Pagos y abonos": "pagosyabonos",
     };
