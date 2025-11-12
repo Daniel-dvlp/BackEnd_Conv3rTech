@@ -53,6 +53,23 @@ Privilege.belongsToMany(Role, {
   as: "roles",
 });
 
+// Asociaciones directas del pivot para facilitar inclusiones
+// Esto habilita includes como { model: Permission, as: "permiso" } en consultas al pivot
+RolPermisoPrivilegio.belongsTo(Permission, {
+  foreignKey: "id_permiso",
+  as: "permiso",
+});
+
+RolPermisoPrivilegio.belongsTo(Privilege, {
+  foreignKey: "id_privilegio",
+  as: "privilegio",
+});
+
+RolPermisoPrivilegio.belongsTo(Role, {
+  foreignKey: "id_rol",
+  as: "rol",
+});
+
 module.exports = {
   Role,
   Permission,

@@ -38,21 +38,22 @@ class AuthController {
       const token = authHeader.substring(7);
       const decoded = await authService.verifyToken(token);
 
-      // Obtener usuario completo con permisos
+      // Obtener usuario
       const userRepository = require("../../repositories/auth/UserRepository");
-      const userWithPermissions = await userRepository.findByIdWithPermissions(
-        decoded.id_usuario
-      );
+      const user = await userRepository.findById(decoded.id_usuario);
 
-      if (!userWithPermissions) {
+      if (!user) {
         return res.status(401).json({
           success: false,
           message: "Usuario no encontrado",
         });
       }
 
-      // Generar nuevo token
-      const newToken = authService.generateToken(userWithPermissions);
+      // Derivar permisos actuales del rol y generar nuevo token
+      const roleRepository = require("../../repositories/auth/RoleRepository");
+      const rows = await roleRepository.getRolePermissions(user.rol.id_rol);
+      const permsObj = authService.formatRolePivotPermissions(rows);
+      const newToken = authService.generateToken(user, permsObj);
 
       res.status(200).json({
         success: true,
@@ -207,6 +208,51 @@ class AuthController {
         success: false,
         message: error.message,
       });
+    }
+  }
+
+  async requestPasswordRecovery(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const { correo } = req.body;
+      const result = await authService.requestPasswordRecovery(correo);
+      res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+      const isNotFound = error?.code === "EMAIL_NOT_FOUND" || error?.message === "Correo no existente";
+      res
+        .status(isNotFound ? 404 : 400)
+        .json({ success: false, message: isNotFound ? "Correo no existente" : error.message });
+    }
+  }
+
+  async resetPasswordWithCode(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Datos de validación incorrectos",
+          errors: errors.array(),
+        });
+      }
+
+      const { correo, codigo, nuevaContrasena } = req.body;
+      const result = await authService.resetPasswordWithCode(
+        correo,
+        codigo,
+        nuevaContrasena
+      );
+      res.status(200).json({ success: true, message: result.message });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
     }
   }
 }

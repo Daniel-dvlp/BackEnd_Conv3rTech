@@ -56,6 +56,38 @@ class UserRepository {
     return updated > 0;
   }
 
+  async updatePasswordByEmail(email, hashedPassword) {
+    const [updated] = await Users.update(
+      { contrasena: hashedPassword },
+      { where: { correo: email } }
+    );
+    return updated > 0;
+  }
+
+  async setResetCodeByEmail(email, hash, expiresAt, sentAt) {
+    const [updated] = await Users.update(
+      {
+        reset_code_hash: hash,
+        reset_code_expires_at: expiresAt,
+        reset_code_sent_at: sentAt,
+      },
+      { where: { correo: email } }
+    );
+    return updated > 0;
+  }
+
+  async clearResetCodeByEmail(email) {
+    const [updated] = await Users.update(
+      {
+        reset_code_hash: null,
+        reset_code_expires_at: null,
+        reset_code_sent_at: null,
+      },
+      { where: { correo: email } }
+    );
+    return updated > 0;
+  }
+
   async findByIdWithPermissions(id) {
     return Users.findByPk(id, {
       include: [
