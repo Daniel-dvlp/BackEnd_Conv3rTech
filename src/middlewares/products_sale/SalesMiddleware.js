@@ -32,6 +32,9 @@ const saleBaseValidation = [
     body('metodo_pago')
         .isIn(['Efectivo', 'Tarjeta', 'Transferencia'])
         .withMessage('Método de pago inválido'),
+    body('motivo_anulacion')
+        .optional()
+        .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
         .isIn(['Registrada', 'Anulada'])
@@ -77,6 +80,9 @@ const updateSaleValidation = [
         .optional()
         .isIn(['Efectivo', 'Tarjeta', 'Transferencia'])
         .withMessage('Método de pago inválido'),
+    body('motivo_anulacion')
+        .optional()
+        .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
         .isIn(['Registrada', 'Anulada'])
@@ -103,6 +109,10 @@ const changeSaleStateValidation = [
     body('estado')
         .isIn(['Registrada', 'Anulada'])
         .withMessage('El estado debe ser válido'),
+    body('motivo_anulacion')
+        .if(body('estado').equals('Anulada'))
+        .isString().withMessage('El motivo de anulación debe ser texto')
+        .isLength({ min: 5 }).withMessage('El motivo de anulación debe tener al menos 5 caracteres'),
     param('id')
         .isInt().withMessage('El id de la venta debe ser un número entero')
         .custom(validateSaleExistence)
