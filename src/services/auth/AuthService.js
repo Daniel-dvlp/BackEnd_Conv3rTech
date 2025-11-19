@@ -87,6 +87,8 @@ class AuthService {
       "Venta de productos": "venta_productos",
       Citas: "citas",
       Cotizaciones: "cotizaciones",
+      // Alias común usado en rutas
+      Proyectos: "proyectos_servicios",
       "Proyectos de servicio": "proyectos_servicios",
       "Pagos y abonos": "pagosyabonos",
     };
@@ -283,16 +285,32 @@ class AuthService {
 
     await userRepository.setResetCodeByEmail(email, hash, expiresAt, sentAt);
 
-    // Enviar correo con plantilla y nombre del usuario SIN bloquear la respuesta
+    // Enviar correo con plantilla y nombre del usuario
     const displayName = [user.nombre, user.apellido].filter(Boolean).join(" ") || user.correo;
-    // Fire-and-forget para evitar que la latencia del proveedor SMTP aborte la solicitud
-    Promise.resolve()
-      .then(() => mailService.sendPasswordRecoveryCode(email, code, displayName))
-      .catch((err) => {
-        console.error("[AuthService.requestPasswordRecovery] Error enviando correo:", err?.message || err);
-      });
+    const sendMode = String(process.env.SMTP_SEND_MODE || "async").toLowerCase();
+    const isAwaitSend = sendMode === "await" || (process.env.NODE_ENV === "production" && sendMode !== "async");
 
-    return { success: true, message: "Código enviado al correo" };
+    if (isAwaitSend) {
+      try {
+        await mailService.sendPasswordRecoveryCode(email, code, displayName);
+        return { success: true, message: "Código enviado al correo" };
+      } catch (err) {
+        console.error("[AuthService.requestPasswordRecovery] Falló el envío de correo:", err?.message || err);
+        const error = new Error(
+          "No se pudo enviar el correo de recuperación. Contacta soporte o inténtalo más tarde."
+        );
+        error.code = "EMAIL_SEND_FAILED";
+        throw error;
+      }
+    } else {
+      // Fire-and-forget para evitar que la latencia del proveedor SMTP aborte la solicitud
+      Promise.resolve()
+        .then(() => mailService.sendPasswordRecoveryCode(email, code, displayName))
+        .catch((err) => {
+          console.error("[AuthService.requestPasswordRecovery] Error enviando correo:", err?.message || err);
+        });
+      return { success: true, message: "Código enviado al correo" };
+    }
   }
 
   async resetPasswordWithCode(email, code, newPassword) {
