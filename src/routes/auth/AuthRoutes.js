@@ -6,11 +6,23 @@ const {
   loginValidation,
   updateProfileValidation,
   changePasswordValidation,
+  requestPasswordRecoveryValidation,
+  resetPasswordWithCodeValidation,
 } = require("../../middlewares/auth/AuthValidations");
 
 // Rutas públicas
 router.post("/login", loginValidation, AuthController.login);
 router.post("/refresh", AuthController.refreshToken);
+router.post(
+  "/password/recovery/request",
+  requestPasswordRecoveryValidation,
+  AuthController.requestPasswordRecovery
+);
+router.post(
+  "/password/recovery/reset",
+  resetPasswordWithCodeValidation,
+  AuthController.resetPasswordWithCode
+);
 
 // Rutas protegidas
 router.use(authMiddleware);
