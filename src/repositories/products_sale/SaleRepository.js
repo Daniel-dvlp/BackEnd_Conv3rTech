@@ -96,8 +96,16 @@ const deleteSale = async (id) => {
 };
 
 // ✅ Cambiar estado de la venta (ej: Registrada ⇆ Anulada)
-const changeSaleState = async (id, state) => {
-    await Sale.update({ estado: state }, { where: { id_venta: id } });
+const changeSaleState = async (id, state, motivoAnulacion = null) => {
+    const updateData = { estado: state };
+
+    if (state === 'Registrada') {
+        updateData.motivo_anulacion = null;
+    } else if (motivoAnulacion) {
+        updateData.motivo_anulacion = motivoAnulacion;
+    }
+
+    await Sale.update(updateData, { where: { id_venta: id } });
     // Retorna la venta actualizada con cliente y detalles
     return Sale.findByPk(id, {
         include: [
