@@ -97,6 +97,9 @@ function createTransport() {
   const pass = process.env.SMTP_PASS;
 
   if (host && user && pass) {
+    if (enableDebug) {
+      console.info("[MailService] SMTP genérico configurado", { host, port, secure, user: user && user.slice(0, 2) + "***" });
+    }
     return nodemailer.createTransport({
       host,
       port,
@@ -115,6 +118,9 @@ function createTransport() {
 
   // Fallback automático de desarrollo (no envía correo real)
   if (isDev || String(process.env.SMTP_DEV_MODE || "false").toLowerCase() === "true") {
+    if (enableDebug) {
+      console.info("[MailService] Modo DEV activo: jsonTransport, no se envía correo real");
+    }
     return nodemailer.createTransport({ jsonTransport: true });
   }
   throw new Error("SMTP no configurado: define SMTP_PROVIDER y su API KEY, o SMTP_HOST/USER/PASS en .env");
