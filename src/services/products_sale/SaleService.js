@@ -127,8 +127,8 @@ const deleteSale = async (id) => {
 };
 
 // Cambiar estado de la venta (ejemplo: Anular)
-const changeSaleState = async (id, state) => {
-    return SaleRepository.changeSaleState(id, state);
+const changeSaleState = async (id, state, motivoAnulacion = null) => {
+    return SaleRepository.changeSaleState(id, state, motivoAnulacion);
 };
 
 module.exports = {
