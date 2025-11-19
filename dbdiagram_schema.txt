@@ -1,5 +1,5 @@
 // Usar en: https://dbdiagram.io
-// Generado: 28/10/2025, 7:52:02 p.m.
+// Generado: 21/10/2025, 11:01:03 a.m.
 
 Table roles {
   id_rol int [pk, increment, not null]
@@ -25,12 +25,6 @@ Table privilegios {
 Table permiso_privilegio {
   id int [pk, increment, not null]
   id_permiso int [not null]
-  id_privilegio int [not null]
-}
-
-Table rol_privilegio {
-  id int [pk, increment, not null]
-  id_rol int [not null]
   id_privilegio int [not null]
 }
 
@@ -334,8 +328,6 @@ Table rol_permiso_privilegio {
 // Relaciones
 Ref: permiso_privilegio.id_permiso > permisos.id_permiso
 Ref: permiso_privilegio.id_privilegio > privilegios.id_privilegio
-Ref: rol_privilegio.id_rol > roles.id_rol
-Ref: rol_privilegio.id_privilegio > privilegios.id_privilegio
 Ref: usuarios.id_rol > roles.id_rol
 Ref: direcciones_clientes.id_cliente > clientes.id_cliente
 Ref: productos.id_categoria > categoria_productos.id_categoria

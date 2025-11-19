@@ -1,5 +1,5 @@
 -- Script SQL generado automáticamente
--- Fecha: 28/10/2025, 7:52:02 p.m.
+-- Fecha: 21/10/2025, 11:01:03 a.m.
 -- Base de datos: MySQL/MariaDB
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -39,16 +39,6 @@ CREATE TABLE `permiso_privilegio` (
   `id_privilegio` INTEGER NOT NULL,
   CONSTRAINT `fk_permiso_privilegio_id_permiso` FOREIGN KEY (`id_permiso`) REFERENCES `permisos`(`id_permiso`),
   CONSTRAINT `fk_permiso_privilegio_id_privilegio` FOREIGN KEY (`id_privilegio`) REFERENCES `privilegios`(`id_privilegio`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Tabla: rol_privilegio
-DROP TABLE IF EXISTS `rol_privilegio`;
-CREATE TABLE `rol_privilegio` (
-  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
-  `id_rol` INTEGER NOT NULL,
-  `id_privilegio` INTEGER NOT NULL,
-  CONSTRAINT `fk_rol_privilegio_id_rol` FOREIGN KEY (`id_rol`) REFERENCES `roles`(`id_rol`),
-  CONSTRAINT `fk_rol_privilegio_id_privilegio` FOREIGN KEY (`id_privilegio`) REFERENCES `privilegios`(`id_privilegio`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabla: usuarios

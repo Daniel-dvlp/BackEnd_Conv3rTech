@@ -97,6 +97,9 @@ function createTransport() {
   const pass = process.env.SMTP_PASS;
 
   if (host && user && pass) {
+    if (enableDebug) {
+      console.info("[MailService] SMTP genérico configurado", { host, port, secure, user: user && user.slice(0, 2) + "***" });
+    }
     return nodemailer.createTransport({
       host,
       port,
@@ -115,6 +118,9 @@ function createTransport() {
 
   // Fallback automático de desarrollo (no envía correo real)
   if (isDev || String(process.env.SMTP_DEV_MODE || "false").toLowerCase() === "true") {
+    if (enableDebug) {
+      console.info("[MailService] Modo DEV activo: jsonTransport, no se envía correo real");
+    }
     return nodemailer.createTransport({ jsonTransport: true });
   }
   throw new Error("SMTP no configurado: define SMTP_PROVIDER y su API KEY, o SMTP_HOST/USER/PASS en .env");
@@ -273,46 +279,8 @@ async function sendGenericEmail({ to, subject, text, html, from }) {
   return info;
 }
 
-async function verifyTransport() {
-  const transport = createTransport();
-  const info = {
-    provider: String(process.env.SMTP_PROVIDER || "").toLowerCase(),
-    host: transport.options?.host,
-    port: transport.options?.port,
-    secure: transport.options?.secure,
-    pool: transport.options?.pool,
-    logger: transport.options?.logger,
-    debug: transport.options?.debug,
-  };
-  try {
-    await transport.verify();
-    info.verified = true;
-    info.message = "SMTP verificado correctamente";
-  } catch (err) {
-    info.verified = false;
-    info.error = err.message;
-  }
-  return info;
-}
-
-async function sendGenericEmail({ to, subject, text, html, from }) {
-  const transport = createTransport();
-  const sender = from || process.env.SMTP_FROM || "no-reply@conv3rtech.com";
-  const payload = {
-    from: sender,
-    to,
-    subject: subject || "Prueba SMTP Conv3rTech",
-    text: text || "Este es un correo de prueba de Conv3rTech",
-    html,
-  };
-  const info = await transport.sendMail(payload);
-  return info;
-}
-
 module.exports = {
   sendPasswordRecoveryCode,
-  verifyTransport,
-  sendGenericEmail,
   verifyTransport,
   sendGenericEmail,
 };
