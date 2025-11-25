@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3006;
     console.log("✅ Conexión a la base de datos establecida correctamente");
 
     // 2) Sincronizar modelos (cuidado con alter/force en producción)
-    await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true });
     console.log("✅ Modelos sincronizados");
 
     // ❌ Eliminado: no llamamos a rbacInit ni a ningún startup

@@ -9,7 +9,7 @@ const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 router.post(
   "/",
-  supplierValidations.createSupplierValidation,
+  //supplierValidations.createSupplierValidation,
   supplierController.createSupplier
 );
 router.get("/", supplierController.getAllSuppliers);
