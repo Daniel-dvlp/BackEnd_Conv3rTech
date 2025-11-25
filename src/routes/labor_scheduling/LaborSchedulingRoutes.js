@@ -10,7 +10,7 @@ const {
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-// router.use(authMiddleware); // Temporarily disabled for testing
+// router.use(authMiddleware);
 
 // GET /api/labor-scheduling?tipo=&userId=&from=&to=&includeInactive=
 // Obtener todos los horarios con asignaciones
