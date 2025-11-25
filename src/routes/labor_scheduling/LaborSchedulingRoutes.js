@@ -2,30 +2,42 @@ const express = require("express");
 const router = express.Router();
 const LaborSchedulingController = require("../../controllers/labor_scheduling/LaborSchedulingController");
 const {
-  validateCreateScheduling,
+    validateCreateRecurringSchedule,
+    validateCreateOneTimeEvent,
+    validateAssignScheduleToUsers,
+    validateUpdateSchedule,
 } = require("../../middlewares/labor_scheduling/LaborSchedulingMiddleware");
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+// router.use(authMiddleware); // Temporarily disabled for testing
 
-// Crear una nueva programación laboral con validación
-router.post(
-  "/",
-  validateCreateScheduling,
-  LaborSchedulingController.createScheduling
-);
+// GET /api/labor-scheduling?tipo=&userId=&from=&to=&includeInactive=
+// Obtener todos los horarios con asignaciones
+router.get("/", LaborSchedulingController.getAllSchedules);
 
-// Obtener todas las programaciones laborales
-router.get("/", LaborSchedulingController.getAllSchedulings);
+// GET /api/labor-scheduling/:scheduleId
+// Obtener un horario por ID
+router.get("/:scheduleId", LaborSchedulingController.getScheduleById);
 
-// Obtener una programación laboral por ID
-router.get("/:id", LaborSchedulingController.getSchedulingById);
+// POST /api/labor-scheduling/recurring
+// Crear un horario recurrente
+router.post("/recurring", validateCreateRecurringSchedule, LaborSchedulingController.createRecurringSchedule);
 
-// Actualizar una programación laboral
-router.put("/:id", LaborSchedulingController.updateScheduling);
+// POST /api/labor-scheduling/one-time
+// Crear un evento único
+router.post("/one-time", validateCreateOneTimeEvent, LaborSchedulingController.createOneTimeEvent);
 
-// Eliminar una programación laboral
-router.delete("/:id", LaborSchedulingController.deleteScheduling);
+// POST /api/labor-scheduling/:scheduleId/assign
+// Asignar un horario a usuarios
+router.post("/:scheduleId/assign", validateAssignScheduleToUsers, LaborSchedulingController.assignScheduleToUsers);
+
+// PUT /api/labor-scheduling/:scheduleId
+// Actualizar un horario
+router.put("/:scheduleId", validateUpdateSchedule, LaborSchedulingController.updateSchedule);
+
+// DELETE /api/labor-scheduling/:scheduleId
+// Eliminar un horario
+router.delete("/:scheduleId", LaborSchedulingController.deleteSchedule);
 
 module.exports = router;
