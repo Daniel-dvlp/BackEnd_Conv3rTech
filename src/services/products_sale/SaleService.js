@@ -3,6 +3,7 @@ const ProductRepository = require('../../repositories/products/ProductRepository
 const sequelize = require('../../config/database');
 const SaleDetail = require('../../models/products_sale/SaleDetails');
 const Sale = require('../../models/products_sale/Sale');
+const Product = require('../../models/products/Product');
 
 // Crear venta
 const createSale = async (sale) => {
@@ -126,9 +127,57 @@ const deleteSale = async (id) => {
     return SaleRepository.deleteSale(id);
 };
 
-// Cambiar estado de la venta (ejemplo: Anular)
+// Cambiar estado de la venta (ejemplo: Anular) y manejar inventario
 const changeSaleState = async (id, state, motivoAnulacion = null) => {
-    return SaleRepository.changeSaleState(id, state, motivoAnulacion);
+    const transaction = await sequelize.transaction();
+
+    try {
+        const sale = await Sale.findByPk(id, {
+            include: [{ model: SaleDetail, as: 'detalles' }],
+            transaction,
+            lock: transaction.LOCK.UPDATE
+        });
+
+        if (!sale) {
+            throw new Error('Venta no encontrada');
+        }
+
+        const previousState = sale.estado;
+
+        // Solo devolver stock si pasa de un estado distinto a "Anulada" hacia "Anulada"
+        if (state === 'Anulada' && previousState !== 'Anulada') {
+            for (const detail of sale.detalles || []) {
+                const product = await Product.findByPk(detail.id_producto, {
+                    transaction,
+                    lock: transaction.LOCK.UPDATE
+                });
+
+                if (!product) {
+                    throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
+                }
+
+                const newStock = Number(product.stock || 0) + Number(detail.cantidad || 0);
+                await ProductRepository.updateStock(product.id_producto, newStock, transaction);
+            }
+        }
+
+        const updateData = { estado: state };
+        if (state === 'Registrada') {
+            updateData.motivo_anulacion = null;
+        } else if (state === 'Anulada') {
+            updateData.motivo_anulacion = motivoAnulacion || null;
+        } else if (motivoAnulacion !== null) {
+            updateData.motivo_anulacion = motivoAnulacion;
+        }
+
+        await Sale.update(updateData, { where: { id_venta: id }, transaction });
+
+        await transaction.commit();
+        return SaleRepository.getSaleById(id);
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
 };
 
 module.exports = {
