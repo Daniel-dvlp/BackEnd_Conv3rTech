@@ -6,7 +6,8 @@ const ProductRepository = require('../../repositories/products/ProductRepository
 const ServiceRepository = require('../../repositories/services/ServiceRepository');
 const ProjectService = require('../../services/projects/ProjectService');
 const Project = require('../../models/projects/Project');
-const Users = require('../../models/users/Users');
+const Quote = require('../../models/quotes/Quote');
+const ACCEPTED_STATES = ['Aprobada', 'Aceptada'];
 
 // ✅ Crear cotización (con sus detalles)
 const createQuote = async (quote) => {
@@ -200,10 +201,29 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
     const transaction = await sequelize.transaction();
 
     try {
+        const currentQuote = await Quote.findByPk(id, {
+            include: [
+                {
+                    model: QuoteDetail,
+                    as: 'detalles',
+                    include: [{ model: Product, as: 'producto' }]
+                }
+            ],
+            transaction,
+            lock: transaction.LOCK.UPDATE
+        });
+
+        if (!currentQuote) {
+            throw new Error('Cotización no encontrada');
+        }
+
+        const wasAccepted = ACCEPTED_STATES.includes(currentQuote.estado);
+        const willBeAccepted = ACCEPTED_STATES.includes(state);
+
         const updatedQuote = await QuoteRepository.changeQuoteState(id, state, motivoAnulacion, transaction);
 
-        // Si se aprueba la cotización, crear proyecto automáticamente y restar stock
-        if (state === 'Aprobada') {
+        // Crear proyecto y descontar inventario solo al pasar a un estado aceptado
+        if (willBeAccepted && !wasAccepted) {
             // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
             const existingProject = await Project.findOne({ where: { id_cotizacion: id } });
             if (!existingProject) {
@@ -239,18 +259,15 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                 await ProjectService.createProject(projectData);
             }
 
-            // Restar stock de productos cuando la cotización se aprueba
-            const quoteDetails = await QuoteDetail.findAll({
-                where: { id_cotizacion: id },
-                include: [{ model: Product, as: 'producto' }],
-                transaction
-            });
-
-            for (const detail of quoteDetails) {
-                if (detail.producto && detail.cantidad > 0) {
-                    const newStock = detail.producto.stock - detail.cantidad;
+            for (const detail of currentQuote.detalles || []) {
+                if (detail.id_producto && detail.cantidad > 0) {
+                    const product = detail.producto;
+                    if (!product) {
+                        throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
+                    }
+                    const newStock = Number(product.stock || 0) - Number(detail.cantidad || 0);
                     if (newStock < 0) {
-                        throw new Error(`Stock insuficiente para el producto ${detail.producto.nombre}. Stock disponible: ${detail.producto.stock}, requerido: ${detail.cantidad}`);
+                        throw new Error(`Stock insuficiente para el producto ${product.nombre}. Stock disponible: ${product.stock}, requerido: ${detail.cantidad}`);
                     }
                     await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
                 }
