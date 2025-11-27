@@ -27,6 +27,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.14.0"
+  },
   "dependencies": {
     "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
@@ -42,6 +45,9 @@
     "mysql2": "^3.14.3",
     "nodemailer": "^7.0.10",
     "sequelize": "^6.37.7"
+  },
+  "overrides": {
+    "unrs-resolver": "1.11.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
