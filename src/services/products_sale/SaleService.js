@@ -1,14 +1,22 @@
 const SaleRepository = require('../../repositories/products_sale/SaleRepository');
 const ProductRepository = require('../../repositories/products/ProductRepository');
-const sequelize = require('../../config/database'); // necesario para transacciones
+const sequelize = require('../../config/database');
 const SaleDetail = require('../../models/products_sale/SaleDetails');
 const Sale = require('../../models/products_sale/Sale');
+const Product = require('../../models/products/Product');
 
-// Crear venta 
+// Crear venta
 const createSale = async (sale) => {
+    console.log('Datos recibidos en createSale:', JSON.stringify(sale, null, 2));
+
     const transaction = await sequelize.transaction();
 
     try {
+        // Verificar que sale.detalles existe y es un array
+        if (!sale.detalles || !Array.isArray(sale.detalles) || sale.detalles.length === 0) {
+            throw new Error('Debe incluir al menos un detalle de venta');
+        }
+
         let subtotalVenta = 0;
         const iva = 0.19;
 
@@ -23,10 +31,10 @@ const createSale = async (sale) => {
 
             // Verificar stock
             if (product.stock < detail.cantidad) {
-                throw new Error(`Stock insuficiente para el producto ${product.nombre}`);
+                throw new Error(`Stock insuficiente para el producto ${product.nombre}. Disponible: ${product.stock}, solicitado: ${detail.cantidad}`);
             }
 
-            const precioUnitario = product.precio;
+            const precioUnitario = parseFloat(product.precio);
             const subtotalProducto = detail.cantidad * precioUnitario;
 
             // Acumular subtotal general
@@ -40,9 +48,9 @@ const createSale = async (sale) => {
                 subtotal_producto: subtotalProducto
             });
 
-            // Restar stock
+            // Restar stock - CORRECCIÓN: pasar transaction directamente
             const newStock = product.stock - detail.cantidad;
-            await ProductRepository.updateStock(product.id_producto, newStock, { transaction });
+            await ProductRepository.updateStock(product.id_producto, newStock, transaction);
         }
 
         // Calcular totales de la venta
@@ -53,21 +61,27 @@ const createSale = async (sale) => {
         let numeroVenta = sale.numero_venta;
         if (!numeroVenta) {
             const currentYear = new Date().getFullYear();
-            // Compatible con MySQL/MariaDB: YEAR(fecha_registro) = currentYear
+            
+            // Contar ventas del año actual
             const countThisYear = await Sale.count({
                 where: sequelize.where(
                     sequelize.fn('YEAR', sequelize.col('fecha_registro')),
                     currentYear
-                )
+                ),
+                transaction
             });
+            
             const sequence = (countThisYear + 1).toString().padStart(3, '0');
             numeroVenta = `VT-${currentYear}-${sequence}`;
         }
 
         // Crear venta principal
         const newSale = await SaleRepository.createSale({
-            ...sale,
             numero_venta: numeroVenta,
+            id_cliente: sale.id_cliente,
+            fecha_venta: sale.fecha_venta,
+            metodo_pago: sale.metodo_pago,
+            estado: sale.estado || 'Registrada',
             subtotal_venta: subtotalVenta,
             monto_iva: montoIva,
             monto_venta: montoVenta
@@ -84,9 +98,11 @@ const createSale = async (sale) => {
         // Confirmar transacción
         await transaction.commit();
 
-        return newSale;
+        // Retornar venta completa con relaciones
+        return await SaleRepository.getSaleById(newSale.id_venta);
     } catch (error) {
         await transaction.rollback();
+        console.error('Error en createSale:', error);
         throw error;
     }
 };
@@ -111,9 +127,57 @@ const deleteSale = async (id) => {
     return SaleRepository.deleteSale(id);
 };
 
-// Cambiar estado de la venta (ejemplo: Anular)
-const changeSaleState = async (id, state) => {
-    return SaleRepository.changeSaleState(id, state);
+// Cambiar estado de la venta (ejemplo: Anular) y manejar inventario
+const changeSaleState = async (id, state, motivoAnulacion = null) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        const sale = await Sale.findByPk(id, {
+            include: [{ model: SaleDetail, as: 'detalles' }],
+            transaction,
+            lock: transaction.LOCK.UPDATE
+        });
+
+        if (!sale) {
+            throw new Error('Venta no encontrada');
+        }
+
+        const previousState = sale.estado;
+
+        // Solo devolver stock si pasa de un estado distinto a "Anulada" hacia "Anulada"
+        if (state === 'Anulada' && previousState !== 'Anulada') {
+            for (const detail of sale.detalles || []) {
+                const product = await Product.findByPk(detail.id_producto, {
+                    transaction,
+                    lock: transaction.LOCK.UPDATE
+                });
+
+                if (!product) {
+                    throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
+                }
+
+                const newStock = Number(product.stock || 0) + Number(detail.cantidad || 0);
+                await ProductRepository.updateStock(product.id_producto, newStock, transaction);
+            }
+        }
+
+        const updateData = { estado: state };
+        if (state === 'Registrada') {
+            updateData.motivo_anulacion = null;
+        } else if (state === 'Anulada') {
+            updateData.motivo_anulacion = motivoAnulacion || null;
+        } else if (motivoAnulacion !== null) {
+            updateData.motivo_anulacion = motivoAnulacion;
+        }
+
+        await Sale.update(updateData, { where: { id_venta: id }, transaction });
+
+        await transaction.commit();
+        return SaleRepository.getSaleById(id);
+    } catch (error) {
+        await transaction.rollback();
+        throw error;
+    }
 };
 
 module.exports = {

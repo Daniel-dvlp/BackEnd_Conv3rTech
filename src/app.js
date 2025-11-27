@@ -7,7 +7,13 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: (origin, cb) => cb(null, true),
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,6 +54,12 @@ const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
 const LaborScheduling = require("./models/labor_scheduling/LaborSchedulingModel");
+const ShiftTemplate = require("./models/labor_scheduling/ShiftTemplateModel");
+const ShiftTimeSlot = require("./models/labor_scheduling/ShiftTimeSlotModel");
+const ShiftInstance = require("./models/labor_scheduling/ShiftInstanceModel");
+const EmployeeShiftAssignment = require("./models/labor_scheduling/EmployeeShiftAssignmentModel");
+const Schedule = require("./models/labor_scheduling/ScheduleModel");
+const UserScheduleAssignment = require("./models/labor_scheduling/UserScheduleAssignmentModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
 function setupAssociations() {
@@ -58,6 +70,12 @@ function setupAssociations() {
     PurchaseDetail,
     User,
     LaborScheduling,
+    ShiftTemplate,
+    ShiftTimeSlot,
+    ShiftInstance,
+    EmployeeShiftAssignment,
+    Schedule,
+    UserScheduleAssignment,
     // ... Agrega todos tus modelos aquí
   };
 
@@ -157,6 +175,9 @@ app.use("/api/payments-installments", PaymentsInstallmentsRoutes);
 // Rutas para citas
 const AppointmentsRoutes = require("./routes/appointments/AppointmentsRoutes");
 app.use("/api/appointments", AppointmentsRoutes);
+// Rutas de diagnóstico (SMTP y otros)
+const DebugMailRoutes = require("./routes/debug/DebugMailRoutes");
+app.use("/api/debug", DebugMailRoutes);
 
 // ====================== UTILIDADES ======================
 

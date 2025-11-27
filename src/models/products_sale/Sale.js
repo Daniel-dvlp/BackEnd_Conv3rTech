@@ -33,6 +33,10 @@ const Sale = sequelize.define('Sale', {
         type: DataTypes.ENUM('Registrada', 'Anulada'),
         defaultValue: 'Registrada'
     },
+    motivo_anulacion: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     subtotal_venta: {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
