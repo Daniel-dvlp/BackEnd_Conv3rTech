@@ -36,17 +36,13 @@ class ProjectRepository {
     }
 
     return Project.findAll({
+      attributes: { exclude: ["id_cotizacion"] },
       where: whereClause,
       include: [
         {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre", "documento"],
-        },
-        {
-          model: require("../../models/quotes/Quote"),
-          as: "cotizacion",
-          attributes: ["id_cotizacion", "nombre_cotizacion", "estado"],
         },
         {
           model: require("../../models/users/Users"),
@@ -160,16 +156,12 @@ class ProjectRepository {
   // Obtener un proyecto por ID
   async getProjectById(id) {
     return Project.findByPk(id, {
+      attributes: { exclude: ["id_cotizacion"] },
       include: [
         {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre", "documento"],
-        },
-        {
-          model: require("../../models/quotes/Quote"),
-          as: "cotizacion",
-          attributes: ["id_cotizacion", "nombre_cotizacion", "estado", "monto_cotizacion"],
         },
         {
           model: require("../../models/users/Users"),
