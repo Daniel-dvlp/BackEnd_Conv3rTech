@@ -36,7 +36,7 @@ const quoteBaseValidation = [
         .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
-        .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
+        .isIn(['Pendiente', 'Aprobada', 'Aceptada', 'Rechazada'])
         .withMessage('Estado inválido')
 ];
 
@@ -74,7 +74,7 @@ const updateQuoteValidation = [
         .isString().withMessage('El motivo de anulación debe ser texto'),
     body('estado')
         .optional()
-        .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
+        .isIn(['Pendiente', 'Aprobada', 'Aceptada', 'Rechazada'])
         .withMessage('Estado inválido'),
     body('detalles')
         .optional()
@@ -108,7 +108,7 @@ const getQuoteByIdValidation = [
 // ✅ Cambiar estado
 const changeQuoteStateValidation = [
     body('estado')
-        .isIn(['Pendiente', 'Aprobada', 'Rechazada'])
+        .isIn(['Pendiente', 'Aprobada', 'Aceptada', 'Rechazada'])
         .withMessage('El estado debe ser válido'),
     body('motivo_anulacion')
         .optional()
