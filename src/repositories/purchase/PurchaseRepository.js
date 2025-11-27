@@ -80,10 +80,32 @@ const getPurchaseById = async (id) => {
     });
 };
 
+const changeStatePurchase = async (id, estado, motivo) => {
+    const purchase = await Purchase.findByPk(id);
+    if (!purchase) {
+        throw new Error('Compra no encontrada');
+    }
+
+    let nuevasObservaciones = purchase.observaciones || '';
+    if (estado === 'Anulada' && motivo) {
+        const nota = `MOTIVO: "${motivo}"`;
+        nuevasObservaciones = nuevasObservaciones
+            ? `${nuevasObservaciones}\n${nota}`
+            : nota;
+    }
+
+    const [updated] = await Purchase.update(
+        { estado, observaciones: nuevasObservaciones },
+        { where: { id_compra: id } }
+    );
+    return [updated];
+};
+
 // Asegúrate de exportar todas las funciones que necesitas
 module.exports = {
     createPurchase,
     getAllPurchases,
     getPurchaseById,
+    changeStatePurchase,
     // Aquí puedes agregar las funciones que faltan como updatePurchase y deletePurchase
 };

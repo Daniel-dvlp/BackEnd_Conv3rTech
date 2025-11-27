@@ -4,12 +4,12 @@ const supplierController = require("../../controllers/supplier/SupplierControlle
 const supplierValidations = require("../../middlewares/supplier/SupplierValidations");
 const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
-// Middleware de autenticación para todas las rutas
+ // Middleware de autenticación para todas las rutas
 //router.use(authMiddleware);
 
 router.post(
   "/",
-  supplierValidations.createSupplierValidation,
+  //supplierValidations.createSupplierValidation,
   supplierController.createSupplier
 );
 router.get("/", supplierController.getAllSuppliers);

@@ -14,6 +14,7 @@ function createTransport() {
   const smtpSocketTimeout = Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20000); // 20s
   const smtpTlsRejectUnauthorized = String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true").toLowerCase() === "true";
 
+
   // OAuth2 (Gmail) soporte directo
   const authType = String(process.env.SMTP_AUTH_TYPE || "").toLowerCase();
   if ((provider === "gmail" || provider === "google") && authType === "oauth2") {

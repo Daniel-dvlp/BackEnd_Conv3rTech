@@ -54,6 +54,12 @@ const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
 const LaborScheduling = require("./models/labor_scheduling/LaborSchedulingModel");
+const ShiftTemplate = require("./models/labor_scheduling/ShiftTemplateModel");
+const ShiftTimeSlot = require("./models/labor_scheduling/ShiftTimeSlotModel");
+const ShiftInstance = require("./models/labor_scheduling/ShiftInstanceModel");
+const EmployeeShiftAssignment = require("./models/labor_scheduling/EmployeeShiftAssignmentModel");
+const Schedule = require("./models/labor_scheduling/ScheduleModel");
+const UserScheduleAssignment = require("./models/labor_scheduling/UserScheduleAssignmentModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
 function setupAssociations() {
@@ -64,6 +70,12 @@ function setupAssociations() {
     PurchaseDetail,
     User,
     LaborScheduling,
+    ShiftTemplate,
+    ShiftTimeSlot,
+    ShiftInstance,
+    EmployeeShiftAssignment,
+    Schedule,
+    UserScheduleAssignment,
     // ... Agrega todos tus modelos aquí
   };
 
