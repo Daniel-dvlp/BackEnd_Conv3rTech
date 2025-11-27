@@ -14,45 +14,39 @@ router.use(authenticateToken);
 // Rutas principales de proyectos
 router.get(
   "/",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectValidations.searchProjectsValidation,
   ProjectController.getAllProjects
 );
 // Búsqueda rápida para seleccionar proyecto (por número de contrato, nombre, cliente)
 router.get(
   "/search",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectValidations.quickSearchProjectsValidation,
   ProjectController.quickSearchProjects
 );
 router.get(
   "/stats",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectController.getProjectStats
 );
 router.get(
   "/export",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectController.exportProjects
 );
 
 // Rutas CRUD de proyectos
-router.post(
-  "/",
-  permissionMiddleware("Proyectos", "Crear"),
-  ProjectValidations.createProjectValidation,
-  ProjectController.createProject
-);
 router.get(
   "/:id",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectValidations.getProjectByIdValidation,
   ProjectController.getProjectById
 );
 // Saldo pendiente del proyecto (totales y pendiente)
 router.get(
   "/:id/outstanding",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectValidations.getProjectByIdValidation,
   ProjectController.getProjectOutstanding
 );
@@ -72,12 +66,12 @@ router.delete(
 // Rutas específicas de proyectos
 router.get(
   "/client/:clientId",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectController.getProjectsByClient
 );
 router.get(
   "/responsible/:responsibleId",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectController.getProjectsByResponsible
 );
 
@@ -104,7 +98,7 @@ router.post(
 );
 router.get(
   "/:idProyecto/salidas-material",
-  permissionMiddleware("Proyectos", "Leer"),
+  permissionMiddleware("Proyectos", "Ver"),
   ProjectValidations.getSalidasMaterialValidation,
   ProjectController.getSalidasMaterial
 );
