@@ -5,6 +5,7 @@ const Product = require('../../models/products/Product');
 const ProductRepository = require('../../repositories/products/ProductRepository');
 const ServiceRepository = require('../../repositories/services/ServiceRepository');
 const ProjectService = require('../../services/projects/ProjectService');
+const MailService = require('../../services/common/MailService');
 const Project = require('../../models/projects/Project');
 const Quote = require('../../models/quotes/Quote');
 const ACCEPTED_STATES = ['Aprobada', 'Aceptada'];
@@ -256,7 +257,15 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     sedes: []
                 };
 
-                await ProjectService.createProject(projectData);
+                const createdProject = await ProjectService.createProject(projectData);
+                try {
+                    const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
+                    for (const r of recipients) {
+                        const subject = `Proyecto pendiente de asignación: ${createdProject.nombre}`;
+                        const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
+                        await MailService.sendGenericEmail({ to: r.correo, subject, text });
+                    }
+                } catch (e) {}
             }
 
             for (const detail of currentQuote.detalles || []) {
