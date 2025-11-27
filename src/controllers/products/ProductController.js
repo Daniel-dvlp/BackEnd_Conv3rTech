@@ -114,27 +114,40 @@ const updateProduct = async (req, res) => {
     }
     
     try {
+        console.log('Datos recibidos para actualizar:', req.body);
+        
         // Obtener el producto actual para comparar fotos
         const currentProduct = await productService.getProductById(req.params.id);
         
         // Obtener URLs de nuevas imágenes subidas (si existen)
         const newFotos = req.files ? req.files.map(file => file.path) : [];
+        console.log('Nuevas fotos subidas:', newFotos);
         
-        // Obtener fotos existentes del body
+        // Obtener fotos existentes del body (las que el usuario mantiene)
         let existingFotos = [];
         if (req.body.fotos) {
-            existingFotos = typeof req.body.fotos === 'string' 
-                ? JSON.parse(req.body.fotos) 
-                : req.body.fotos;
+            if (typeof req.body.fotos === 'string') {
+                try {
+                    existingFotos = JSON.parse(req.body.fotos);
+                } catch (e) {
+                    console.error('Error al parsear fotos:', e);
+                    existingFotos = [];
+                }
+            } else if (Array.isArray(req.body.fotos)) {
+                existingFotos = req.body.fotos;
+            }
         }
+        console.log('Fotos existentes a mantener:', existingFotos);
         
         // Combinar fotos existentes con nuevas
         const allFotos = [...existingFotos, ...newFotos];
+        console.log('Total de fotos después de combinar:', allFotos);
         
-        // Identificar fotos eliminadas
-        const fotosEliminadas = currentProduct.fotos?.filter(
+        // Identificar fotos eliminadas (las que estaban pero ya no están)
+        const fotosEliminadas = (currentProduct.fotos || []).filter(
             foto => !allFotos.includes(foto)
-        ) || [];
+        );
+        console.log('Fotos a eliminar de Cloudinary:', fotosEliminadas);
         
         // Eliminar fotos de Cloudinary
         for (const foto of fotosEliminadas) {
@@ -142,11 +155,28 @@ const updateProduct = async (req, res) => {
                 const publicId = extractPublicId(foto);
                 if (publicId) {
                     await deleteImage(publicId);
-                    console.log('Imagen eliminada de Cloudinary:', publicId);
+                    console.log('✅ Imagen eliminada de Cloudinary:', publicId);
                 }
             } catch (deleteError) {
-                console.error('Error al eliminar imagen:', deleteError);
+                console.error('❌ Error al eliminar imagen:', deleteError);
+                // Continuar aunque falle la eliminación
             }
+        }
+        
+        // Procesar fichas técnicas si vienen
+        if (req.body.fichas_tecnicas) {
+            let fichasTecnicas = req.body.fichas_tecnicas;
+            
+            if (typeof fichasTecnicas === 'string') {
+                try {
+                    fichasTecnicas = JSON.parse(fichasTecnicas);
+                } catch (e) {
+                    console.error('Error al parsear fichas_tecnicas:', e);
+                    fichasTecnicas = [];
+                }
+            }
+            
+            req.body.fichas_tecnicas = fichasTecnicas;
         }
         
         // Actualizar el producto
@@ -156,13 +186,30 @@ const updateProduct = async (req, res) => {
         };
         
         const updatedProduct = await productService.updateProduct(req.params.id, productData);
+        console.log('✅ Producto actualizado exitosamente');
         
         res.status(200).json({ 
             message: 'Producto actualizado exitosamente', 
             data: updatedProduct 
         });
     } catch (error) {
-        console.error('Error al actualizar producto:', error);
+        console.error('❌ Error al actualizar producto:', error);
+        
+        // Si hay imágenes nuevas subidas y falla la actualización, eliminarlas
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                try {
+                    const publicId = extractPublicId(file.path);
+                    if (publicId) {
+                        await deleteImage(publicId);
+                        console.log('Imagen nueva eliminada tras error:', publicId);
+                    }
+                } catch (deleteError) {
+                    console.error('Error al limpiar imagen:', deleteError);
+                }
+            }
+        }
+        
         res.status(400).json({ message: error.message });
     }
 };
