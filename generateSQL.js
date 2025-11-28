@@ -53,12 +53,15 @@ const LaborScheduling = require('./src/models/labor_scheduling/LaborSchedulingMo
 const PaymentInstallment = require('./src/models/payments_installments/payments_installments');
 
 const RolPermisoPrivilegio = require('./src/models/rol_permiso_privilegio/rol_permiso_privilegio');
+const RolePrivilege = require('./src/models/auth/RolePrivilege');
+const ServicesCategory = require('./src/models/services_category/ServicesCategory');
 
 const models = {
   Role,
   Permission,
   Privilege,
   PermissionPrivilege,
+  RolePrivilege,
   User,
   Client,
   AddressClient,
