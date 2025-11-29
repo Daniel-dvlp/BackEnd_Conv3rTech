@@ -44,12 +44,11 @@
     "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.14.3",
     "nodemailer": "^7.0.10",
-    "sequelize": "^6.37.7"
-  },
-  "overrides": {
-    
+    "sequelize": "^6.37.7",
+    "to-regex-range": "^5.0.1"
   },
   "devDependencies": {
+    "is-extglob": "^2.1.1",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
   } 
