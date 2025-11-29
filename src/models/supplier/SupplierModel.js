@@ -25,7 +25,7 @@ const Supplier = sequelize.define('Supplier', {
     },
     telefono_entidad: {
         type: DataTypes.STRING(20),
-        allowNull: false,
+        allowNull: true,
         validate: {
             is: /^[0-9+\-\s()]+$/i
         }
