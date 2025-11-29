@@ -8,6 +8,7 @@ const ProjectService = require('../../services/projects/ProjectService');
 const MailService = require('../../services/common/MailService');
 const Project = require('../../models/projects/Project');
 const Quote = require('../../models/quotes/Quote');
+const Users = require('../../models/users/Users');
 const ACCEPTED_STATES = ['Aprobada', 'Aceptada'];
 
 // ✅ Crear cotización (con sus detalles)
@@ -93,9 +94,11 @@ const createQuote = async (quote) => {
     }
 };
 
-// ✅ Obtener todas las cotizaciones
+// ✅ Obtener todas las cotizaciones (Excluye las que ya son proyectos/aprobadas)
 const getAllQuotes = async () => {
-    return QuoteRepository.getAllQuotes();
+    const quotes = await QuoteRepository.getAllQuotes();
+    // Filtrar las cotizaciones que NO estén en estados aceptados
+    return quotes.filter(q => !ACCEPTED_STATES.includes(q.estado));
 };
 
 // ✅ Obtener cotización por ID
@@ -226,7 +229,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
         // Crear proyecto y descontar inventario solo al pasar a un estado aceptado
         if (willBeAccepted && !wasAccepted) {
             // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
-            const existingProject = await Project.findOne({ where: { id_cotizacion: id } });
+            const existingProject = await Project.findOne({ where: { id_cotizacion: id }, transaction });
             if (!existingProject) {
                 // Fecha de inicio en zona horaria local (YYYY-MM-DD)
                 const now = new Date();
@@ -257,7 +260,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     sedes: []
                 };
 
-                const createdProject = await ProjectService.createProject(projectData);
+                const createdProject = await ProjectService.createProject(projectData, transaction);
                 try {
                     const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
                     for (const r of recipients) {
