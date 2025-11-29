@@ -64,7 +64,7 @@ class ProjectService {
   }
 
   // Crear un nuevo proyecto
-  async createProject(projectData) {
+  async createProject(projectData, transaction = null) {
     try {
       // Validar datos requeridos
       this.validateProjectData(projectData);
@@ -83,7 +83,7 @@ class ProjectService {
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales);
 
-      const project = await ProjectRepository.createProject(projectData);
+      const project = await ProjectRepository.createProject(projectData, transaction);
       return this.transformProjectData(project);
     } catch (error) {
       throw new Error(`Error al crear proyecto: ${error.message}`);

@@ -50,9 +50,12 @@ const getTotalPagadoActivoByProyecto = async (idProyecto) => {
     return Number.isFinite(numeric) ? numeric : 0;
 };
 
-const cancelPagoAbono = async (id) => {
+const cancelPagoAbono = async (id, motivoAnulacion = null) => {
     const [affected] = await PagosAbonos.update(
-        { estado: false },
+        { 
+            estado: false,
+            motivo_anulacion: motivoAnulacion
+        },
         { where: { id_pago_abono: id, estado: true } }
     );
     return affected > 0;

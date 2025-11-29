@@ -169,8 +169,14 @@ const searchPagosAbonos = async (term) => {
   return Repository.searchPagosAbonos(term);
 };
 
-const cancelPagoAbono = async (id) => {
-  const cancelled = await Repository.cancelPagoAbono(id);
+const cancelPagoAbono = async (id, motivoAnulacion = null) => {
+  if (!motivoAnulacion || typeof motivoAnulacion !== 'string' || motivoAnulacion.trim() === '') {
+    const err = new Error('El motivo de anulación es obligatorio');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const cancelled = await Repository.cancelPagoAbono(id, motivoAnulacion);
   if (!cancelled) {
     const err = new Error('El pago/abono ya fue anulado o no existe');
     err.statusCode = 409;
