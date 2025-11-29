@@ -21,6 +21,10 @@ const createServiceValidation = [
     body('descripcion').notEmpty().withMessage('La descripción es obligatoria.'),
     body('precio').notEmpty().withMessage('El precio es obligatorio.')
         .isDecimal().withMessage('El precio debe ser un número decimal.'),
+    body('duracion')
+        .optional()
+        .isString().withMessage('La duración debe ser un texto.')
+        .matches(/^\d+h\s*\d*m?$|^\d+h$|^\d+m$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
     body('url_imagen')
         .optional()
         .custom((value) => {
@@ -41,6 +45,10 @@ const updateServiceValidation = [
     body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío.'),
     body('descripcion').optional().notEmpty().withMessage('La descripción no puede estar vacía.'),
     body('precio').optional().isDecimal().withMessage('El precio debe ser un número decimal.'),
+    body('duracion')
+        .optional()
+        .isString().withMessage('La duración debe ser un texto.')
+        .matches(/^\d+h\s*\d*m?$|^\d+h$|^\d+m$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
     body('url_imagen')
         .optional()
         .custom((value) => {
