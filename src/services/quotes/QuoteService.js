@@ -203,6 +203,7 @@ const deleteQuote = async (id) => {
 // ✅ Cambiar estado de la cotización
 const changeQuoteState = async (id, state, motivoAnulacion = null) => {
     const transaction = await sequelize.transaction();
+    console.log(`[QuoteService] Changing state for quote ${id} to '${state}'`);
 
     try {
         const currentQuote = await Quote.findByPk(id, {
@@ -218,19 +219,27 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
         });
 
         if (!currentQuote) {
+            console.error(`[QuoteService] Quote ${id} not found`);
             throw new Error('Cotización no encontrada');
         }
 
+        console.log(`[QuoteService] Current state: '${currentQuote.estado}'`);
+
         const wasAccepted = ACCEPTED_STATES.includes(currentQuote.estado);
         const willBeAccepted = ACCEPTED_STATES.includes(state);
+
+        console.log(`[QuoteService] wasAccepted: ${wasAccepted}, willBeAccepted: ${willBeAccepted}`);
 
         const updatedQuote = await QuoteRepository.changeQuoteState(id, state, motivoAnulacion, transaction);
 
         // Crear proyecto y descontar inventario solo al pasar a un estado aceptado
         if (willBeAccepted && !wasAccepted) {
+            console.log('[QuoteService] Transitioning to accepted state. Initiating project creation and stock deduction.');
+            
             // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
             const existingProject = await Project.findOne({ where: { id_cotizacion: id }, transaction });
             if (!existingProject) {
+                console.log('[QuoteService] Creating new project...');
                 // Fecha de inicio en zona horaria local (YYYY-MM-DD)
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
@@ -261,6 +270,8 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                 };
 
                 const createdProject = await ProjectService.createProject(projectData, transaction);
+                console.log(`[QuoteService] Project created with ID: ${createdProject.id}`);
+
                 try {
                     const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
                     for (const r of recipients) {
@@ -268,27 +279,47 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                         const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
                         await MailService.sendGenericEmail({ to: r.correo, subject, text });
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('[QuoteService] Error sending email:', e);
+                }
+            } else {
+                console.log('[QuoteService] Project already exists, skipping creation.');
             }
 
+            console.log('[QuoteService] Starting stock deduction...');
             for (const detail of currentQuote.detalles || []) {
+                console.log(`[QuoteService] Processing detail: product ID ${detail.id_producto}, quantity ${detail.cantidad}`);
                 if (detail.id_producto && detail.cantidad > 0) {
                     const product = detail.producto;
                     if (!product) {
+                        console.error(`[QuoteService] Product with ID ${detail.id_producto} not found in detail`);
                         throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
                     }
-                    const newStock = Number(product.stock || 0) - Number(detail.cantidad || 0);
+                    
+                    const currentStock = Number(product.stock || 0);
+                    const quantityToDeduct = Number(detail.cantidad || 0);
+                    const newStock = currentStock - quantityToDeduct;
+                    
+                    console.log(`[QuoteService] Product: ${product.nombre}, Current Stock: ${currentStock}, Deducting: ${quantityToDeduct}, New Stock: ${newStock}`);
+
                     if (newStock < 0) {
                         throw new Error(`Stock insuficiente para el producto ${product.nombre}. Stock disponible: ${product.stock}, requerido: ${detail.cantidad}`);
                     }
                     await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
+                    console.log(`[QuoteService] Stock updated for product ${detail.id_producto}`);
+                } else {
+                    console.log('[QuoteService] Skipping detail (not a product or quantity <= 0)');
                 }
             }
+        } else {
+            console.log('[QuoteService] State change does not require stock deduction (already accepted or not becoming accepted).');
         }
 
         await transaction.commit();
+        console.log('[QuoteService] Transaction committed successfully');
         return updatedQuote;
     } catch (error) {
+        console.error('[QuoteService] Error in changeQuoteState:', error);
         await transaction.rollback();
         throw error;
     }
