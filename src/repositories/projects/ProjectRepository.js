@@ -295,6 +295,7 @@ class ProjectRepository {
 
   // Crear un nuevo proyecto
   async createProject(projectData, transaction = null) {
+    console.error(`[DEBUG-V3] [ProjectRepository] createProject called for client ${projectData.id_cliente}, quote ${projectData.id_cotizacion}`);
     const t = transaction || await Project.sequelize.transaction();
 
     try {
