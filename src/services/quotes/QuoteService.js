@@ -251,6 +251,8 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
              if (existingProject) console.error(`${logPrefix}    - Project already exists.`);
         }
 
+        let emailTasks = [];
+
         // Crear proyecto y descontar inventario solo si se cumple la condición
         if (shouldProcessApproval) {
             console.error(`${logPrefix} Transitioning to accepted state (or fixing inconsistencies). Initiating project creation and stock deduction.`);
@@ -292,14 +294,21 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     const createdProject = await ProjectService.createProject(projectData, transaction);
                     console.error(`${logPrefix} Project created with ID: ${createdProject.id}`);
 
-                    const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
+                    const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'], transaction });
                     for (const r of recipients) {
-                        const subject = `Proyecto pendiente de asignación: ${createdProject.nombre}`;
-                        const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
-                        await MailService.sendGenericEmail({ to: r.correo, subject, text });
+                        emailTasks.push(async () => {
+                            const subject = `Proyecto pendiente de asignación: ${createdProject.nombre}`;
+                            const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
+                            try {
+                                await MailService.sendGenericEmail({ to: r.correo, subject, text });
+                                console.error(`${logPrefix} Email sent to ${r.correo}`);
+                            } catch (emailError) {
+                                console.error(`${logPrefix} Failed to send email to ${r.correo}:`, emailError);
+                            }
+                        });
                     }
                 } catch (e) {
-                    console.error(`${logPrefix} Error creating project or sending email:`, e);
+                    console.error(`${logPrefix} Error creating project:`, e);
                     throw e; // Re-throw to rollback transaction
                 }
             } else {
@@ -340,6 +349,10 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
 
         await transaction.commit();
         console.error(`${logPrefix} Transaction committed successfully`);
+
+        // Execute email tasks in background (don't block response)
+        Promise.all(emailTasks.map(task => task())).catch(err => console.error(`${logPrefix} Error processing background emails:`, err));
+
         return updatedQuote;
     } catch (error) {
         console.error(`${logPrefix} Error in changeQuoteState:`, error);
