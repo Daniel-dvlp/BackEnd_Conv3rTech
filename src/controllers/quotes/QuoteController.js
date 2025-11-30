@@ -82,6 +82,8 @@ const deleteQuote = async (req, res) => {
 
 // ✅ Cambiar estado de cotización
 const changeQuoteState = async (req, res) => {
+    console.log(`[QuoteController] Request received to change state for quote ${req.params.id}`);
+    console.log(`[QuoteController] Body:`, req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -91,6 +93,7 @@ const changeQuoteState = async (req, res) => {
         const updatedQuote = await quoteService.changeQuoteState(req.params.id, req.body.estado, motivoAnulacion);
         res.status(200).json({ message: 'Estado de la cotización actualizado exitosamente', data: updatedQuote });
     } catch (error) {
+        console.error('[QuoteController] Error changing state:', error);
         res.status(400).json({ message: error.message });
     }
 };

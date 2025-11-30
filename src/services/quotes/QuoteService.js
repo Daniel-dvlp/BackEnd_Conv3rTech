@@ -225,8 +225,9 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
 
         console.error(`[QuoteService] Current state: '${currentQuote.estado}'`);
 
-        const wasAccepted = ACCEPTED_STATES.includes(currentQuote.estado);
-        const willBeAccepted = ACCEPTED_STATES.includes(state);
+        const normalize = (s) => s ? s.toUpperCase() : '';
+        const wasAccepted = ACCEPTED_STATES.some(s => normalize(s) === normalize(currentQuote.estado));
+        const willBeAccepted = ACCEPTED_STATES.some(s => normalize(s) === normalize(state));
 
         console.error(`[QuoteService] wasAccepted: ${wasAccepted}, willBeAccepted: ${willBeAccepted}`);
 
@@ -240,8 +241,14 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
         // 2. O si ya estaba aceptado pero NO tiene proyecto (caso de cotizaciones antiguas aprobadas sin lógica de proyecto/stock).
         const shouldProcessApproval = willBeAccepted && (!wasAccepted || !existingProject);
 
-        console.error(`[QuoteService] Existing project found: ${!!existingProject}`);
+        console.error(`[QuoteService] Existing project found: ${!!existingProject} (ID: ${existingProject?.id_proyecto})`);
         console.error(`[QuoteService] Should process approval logic (project/stock): ${shouldProcessApproval}`);
+        
+        if (!shouldProcessApproval && willBeAccepted) {
+             console.error(`[QuoteService] WARNING: Transitioning to Accepted state but SKIPPING logic because:`);
+             if (wasAccepted) console.error(`   - Quote was already in accepted state.`);
+             if (existingProject) console.error(`   - Project already exists.`);
+        }
 
         // Crear proyecto y descontar inventario solo si se cumple la condición
         if (shouldProcessApproval) {
