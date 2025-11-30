@@ -65,6 +65,7 @@ class ProjectService {
 
   // Crear un nuevo proyecto
   async createProject(projectData, transaction = null) {
+    console.error(`[DEBUG-V3] [ProjectService] createProject called with data:`, JSON.stringify(projectData, null, 2));
     try {
       // Validar datos requeridos
       this.validateProjectData(projectData);
