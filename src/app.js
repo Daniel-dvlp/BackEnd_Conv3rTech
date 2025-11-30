@@ -190,7 +190,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Endpoint de prueba de conexión a BD (SOLO PARA DEBUG)
-const sequelize = require("./config/database");
+// const sequelize = require("./config/database"); // YA IMPORTADO ARRIBA
 app.get("/api/test-db-connection", async (req, res) => {
   try {
     await sequelize.authenticate();
