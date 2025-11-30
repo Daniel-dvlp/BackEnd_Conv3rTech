@@ -6,6 +6,12 @@ require("dotenv").config();
 
 const app = express();
 
+// Middleware de logging global
+app.use((req, res, next) => {
+  console.error(`[Global] ${req.method} ${req.url}`);
+  next();
+});
+
 // Middleware
 const corsOptions = {
   origin: (origin, cb) => cb(null, true),
@@ -120,12 +126,12 @@ const categoryRoutes = require("./routes/products_category/ProductsCategoryRoute
 app.use("/api/productsCategory", categoryRoutes);
 
 //Ruta para productos
-const ProductRoutes = require("./routes/products/ProductsRoutes");
-app.use("/api/products/products", ProductRoutes);
 const ProductFeatureRoutes = require("./routes/products/FeatureRoutes");
 app.use("/api/products/features", ProductFeatureRoutes);
 const DatasheetRoutes = require("./routes/products/DatasheetRoutes");
 app.use("/api/products/datasheets", DatasheetRoutes);
+const ProductRoutes = require("./routes/products/ProductsRoutes");
+app.use("/api/products", ProductRoutes);
 
 //Ruta para ventas
 const SaleRoutes = require("./routes/products_sale/SaleRoutes");
@@ -142,6 +148,7 @@ app.use("/api/quotes/details", QuoteDetailsRoutes);
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
 app.use("/api/users", UsersRoutes);
+
 const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
