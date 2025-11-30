@@ -315,7 +315,12 @@ class ProjectService {
       }, 0);
 
       const manoDeObra = parseFloat(projectRaw.costo_mano_obra ?? 0);
-      const total = totalMateriales + totalServicios + manoDeObra;
+      // Calcular total basado en los componentes
+      const calculatedTotal = totalMateriales + totalServicios + manoDeObra;
+      
+      // Usar el valor de la BD si existe y es mayor a 0 (prioridad a la BD), si no, usar el calculado
+      const dbTotal = parseFloat(projectRaw.costo_total_proyecto ?? 0);
+      const total = dbTotal > 0 ? dbTotal : calculatedTotal;
 
       return {
         materiales: parseFloat(totalMateriales.toFixed(2)),
@@ -331,6 +336,12 @@ class ProjectService {
       id: project.id_proyecto,
       numeroContrato: project.numero_contrato,
       nombre: project.nombre,
+      cotizacion: project.cotizacion ? {
+        id: project.cotizacion.id_cotizacion,
+        nombre: project.cotizacion.nombre_cotizacion,
+        estado: project.cotizacion.estado,
+        monto: parseFloat(project.cotizacion.monto_cotizacion || 0)
+      } : null,
       cliente: project.cliente?.nombre || "Cliente no encontrado",
       responsable: project.responsable ? {
         nombre: `${project.responsable.nombre || ""} ${
