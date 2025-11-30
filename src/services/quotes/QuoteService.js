@@ -328,8 +328,8 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                         console.error(`${logPrefix} INSUFFICIENT STOCK! Current: ${currentStock}, Needed: ${quantityToDeduct}`);
                         throw new Error(`Stock insuficiente para el producto ${product.nombre}. Stock disponible: ${product.stock}, requerido: ${detail.cantidad}`);
                     }
-                    await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
-                    console.error(`${logPrefix} Stock updated for product ${detail.id_producto}`);
+                    const updateResult = await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
+                    console.error(`${logPrefix} Stock updated successfully for product ${detail.id_producto}`);
                 } else {
                     console.error(`${logPrefix} Skipping detail (not a product or quantity <= 0)`);
                 }
