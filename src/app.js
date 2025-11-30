@@ -189,6 +189,32 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Endpoint de prueba de conexión a BD (SOLO PARA DEBUG)
+const sequelize = require("./config/database");
+app.get("/api/test-db-connection", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    // Intentar una consulta simple
+    const [results] = await sequelize.query("SELECT 1+1 AS result");
+    
+    res.json({
+      success: true,
+      message: "Conexión a BD exitosa desde este entorno",
+      db_host: process.env.DB_HOST, // Ocultar en prod real, útil aquí para verificar
+      query_result: results[0],
+      env: process.env.NODE_ENV
+    });
+  } catch (error) {
+    console.error("DB Connection Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error conectando a la BD",
+      error: error.message,
+      config_host: process.env.DB_HOST // Para verificar qué host está usando Render
+    });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error("Error:", err);
   res.status(500).json({
