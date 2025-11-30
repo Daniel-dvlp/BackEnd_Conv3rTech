@@ -223,23 +223,33 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
             throw new Error('Cotización no encontrada');
         }
 
-        console.log(`[QuoteService] Current state: '${currentQuote.estado}'`);
+        console.error(`[QuoteService] Current state: '${currentQuote.estado}'`);
 
         const wasAccepted = ACCEPTED_STATES.includes(currentQuote.estado);
         const willBeAccepted = ACCEPTED_STATES.includes(state);
 
-        console.log(`[QuoteService] wasAccepted: ${wasAccepted}, willBeAccepted: ${willBeAccepted}`);
+        console.error(`[QuoteService] wasAccepted: ${wasAccepted}, willBeAccepted: ${willBeAccepted}`);
 
         const updatedQuote = await QuoteRepository.changeQuoteState(id, state, motivoAnulacion, transaction);
 
-        // Crear proyecto y descontar inventario solo al pasar a un estado aceptado
-        if (willBeAccepted && !wasAccepted) {
-            console.log('[QuoteService] Transitioning to accepted state. Initiating project creation and stock deduction.');
+        // Verificar si ya existe proyecto (para manejar casos de re-aprobación o migración)
+        const existingProject = await Project.findOne({ where: { id_cotizacion: id }, transaction });
+        
+        // Condición mejorada:
+        // 1. Si pasa de NO aceptado a ACEPTADO.
+        // 2. O si ya estaba aceptado pero NO tiene proyecto (caso de cotizaciones antiguas aprobadas sin lógica de proyecto/stock).
+        const shouldProcessApproval = willBeAccepted && (!wasAccepted || !existingProject);
+
+        console.error(`[QuoteService] Existing project found: ${!!existingProject}`);
+        console.error(`[QuoteService] Should process approval logic (project/stock): ${shouldProcessApproval}`);
+
+        // Crear proyecto y descontar inventario solo si se cumple la condición
+        if (shouldProcessApproval) {
+            console.error('[QuoteService] Transitioning to accepted state (or fixing inconsistencies). Initiating project creation and stock deduction.');
             
-            // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
-            const existingProject = await Project.findOne({ where: { id_cotizacion: id }, transaction });
+            // Evitar duplicados: verificar de nuevo (aunque ya lo tenemos en existingProject, la lógica original lo tenía aquí)
             if (!existingProject) {
-                console.log('[QuoteService] Creating new project...');
+                console.error('[QuoteService] Creating new project...');
                 // Fecha de inicio en zona horaria local (YYYY-MM-DD)
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
@@ -263,6 +273,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     costo_total_servicios: parseFloat(updatedQuote.subtotal_servicios || 0),
                     costo_total_proyecto: parseFloat(updatedQuote.monto_cotizacion || 0),
                     id_cotizacion: updatedQuote.id_cotizacion,
+                    // Inicializar arrays vacíos explícitamente para evitar errores en validaciones
                     materiales: [],
                     servicios: [],
                     empleadosAsociados: [],
@@ -270,7 +281,7 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                 };
 
                 const createdProject = await ProjectService.createProject(projectData, transaction);
-                console.log(`[QuoteService] Project created with ID: ${createdProject.id}`);
+                console.error(`[QuoteService] Project created with ID: ${createdProject.id}`);
 
                 try {
                     const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
@@ -283,12 +294,12 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     console.error('[QuoteService] Error sending email:', e);
                 }
             } else {
-                console.log('[QuoteService] Project already exists, skipping creation.');
+                console.error('[QuoteService] Project already exists, skipping creation.');
             }
 
-            console.log('[QuoteService] Starting stock deduction...');
+            console.error('[QuoteService] Starting stock deduction...');
             for (const detail of currentQuote.detalles || []) {
-                console.log(`[QuoteService] Processing detail: product ID ${detail.id_producto}, quantity ${detail.cantidad}`);
+                console.error(`[QuoteService] Processing detail: product ID ${detail.id_producto}, quantity ${detail.cantidad}`);
                 if (detail.id_producto && detail.cantidad > 0) {
                     const product = detail.producto;
                     if (!product) {
@@ -300,19 +311,19 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     const quantityToDeduct = Number(detail.cantidad || 0);
                     const newStock = currentStock - quantityToDeduct;
                     
-                    console.log(`[QuoteService] Product: ${product.nombre}, Current Stock: ${currentStock}, Deducting: ${quantityToDeduct}, New Stock: ${newStock}`);
+                    console.error(`[QuoteService] Product: ${product.nombre}, Current Stock: ${currentStock}, Deducting: ${quantityToDeduct}, New Stock: ${newStock}`);
 
                     if (newStock < 0) {
                         throw new Error(`Stock insuficiente para el producto ${product.nombre}. Stock disponible: ${product.stock}, requerido: ${detail.cantidad}`);
                     }
                     await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
-                    console.log(`[QuoteService] Stock updated for product ${detail.id_producto}`);
+                    console.error(`[QuoteService] Stock updated for product ${detail.id_producto}`);
                 } else {
-                    console.log('[QuoteService] Skipping detail (not a product or quantity <= 0)');
+                    console.error('[QuoteService] Skipping detail (not a product or quantity <= 0)');
                 }
             }
         } else {
-            console.log('[QuoteService] State change does not require stock deduction (already accepted or not becoming accepted).');
+            console.error('[QuoteService] State change does not require stock deduction (already accepted with project, or not becoming accepted).');
         }
 
         await transaction.commit();

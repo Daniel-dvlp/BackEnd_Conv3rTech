@@ -158,8 +158,9 @@ class ProjectRepository {
   }
 
   // Obtener un proyecto por ID
-  async getProjectById(id) {
+  async getProjectById(id, transaction = null) {
     return Project.findByPk(id, {
+      transaction,
       include: [
         {
           model: require("../../models/clients/Clients"),
@@ -426,7 +427,7 @@ class ProjectRepository {
         await t.commit();
       }
       
-      return this.getProjectById(project.id_proyecto);
+      return this.getProjectById(project.id_proyecto, t);
     } catch (error) {
       // Solo hacer rollback si NO se proporcionó una transacción externa
       if (!transaction) {
