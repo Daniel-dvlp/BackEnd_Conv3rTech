@@ -32,6 +32,10 @@ const PagosAbonos = sequelize.define("pagos_abonos", {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: true
+  },
+  motivo_anulacion: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   tableName: "pagos_abonos",

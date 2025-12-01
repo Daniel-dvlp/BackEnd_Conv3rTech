@@ -128,6 +128,7 @@ const deleteQuote = async (id) => {
 
 // ✅ Cambiar estado de la cotización
 const changeQuoteState = async (id, state, motivoAnulacion = null, transaction = null) => {
+    console.error(`[DEBUG-V3] [QuoteRepository] changeQuoteState called for ID: ${id}, State: ${state}`);
     const updateData = { estado: state };
     if (motivoAnulacion) {
         updateData.motivo_anulacion = motivoAnulacion;

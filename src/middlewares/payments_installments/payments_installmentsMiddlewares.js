@@ -72,6 +72,11 @@ const cancelPagoAbonoValidation = [
   param('id')
     .notEmpty().withMessage('id es obligatorio')
     .isInt().withMessage('id debe ser entero'),
+  body('motivo_anulacion')
+    .notEmpty().withMessage('El motivo de anulación es obligatorio')
+    .isString().withMessage('El motivo de anulación debe ser texto')
+    .trim()
+    .isLength({ min: 5 }).withMessage('El motivo de anulación debe tener al menos 5 caracteres'),
 ];
 
 const searchPagosAbonosValidation = [

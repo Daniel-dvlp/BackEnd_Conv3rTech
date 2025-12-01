@@ -79,8 +79,10 @@ async function canAddPayment(idProyecto, monto, transaction) {
       throw err;
     }
 
-    if (montoNum !== Number(pendiente)) {
-      const err = new Error('El monto debe ser exactamente igual al saldo pendiente');
+    const diff = Math.abs(montoNum - Number(pendiente));
+    // Permitir pequeña diferencia por punto flotante (ej. 0.01)
+    if (diff > 0.01) {
+      const err = new Error(`El monto (${montoNum}) debe ser exactamente igual al saldo pendiente (${pendiente})`);
       err.statusCode = 409;
       err.code = 'payments.single_payment_required';
       throw err;
@@ -169,8 +171,14 @@ const searchPagosAbonos = async (term) => {
   return Repository.searchPagosAbonos(term);
 };
 
-const cancelPagoAbono = async (id) => {
-  const cancelled = await Repository.cancelPagoAbono(id);
+const cancelPagoAbono = async (id, motivoAnulacion = null) => {
+  if (!motivoAnulacion || typeof motivoAnulacion !== 'string' || motivoAnulacion.trim() === '') {
+    const err = new Error('El motivo de anulación es obligatorio');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const cancelled = await Repository.cancelPagoAbono(id, motivoAnulacion);
   if (!cancelled) {
     const err = new Error('El pago/abono ya fue anulado o no existe');
     err.statusCode = 409;

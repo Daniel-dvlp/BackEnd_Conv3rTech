@@ -133,7 +133,12 @@ const changeSaleState = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const updatedSale = await saleService.changeSaleState(req.params.id, req.body.estado);
+        const motivoAnulacion = req.body.motivo_anulacion || null;
+        const updatedSale = await saleService.changeSaleState(
+            req.params.id,
+            req.body.estado,
+            motivoAnulacion
+        );
         res.status(200).json({ message: 'Estado de la venta actualizado exitosamente', data: updatedSale });
     } catch (error) {
         console.error('Error al cambiar estado:', error);
