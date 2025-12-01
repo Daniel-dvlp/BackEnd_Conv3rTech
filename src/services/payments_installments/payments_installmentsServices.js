@@ -79,8 +79,10 @@ async function canAddPayment(idProyecto, monto, transaction) {
       throw err;
     }
 
-    if (montoNum !== Number(pendiente)) {
-      const err = new Error('El monto debe ser exactamente igual al saldo pendiente');
+    const diff = Math.abs(montoNum - Number(pendiente));
+    // Permitir pequeña diferencia por punto flotante (ej. 0.01)
+    if (diff > 0.01) {
+      const err = new Error(`El monto (${montoNum}) debe ser exactamente igual al saldo pendiente (${pendiente})`);
       err.statusCode = 409;
       err.code = 'payments.single_payment_required';
       throw err;
