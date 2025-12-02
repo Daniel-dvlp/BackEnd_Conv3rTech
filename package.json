@@ -54,5 +54,5 @@
     "is-extglob": "^2.1.1",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
-  }
+  } 
 }
