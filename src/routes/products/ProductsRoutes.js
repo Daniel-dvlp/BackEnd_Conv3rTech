@@ -9,6 +9,19 @@ const { uploadProductImages } = require("../../config/cloudinary");
 // Middleware de autenticación para todas las rutas
 //router.use(authMiddleware);
 
+// Rutas específicas de imágenes DEBEN ir antes de las rutas genéricas
+router.post(
+  "/upload-images",
+  uploadProductImages.array('fotos', 4),
+  imageUploadController.uploadImages
+);
+
+router.delete(
+  "/delete-image",
+  imageUploadController.deleteImageFromUrl
+);
+
+// Rutas genéricas
 router.get("/", productController.getAllProducts);
 
 router.get(
@@ -43,18 +56,6 @@ router.patch(
   "/:id/estado",
   productMiddleware.changeProductStateValidation,
   productController.changeStateProduct
-);
-
-// Rutas adicionales para manejo de imágenes
-router.post(
-  "/upload-images",
-  uploadProductImages.array('fotos', 4),
-  imageUploadController.uploadImages
-);
-
-router.delete(
-  "/delete-image",
-  imageUploadController.deleteImageFromUrl
 );
 
 module.exports = router;
