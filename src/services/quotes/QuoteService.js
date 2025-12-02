@@ -258,6 +258,8 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                 };
 
                 const createdProject = await ProjectService.createProject(projectData);
+                // Marcar la cotización como convertida para ocultarla del listado general
+                await Quote.update({ convertida_a_proyecto: true }, { where: { id_cotizacion: id }, transaction });
                 try {
                     const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
                     for (const r of recipients) {

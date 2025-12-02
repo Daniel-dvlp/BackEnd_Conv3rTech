@@ -539,9 +539,8 @@ class ProjectService {
 
   // Generar número de contrato
   async generateContractNumber() {
-    const projects = await ProjectRepository.getAllProjects();
     const currentYear = new Date().getFullYear();
-    const projectCount = projects.length + 1;
+    const projectCount = (await ProjectRepository.countAll()) + 1;
     return `CT-${currentYear}-${projectCount.toString().padStart(3, "0")}`;
   }
 }

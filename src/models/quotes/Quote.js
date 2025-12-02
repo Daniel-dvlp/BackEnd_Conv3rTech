@@ -53,6 +53,11 @@ const Quote = sequelize.define('Quote', {
         type: DataTypes.ENUM('Pendiente', 'Aprobada', 'Rechazada'),
         allowNull: false,
         defaultValue: 'Pendiente'
+    },
+    convertida_a_proyecto: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     }
 }, {
     tableName: 'cotizaciones',

@@ -421,6 +421,10 @@ class ProjectRepository {
     }
   }
 
+  async countAll() {
+    return Project.count();
+  }
+
   // Actualizar un proyecto
   async updateProject(id, projectData) {
     const transaction = await Project.sequelize.transaction();
