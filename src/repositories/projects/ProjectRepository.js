@@ -35,6 +35,20 @@ class ProjectRepository {
       whereClause.prioridad = filters.prioridad;
     }
 
+    // Filtro de robustez para usuarios técnicos
+    // Busca proyectos donde el usuario es responsable O está en la lista de empleados asociados
+    if (filters.usuarioAsignadoId) {
+      whereClause[Op.and] = [
+        ...(whereClause[Op.and] || []),
+        {
+          [Op.or]: [
+            { id_responsable: filters.usuarioAsignadoId },
+            { '$empleadosAsociados.id_usuario$': filters.usuarioAsignadoId }
+          ]
+        }
+      ];
+    }
+
     return Project.findAll({
       attributes: { exclude: ["id_cotizacion"] },
       where: whereClause,
@@ -154,9 +168,10 @@ class ProjectRepository {
   }
 
   // Obtener un proyecto por ID
-  async getProjectById(id) {
+  async getProjectById(id, transaction = null) {
     return Project.findByPk(id, {
       attributes: { exclude: ["id_cotizacion"] },
+      transaction,
       include: [
         {
           model: require("../../models/clients/Clients"),
@@ -285,8 +300,9 @@ class ProjectRepository {
   }
 
   // Crear un nuevo proyecto
-  async createProject(projectData) {
-    const transaction = await Project.sequelize.transaction();
+  async createProject(projectData, transaction = null) {
+    console.error(`[DEBUG-V3] [ProjectRepository] createProject called for client ${projectData.id_cliente}, quote ${projectData.id_cotizacion}`);
+    const t = transaction || await Project.sequelize.transaction();
 
     try {
       // Crear el proyecto principal
@@ -316,7 +332,7 @@ class ProjectRepository {
         projectDataToCreate.id_responsable = null;
       }
 
-      const project = await Project.create(projectDataToCreate, { transaction });
+      const project = await Project.create(projectDataToCreate, { transaction: t });
 
       // Crear materiales del proyecto
       if (projectData.materiales && projectData.materiales.length > 0) {
@@ -332,7 +348,7 @@ class ProjectRepository {
             precio_total: total,
           };
         });
-        await ProjectMaterial.bulkCreate(materiales, { transaction });
+        await ProjectMaterial.bulkCreate(materiales, { transaction: t });
       }
 
       // Crear servicios del proyecto
@@ -349,7 +365,7 @@ class ProjectRepository {
             precio_total: total,
           };
         });
-        await ProjectServicio.bulkCreate(servicios, { transaction });
+        await ProjectServicio.bulkCreate(servicios, { transaction: t });
       }
 
       // Crear empleados asociados
@@ -361,7 +377,7 @@ class ProjectRepository {
           id_proyecto: project.id_proyecto,
           id_usuario: empleado.id_usuario,
         }));
-        await ProjectEmpleado.bulkCreate(empleados, { transaction });
+        await ProjectEmpleado.bulkCreate(empleados, { transaction: t });
       }
 
       // Crear sedes del proyecto
@@ -377,7 +393,7 @@ class ProjectRepository {
                 presupuesto_total: Number.isFinite(Number(sedeData.presupuesto_total)) ? Number(sedeData.presupuesto_total) : 0,
                 presupuesto_restante: Number.isFinite(Number(sedeData.presupuesto_restante)) ? Number(sedeData.presupuesto_restante) : 0,
             },
-            { transaction }
+            { transaction: t }
           );
 
           // Crear materiales asignados a la sede
@@ -392,7 +408,7 @@ class ProjectRepository {
                 cantidad: material.cantidad,
               })
             );
-            await SedeMaterial.bulkCreate(sedeMateriales, { transaction });
+            await SedeMaterial.bulkCreate(sedeMateriales, { transaction: t });
           }
 
           // Crear servicios asignados a la sede
@@ -408,15 +424,22 @@ class ProjectRepository {
                 precio_unitario: servicio.precio_unitario,
               })
             );
-            await SedeServicio.bulkCreate(sedeServicios, { transaction });
+            await SedeServicio.bulkCreate(sedeServicios, { transaction: t });
           }
         }
       }
 
-      await transaction.commit();
-      return this.getProjectById(project.id_proyecto);
+      // Solo hacer commit si NO se proporcionó una transacción externa
+      if (!transaction) {
+        await t.commit();
+      }
+      
+      return this.getProjectById(project.id_proyecto, t);
     } catch (error) {
-      await transaction.rollback();
+      // Solo hacer rollback si NO se proporcionó una transacción externa
+      if (!transaction) {
+        await t.rollback();
+      }
       throw error;
     }
   }

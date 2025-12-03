@@ -58,7 +58,8 @@ const searchPagosAbonos = async (req, res) => {
 
 const cancelPagoAbono = async (req, res) => {
   try {
-    await Service.cancelPagoAbono(req.params.id);
+    const { motivo_anulacion } = req.body;
+    await Service.cancelPagoAbono(req.params.id, motivo_anulacion);
     // Mantener 200 por compatibilidad en endpoint legacy
     return ok(res, { success: true }, { message: 'Pago/Abono anulado' }, 200);
   } catch (error) {
@@ -124,7 +125,11 @@ const deleteProjectPayment = async (req, res) => {
         .json({ error: { code: 'payments.not_found', message: 'Pago no encontrado' } });
     }
 
-    await Service.cancelPagoAbono(paymentId);
+    const { motivo_anulacion } = req.body;
+    // Si viene motivo en body (raro en DELETE pero posible) se usa, si no, uno por defecto
+    const reason = motivo_anulacion || 'Eliminado desde gestión de proyecto';
+
+    await Service.cancelPagoAbono(paymentId, reason);
     // 204 sin cuerpo para DELETE
     return res.status(204).send().json({ message: 'Pago anulado' });
   } catch (error) {

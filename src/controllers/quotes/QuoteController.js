@@ -82,15 +82,27 @@ const deleteQuote = async (req, res) => {
 
 // ✅ Cambiar estado de cotización
 const changeQuoteState = async (req, res) => {
+    const timestamp = new Date().toISOString();
+    const requestId = Math.random().toString(36).substring(7);
+    console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Request received to change state for quote ${req.params.id}`);
+    console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Body:`, JSON.stringify(req.body));
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Validation errors:`, JSON.stringify(errors.array()));
         return res.status(400).json({ errors: errors.array() });
     }
     try {
         const motivoAnulacion = req.body.motivo_anulacion || null;
+        console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Calling quoteService.changeQuoteState...`);
+        
         const updatedQuote = await quoteService.changeQuoteState(req.params.id, req.body.estado, motivoAnulacion);
+        
+        console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Success! Sending response.`);
         res.status(200).json({ message: 'Estado de la cotización actualizado exitosamente', data: updatedQuote });
     } catch (error) {
+        console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Error changing state:`, error);
+        console.error(`[DEBUG-V3] [${timestamp}] [ReqID:${requestId}] [QuoteController] Error Stack:`, error.stack);
         res.status(400).json({ message: error.message });
     }
 };

@@ -8,6 +8,7 @@ const ProjectService = require('../../services/projects/ProjectService');
 const MailService = require('../../services/common/MailService');
 const Project = require('../../models/projects/Project');
 const Quote = require('../../models/quotes/Quote');
+const Users = require('../../models/users/Users');
 const ACCEPTED_STATES = ['Aprobada', 'Aceptada'];
 
 // ✅ Crear cotización (con sus detalles)
@@ -93,9 +94,11 @@ const createQuote = async (quote) => {
     }
 };
 
-// ✅ Obtener todas las cotizaciones
+// ✅ Obtener todas las cotizaciones (Excluye las que ya son proyectos/aprobadas)
 const getAllQuotes = async () => {
-    return QuoteRepository.getAllQuotes();
+    const quotes = await QuoteRepository.getAllQuotes();
+    // Filtrar las cotizaciones que NO estén en estados aceptados
+    return quotes.filter(q => !ACCEPTED_STATES.includes(q.estado));
 };
 
 // ✅ Obtener cotización por ID
@@ -200,6 +203,8 @@ const deleteQuote = async (id) => {
 // ✅ Cambiar estado de la cotización
 const changeQuoteState = async (id, state, motivoAnulacion = null) => {
     const transaction = await sequelize.transaction();
+    const logPrefix = `[DEBUG-V3] [QuoteService] [QuoteID:${id}]`;
+    console.error(`${logPrefix} Changing state to '${state}'`);
 
     try {
         const currentQuote = await Quote.findByPk(id, {
@@ -215,19 +220,46 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
         });
 
         if (!currentQuote) {
+            console.error(`${logPrefix} Quote not found`);
             throw new Error('Cotización no encontrada');
         }
 
-        const wasAccepted = ACCEPTED_STATES.includes(currentQuote.estado);
-        const willBeAccepted = ACCEPTED_STATES.includes(state);
+        console.error(`${logPrefix} Current state: '${currentQuote.estado}'`);
+
+        const normalize = (s) => s ? s.toUpperCase() : '';
+        const wasAccepted = ACCEPTED_STATES.some(s => normalize(s) === normalize(currentQuote.estado));
+        const willBeAccepted = ACCEPTED_STATES.some(s => normalize(s) === normalize(state));
+
+        console.error(`${logPrefix} wasAccepted: ${wasAccepted}, willBeAccepted: ${willBeAccepted}`);
 
         const updatedQuote = await QuoteRepository.changeQuoteState(id, state, motivoAnulacion, transaction);
 
-        // Crear proyecto y descontar inventario solo al pasar a un estado aceptado
-        if (willBeAccepted && !wasAccepted) {
-            // Evitar duplicados: si ya existe proyecto para esta cotización, no crear de nuevo
-            const existingProject = await Project.findOne({ where: { id_cotizacion: id } });
+        // Verificar si ya existe proyecto (para manejar casos de re-aprobación o migración)
+        const existingProject = await Project.findOne({ where: { id_cotizacion: id }, transaction });
+        
+        // Condición mejorada:
+        // 1. Si pasa de NO aceptado a ACEPTADO.
+        // 2. O si ya estaba aceptado pero NO tiene proyecto (caso de cotizaciones antiguas aprobadas sin lógica de proyecto/stock).
+        const shouldProcessApproval = willBeAccepted && (!wasAccepted || !existingProject);
+
+        console.error(`${logPrefix} Existing project found: ${!!existingProject} (ID: ${existingProject?.id_proyecto})`);
+        console.error(`${logPrefix} Should process approval logic (project/stock): ${shouldProcessApproval}`);
+        
+        if (!shouldProcessApproval && willBeAccepted) {
+             console.error(`${logPrefix} WARNING: Transitioning to Accepted state but SKIPPING logic because:`);
+             if (wasAccepted) console.error(`${logPrefix}    - Quote was already in accepted state.`);
+             if (existingProject) console.error(`${logPrefix}    - Project already exists.`);
+        }
+
+        let emailTasks = [];
+
+        // Crear proyecto y descontar inventario solo si se cumple la condición
+        if (shouldProcessApproval) {
+            console.error(`${logPrefix} Transitioning to accepted state (or fixing inconsistencies). Initiating project creation and stock deduction.`);
+            
+            // Evitar duplicados: verificar de nuevo (aunque ya lo tenemos en existingProject, la lógica original lo tenía aquí)
             if (!existingProject) {
+                console.error(`${logPrefix} Creating new project...`);
                 // Fecha de inicio en zona horaria local (YYYY-MM-DD)
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
@@ -251,43 +283,83 @@ const changeQuoteState = async (id, state, motivoAnulacion = null) => {
                     costo_total_servicios: parseFloat(updatedQuote.subtotal_servicios || 0),
                     costo_total_proyecto: parseFloat(updatedQuote.monto_cotizacion || 0),
                     id_cotizacion: updatedQuote.id_cotizacion,
+                    // Inicializar arrays vacíos explícitamente para evitar errores en validaciones
                     materiales: [],
                     servicios: [],
                     empleadosAsociados: [],
                     sedes: []
                 };
 
-                const createdProject = await ProjectService.createProject(projectData);
-                // Marcar la cotización como convertida para ocultarla del listado general
-                await Quote.update({ convertida_a_proyecto: true }, { where: { id_cotizacion: id }, transaction });
                 try {
-                    const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'] });
+                    const createdProject = await ProjectService.createProject(projectData, transaction);
+                    // Marcar la cotización como convertida para ocultarla del listado general
+                    await Quote.update({ convertida_a_proyecto: true }, { where: { id_cotizacion: id }, transaction });
+
+                    console.error(`${logPrefix} Project created with ID: ${createdProject.id}`);
+
+                    const recipients = await Users.findAll({ where: { id_rol: [1, 3] }, attributes: ['correo', 'nombre'], transaction });
                     for (const r of recipients) {
-                        const subject = `Proyecto pendiente de asignación: ${createdProject.nombre}`;
-                        const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
-                        await MailService.sendGenericEmail({ to: r.correo, subject, text });
+                        emailTasks.push(async () => {
+                            const subject = `Proyecto pendiente de asignación: ${createdProject.nombre}`;
+                            const text = `Se creó el proyecto '${createdProject.nombre}' desde una cotización aprobada. Asigne responsable y equipo de trabajo.`;
+                            try {
+                                await MailService.sendGenericEmail({ to: r.correo, subject, text });
+                                console.error(`${logPrefix} Email sent to ${r.correo}`);
+                            } catch (emailError) {
+                                console.error(`${logPrefix} Failed to send email to ${r.correo}:`, emailError);
+                            }
+                        });
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error(`${logPrefix} Error creating project:`, e);
+                    throw e; // Re-throw to rollback transaction
+                }
+            } else {
+                console.error(`${logPrefix} Project already exists, skipping creation.`);
             }
 
+            console.error(`${logPrefix} Starting stock deduction...`);
             for (const detail of currentQuote.detalles || []) {
+                console.error(`${logPrefix} Processing detail: product ID ${detail.id_producto}, quantity ${detail.cantidad}`);
                 if (detail.id_producto && detail.cantidad > 0) {
                     const product = detail.producto;
                     if (!product) {
+                        console.error(`${logPrefix} Product with ID ${detail.id_producto} not found in detail`);
                         throw new Error(`Producto con ID ${detail.id_producto} no encontrado`);
                     }
-                    const newStock = Number(product.stock || 0) - Number(detail.cantidad || 0);
+                    
+                    const currentStock = Number(product.stock || 0);
+                    const quantityToDeduct = Number(detail.cantidad || 0);
+                    const newStock = currentStock - quantityToDeduct;
+                    
+                    console.error(`${logPrefix} Product: ${product.nombre}, Current Stock: ${currentStock}, Deducting: ${quantityToDeduct}, New Stock: ${newStock}`);
+
+                    // Permitir stock negativo si es necesario, o bloquearlo.
+                    // Aquí se estaba lanzando error. Lo mantendremos pero con log claro.
                     if (newStock < 0) {
+                        console.error(`${logPrefix} INSUFFICIENT STOCK! Current: ${currentStock}, Needed: ${quantityToDeduct}`);
                         throw new Error(`Stock insuficiente para el producto ${product.nombre}. Stock disponible: ${product.stock}, requerido: ${detail.cantidad}`);
                     }
-                    await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
+                    const updateResult = await ProductRepository.updateStock(detail.id_producto, newStock, transaction);
+                    console.error(`${logPrefix} Stock updated successfully for product ${detail.id_producto}`);
+                } else {
+                    console.error(`${logPrefix} Skipping detail (not a product or quantity <= 0)`);
                 }
             }
+        } else {
+            console.error(`${logPrefix} State change does not require stock deduction (already accepted with project, or not becoming accepted).`);
         }
 
         await transaction.commit();
+        console.error(`${logPrefix} Transaction committed successfully`);
+
+        // Execute email tasks in background (don't block response)
+        Promise.all(emailTasks.map(task => task())).catch(err => console.error(`${logPrefix} Error processing background emails:`, err));
+
         return updatedQuote;
     } catch (error) {
+        console.error(`${logPrefix} Error in changeQuoteState:`, error);
+        console.error(`${logPrefix} Stack:`, error.stack);
         await transaction.rollback();
         throw error;
     }

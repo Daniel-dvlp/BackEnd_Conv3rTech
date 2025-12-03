@@ -71,7 +71,7 @@ const productBaseValidation = [
         .custom(value => parseInt(value) >= 0).withMessage('El stock debe ser mayor o igual a 0'),
     body('garantia')
         .isNumeric().withMessage('La garantía debe ser un número válido')
-        .custom(value => parseInt(value) >= 12).withMessage('La garantía debe ser igual o mayor a 12 meses'),
+        .isIn([6, 12, 24, 36]).withMessage('La garantía debe ser 6, 12, 24 o 36 meses'),
     body('codigo_barra')
         .optional()
         .isString()
@@ -116,8 +116,9 @@ const updateProductValidation = [
         .custom(value => parseInt(value) >= 0).withMessage('El stock debe ser mayor o igual a 0'),
     body('garantia')
         .optional()
-        .isInt({ min: 12 })
-        .withMessage('La garantía debe ser igual o mayor a 12 meses'),
+        .isInt()
+        .isIn([6, 12, 24, 36])
+        .withMessage('La garantía debe ser 6, 12, 24 o 36 meses'),
     body('codigo_barra')
         .optional()
         .isString()

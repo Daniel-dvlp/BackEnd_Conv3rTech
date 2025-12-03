@@ -20,6 +20,11 @@ const Service = sequelize.define('Service', {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false
     },
+    duracion: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        comment: 'Duración del servicio en formato "1h 30m"'
+    },
     url_imagen: {
         type: DataTypes.STRING(250),
         allowNull: true

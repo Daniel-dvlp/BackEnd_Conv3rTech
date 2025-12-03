@@ -232,7 +232,8 @@ async function run() {
   try {
     console.log('🚀 Iniciando E2E seed & test...');
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true }); // Disabled to avoid "Too many keys" error
+    await sequelize.sync();
 
     const base = await ensureBasicData();
     const quotes = await createQuotesDemo(base);

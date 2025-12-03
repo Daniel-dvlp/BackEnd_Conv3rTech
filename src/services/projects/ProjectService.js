@@ -64,7 +64,8 @@ class ProjectService {
   }
 
   // Crear un nuevo proyecto
-  async createProject(projectData) {
+  async createProject(projectData, transaction = null) {
+    console.error(`[DEBUG-V3] [ProjectService] createProject called with data:`, JSON.stringify(projectData, null, 2));
     try {
       // Validar datos requeridos
       this.validateProjectData(projectData);
@@ -83,7 +84,7 @@ class ProjectService {
       // Validar stock de materiales
       await this.validateMaterialStock(projectData.materiales);
 
-      const project = await ProjectRepository.createProject(projectData);
+      const project = await ProjectRepository.createProject(projectData, transaction);
       return this.transformProjectData(project);
     } catch (error) {
       throw new Error(`Error al crear proyecto: ${error.message}`);
@@ -315,7 +316,12 @@ class ProjectService {
       }, 0);
 
       const manoDeObra = parseFloat(projectRaw.costo_mano_obra ?? 0);
-      const total = totalMateriales + totalServicios + manoDeObra;
+      // Calcular total basado en los componentes
+      const calculatedTotal = totalMateriales + totalServicios + manoDeObra;
+      
+      // Usar el valor de la BD si existe y es mayor a 0 (prioridad a la BD), si no, usar el calculado
+      const dbTotal = parseFloat(projectRaw.costo_total_proyecto ?? 0);
+      const total = dbTotal > 0 ? dbTotal : calculatedTotal;
 
       return {
         materiales: parseFloat(totalMateriales.toFixed(2)),
@@ -331,13 +337,21 @@ class ProjectService {
       id: project.id_proyecto,
       numeroContrato: project.numero_contrato,
       nombre: project.nombre,
+      cotizacion: project.cotizacion ? {
+        id: project.cotizacion.id_cotizacion,
+        nombre: project.cotizacion.nombre_cotizacion,
+        estado: project.cotizacion.estado,
+        monto: parseFloat(project.cotizacion.monto_cotizacion || 0)
+      } : null,
       cliente: project.cliente?.nombre || "Cliente no encontrado",
       responsable: project.responsable ? {
+        id: project.responsable.id_usuario,
         nombre: `${project.responsable.nombre || ""} ${
           project.responsable.apellido || ""
         }`.trim(),
         avatarSeed: project.responsable.nombre || "User",
       } : {
+        id: null,
         nombre: "Sin asignar",
         avatarSeed: "User",
       },
@@ -349,6 +363,7 @@ class ProjectService {
       ubicacion: project.ubicacion,
       empleadosAsociados:
         project.empleadosAsociados?.map((emp) => ({
+          id: emp.empleado?.id_usuario,
           nombre: `${emp.empleado?.nombre || ""} ${
             emp.empleado?.apellido || ""
           }`.trim(),

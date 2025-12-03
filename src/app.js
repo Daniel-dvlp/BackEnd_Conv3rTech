@@ -6,6 +6,12 @@ require("dotenv").config();
 
 const app = express();
 
+// Middleware de logging global
+app.use((req, res, next) => {
+  console.error(`[Global] ${req.method} ${req.url}`);
+  next();
+});
+
 // Middleware
 const corsOptions = {
   origin: (origin, cb) => cb(null, true),
@@ -37,9 +43,8 @@ app.post("/api/upload", authMiddleware, upload.single("imagen"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No se subió ninguna imagen." });
   }
-  const url = `${req.protocol}://${req.get("host")}/uploads/${
-    req.file.filename
-  }`;
+  const url = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename
+    }`;
   res.json({ url });
 });
 
@@ -53,13 +58,8 @@ const Supplier = require("./models/supplier/SupplierModel");
 const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
-const LaborScheduling = require("./models/labor_scheduling/LaborSchedulingModel");
-const ShiftTemplate = require("./models/labor_scheduling/ShiftTemplateModel");
-const ShiftTimeSlot = require("./models/labor_scheduling/ShiftTimeSlotModel");
-const ShiftInstance = require("./models/labor_scheduling/ShiftInstanceModel");
-const EmployeeShiftAssignment = require("./models/labor_scheduling/EmployeeShiftAssignmentModel");
-const Schedule = require("./models/labor_scheduling/ScheduleModel");
-const UserScheduleAssignment = require("./models/labor_scheduling/UserScheduleAssignmentModel");
+const Programacion = require("./models/labor_scheduling/ProgramacionModel");
+const Novedad = require("./models/labor_scheduling/NovedadModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
 function setupAssociations() {
@@ -69,13 +69,8 @@ function setupAssociations() {
     Purchase,
     PurchaseDetail,
     User,
-    LaborScheduling,
-    ShiftTemplate,
-    ShiftTimeSlot,
-    ShiftInstance,
-    EmployeeShiftAssignment,
-    Schedule,
-    UserScheduleAssignment,
+    Programacion,
+    Novedad,
     // ... Agrega todos tus modelos aquí
   };
 
@@ -131,12 +126,12 @@ const categoryRoutes = require("./routes/products_category/ProductsCategoryRoute
 app.use("/api/productsCategory", categoryRoutes);
 
 //Ruta para productos
-const ProductRoutes = require("./routes/products/ProductsRoutes");
-app.use("/api/products/products", ProductRoutes);
 const ProductFeatureRoutes = require("./routes/products/FeatureRoutes");
 app.use("/api/products/features", ProductFeatureRoutes);
 const DatasheetRoutes = require("./routes/products/DatasheetRoutes");
 app.use("/api/products/datasheets", DatasheetRoutes);
+const ProductRoutes = require("./routes/products/ProductsRoutes");
+app.use("/api/products", ProductRoutes);
 
 //Ruta para ventas
 const SaleRoutes = require("./routes/products_sale/SaleRoutes");
@@ -153,12 +148,17 @@ app.use("/api/quotes/details", QuoteDetailsRoutes);
 // Rutas de usuarios
 const UsersRoutes = require("./routes/users/UsersRoutes");
 app.use("/api/users", UsersRoutes);
+
 const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
-const LaborSchedulingRoutes = require("./routes/labor_scheduling/LaborSchedulingRoutes");
-app.use("/api/labor-scheduling", LaborSchedulingRoutes);
+const ProgramacionesRoutes = require("./routes/labor_scheduling/ProgramacionesRoutes");
+app.use("/api/programaciones", ProgramacionesRoutes);
+const NovedadesRoutes = require("./routes/labor_scheduling/NovedadesRoutes");
+app.use("/api/novedades", NovedadesRoutes);
+const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
+app.use("/api/events", EventsRoutes);
 
 //Rutas de Categoria de Servicio
 const ServiceCategoryRoutes = require("./routes/service_categories/ServiceCategoryRoutes");
@@ -187,6 +187,32 @@ app.get("/api/health", (req, res) => {
     message: "Conv3rTech API está funcionando correctamente",
     timestamp: new Date().toISOString(),
   });
+});
+
+// Endpoint de prueba de conexión a BD (SOLO PARA DEBUG)
+// const sequelize = require("./config/database"); // YA IMPORTADO ARRIBA
+app.get("/api/test-db-connection", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    // Intentar una consulta simple
+    const [results] = await sequelize.query("SELECT 1+1 AS result");
+    
+    res.json({
+      success: true,
+      message: "Conexión a BD exitosa desde este entorno",
+      db_host: process.env.DB_HOST, // Ocultar en prod real, útil aquí para verificar
+      query_result: results[0],
+      env: process.env.NODE_ENV
+    });
+  } catch (error) {
+    console.error("DB Connection Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error conectando a la BD",
+      error: error.message,
+      config_host: process.env.DB_HOST // Para verificar qué host está usando Render
+    });
+  }
 });
 
 app.use((err, req, res, next) => {
