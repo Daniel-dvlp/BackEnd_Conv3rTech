@@ -41,7 +41,12 @@ const Product = sequelize.define('Product', {
     garantia: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: { min: 12 }
+        validate: {
+            isIn: {
+                args: [[6, 12, 24, 36]],
+                msg: 'La garantía debe ser 6, 12, 24 o 36 meses'
+            }
+        }
     },
     codigo_barra: {
         type: DataTypes.STRING(100),

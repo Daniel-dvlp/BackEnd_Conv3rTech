@@ -13,6 +13,7 @@ const createQuote = async (quote) => {
 // ✅ Obtener todas las cotizaciones
 const getAllQuotes = async () => {
     return Quote.findAll({
+        where: { convertida_a_proyecto: false },
         attributes: [
             'id_cotizacion',
             'nombre_cotizacion',

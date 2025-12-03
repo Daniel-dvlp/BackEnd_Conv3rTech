@@ -6,7 +6,6 @@ const PORT = process.env.PORT || 3006;
 
 (async () => {
   try {
-    // 1) Conexión
     await sequelize.authenticate();
     console.log("✅ Conexión a la base de datos establecida correctamente");
 
@@ -15,17 +14,17 @@ const PORT = process.env.PORT || 3006;
     console.log("⚠️ Sync disabled temporarily to avoid 'Too many keys' error");
     console.log("✅ Modelos sincronizados (skipped)");
 
-    // ❌ Eliminado: no llamamos a rbacInit ni a ningún startup
-    // await require("./startup/rbacInit")();
+    if (process.env.NODE_ENV !== "production") {
+      await sequelize.sync();
+      console.log("✅ Modelos sincronizados (dev)");
+    }
 
-    // 3) Levantar servidor Express
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (err) {
     console.error("❌ Error conectando a la base de datos:", err);
-
-    // Levantar igual el servidor sin BD
     console.log("⚠️ Iniciando servidor sin sincronización de base de datos...");
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT} (sin BD)`);

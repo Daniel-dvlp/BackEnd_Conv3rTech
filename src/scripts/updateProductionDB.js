@@ -9,6 +9,7 @@ const Privilege = require("../models/auth/Privilege");
 const PermissionPrivilege = require("../models/auth/PermissionPrivilege");
 const RolPermisoPrivilegio = require("../models/rol_permiso_privilegio/rol_permiso_privilegio");
 const Users = require("../models/users/Users");
+const UsuarioPermisoPrivilegio = require("../models/usuario_permiso_privilegio/usuario_permiso_privilegio");
 
 // Seeder existente para RBAC
 const seedAuth = require("./seedAuth");
