@@ -1,4 +1,6 @@
 const appointmentRepository = require("../../repositories/appointments/AppointmentRepository");
+const Programacion = require("../../models/labor_scheduling/ProgramacionModel");
+const { Op } = require("sequelize");
 
 class AppointmentService {
   async getAppointments() {
@@ -15,33 +17,24 @@ class AppointmentService {
     // 📌 Reglas de negocio al crear una cita
 
     // 1. Validar campos obligatorios
-    const { cliente, telefono, servicio, direccion, fechaHora, encargado } = data;
-    if (!cliente || !telefono || !servicio || !direccion || !fechaHora || !encargado) {
-      throw new Error("Todos los campos son obligatorios");
+    const { id_cliente, id_usuario, id_servicio, fecha, hora_inicio, hora_fin, direccion } = data;
+    if (!id_cliente || !id_usuario || !id_servicio || !fecha || !hora_inicio || !hora_fin || !direccion) {
+      throw new Error("Todos los campos obligatorios deben ser proporcionados");
     }
 
-    // 2. Validar teléfono (solo números y mínimo 10 dígitos)
-    if (!/^\d{10,}$/.test(telefono)) {
-      throw new Error("El teléfono debe tener al menos 10 dígitos numéricos");
+    // 2. Validar que hora_fin sea posterior a hora_inicio
+    if (hora_inicio >= hora_fin) {
+      throw new Error("La hora de fin debe ser posterior a la hora de inicio");
     }
 
-    // 3. Validar horario laboral (ejemplo: 8:00 a 18:00)
-    const hora = new Date(fechaHora).getHours();
-    if (hora < 8 || hora > 18) {
-      throw new Error("La cita debe estar dentro del horario laboral (8:00 - 18:00)");
-    }
+    // 3. Validar horario laboral del trabajador
+    await this.validateWorkingHours(id_usuario, fecha, hora_inicio, hora_fin);
 
-    // 4. Validar solapamiento de citas del encargado
-    const citasExistentes = await appointmentRepository.findAll();
-    const conflicto = citasExistentes.find(
-      (c) => c.encargado === encargado && new Date(c.fechaHora).getTime() === new Date(fechaHora).getTime()
-    );
-    if (conflicto) {
-      throw new Error("El encargado ya tiene una cita en esa fecha y hora");
-    }
+    // 4. Validar solapamiento de citas del trabajador
+    await this.validateAppointmentOverlap(id_usuario, fecha, hora_inicio, hora_fin);
 
     // 5. Estado inicial de la cita
-    data.estado = "Pendiente";
+    data.estado = data.estado || "Pendiente";
 
     return await appointmentRepository.create(data);
   }
@@ -57,9 +50,23 @@ class AppointmentService {
       throw new Error("No se puede modificar una cita Completada o Cancelada");
     }
 
-    // Validar teléfono en caso de actualización
-    if (data.telefono && !/^\d{10,}$/.test(data.telefono)) {
-      throw new Error("El teléfono debe tener al menos 10 dígitos numéricos");
+    // Si se están actualizando fecha/hora, validar horario laboral y solapamiento
+    if (data.fecha || data.hora_inicio || data.hora_fin || data.id_usuario) {
+      const fecha = data.fecha || citaExistente.fecha;
+      const hora_inicio = data.hora_inicio || citaExistente.hora_inicio;
+      const hora_fin = data.hora_fin || citaExistente.hora_fin;
+      const id_usuario = data.id_usuario || citaExistente.id_usuario;
+
+      // Validar que hora_fin sea posterior a hora_inicio
+      if (hora_inicio >= hora_fin) {
+        throw new Error("La hora de fin debe ser posterior a la hora de inicio");
+      }
+
+      // Validar horario laboral
+      await this.validateWorkingHours(id_usuario, fecha, hora_inicio, hora_fin);
+
+      // Validar solapamiento (excluyendo la cita actual)
+      await this.validateAppointmentOverlap(id_usuario, fecha, hora_inicio, hora_fin, id);
     }
 
     return await appointmentRepository.update(id, data);
@@ -76,7 +83,121 @@ class AppointmentService {
       throw new Error("No se puede eliminar una cita Completada o Cancelada");
     }
 
+    // Validar que falten más de 3 horas para la cita
+    const ahora = new Date();
+    const fechaHoraCita = new Date(`${citaExistente.fecha}T${citaExistente.hora_inicio}`);
+    const diferenciaHoras = (fechaHoraCita - ahora) / (1000 * 60 * 60);
+
+    if (diferenciaHoras < 3) {
+      throw new Error("No se puede eliminar una cita faltando menos de 3 horas para su realización");
+    }
+
     return await appointmentRepository.delete(id);
+  }
+
+  /**
+   * Valida que la cita esté dentro del horario laboral del trabajador
+   */
+  async validateWorkingHours(id_usuario, fecha, hora_inicio, hora_fin) {
+    // Obtener programación activa del trabajador
+    const programacion = await Programacion.findOne({
+      where: {
+        usuario_id: id_usuario,
+        estado: "Activa",
+        fecha_inicio: {
+          [Op.lte]: fecha // La programación debe haber iniciado antes o en la fecha de la cita
+        }
+      },
+      order: [['fecha_inicio', 'DESC']]
+    });
+
+    if (!programacion) {
+      throw new Error("El trabajador no tiene una programación laboral activa para esta fecha");
+    }
+
+    // Obtener el día de la semana (en español)
+    const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const fechaObj = new Date(fecha + 'T00:00:00');
+    const diaSemana = diasSemana[fechaObj.getDay()];
+
+    // Obtener bloques horarios del día
+    const bloquesDelDia = programacion.dias[diaSemana];
+
+    if (!bloquesDelDia || bloquesDelDia.length === 0) {
+      throw new Error(`El trabajador no tiene horario laboral configurado para ${diaSemana}`);
+    }
+
+    // Validar que hora_inicio y hora_fin estén dentro de algún bloque
+    const dentroDeHorario = bloquesDelDia.some(bloque => {
+      const bloqueInicio = bloque.horaInicio;
+      const bloqueFin = bloque.horaFin;
+
+      // Convertir a formato comparable (HH:MM:SS)
+      const inicio = this.normalizeTime(hora_inicio);
+      const fin = this.normalizeTime(hora_fin);
+      const bInicio = this.normalizeTime(bloqueInicio);
+      const bFin = this.normalizeTime(bloqueFin);
+
+      return inicio >= bInicio && fin <= bFin;
+    });
+
+    if (!dentroDeHorario) {
+      throw new Error("La cita debe estar dentro del horario laboral del trabajador");
+    }
+  }
+
+  /**
+   * Valida que no haya solapamiento con otras citas del mismo trabajador
+   */
+  async validateAppointmentOverlap(id_usuario, fecha, hora_inicio, hora_fin, excludeId = null) {
+    const citasExistentes = await appointmentRepository.findAll();
+
+    const conflicto = citasExistentes.find(cita => {
+      // Excluir la cita actual si estamos editando
+      if (excludeId && cita.id_cita === excludeId) return false;
+
+      // Solo verificar citas del mismo trabajador en la misma fecha
+      if (cita.id_usuario !== id_usuario || cita.fecha !== fecha) return false;
+
+      // Verificar solapamiento de horarios
+      const citaInicio = this.normalizeTime(cita.hora_inicio);
+      const citaFin = this.normalizeTime(cita.hora_fin);
+      const nuevaInicio = this.normalizeTime(hora_inicio);
+      const nuevaFin = this.normalizeTime(hora_fin);
+
+      // Hay solapamiento si:
+      // - La nueva cita inicia durante una cita existente
+      // - La nueva cita termina durante una cita existente
+      // - La nueva cita contiene completamente una cita existente
+      return (
+        (nuevaInicio >= citaInicio && nuevaInicio < citaFin) ||
+        (nuevaFin > citaInicio && nuevaFin <= citaFin) ||
+        (nuevaInicio <= citaInicio && nuevaFin >= citaFin)
+      );
+    });
+
+    if (conflicto) {
+      throw new Error("El trabajador ya tiene una cita en ese horario");
+    }
+  }
+
+  /**
+   * Normaliza el formato de hora a HH:MM:SS para comparaciones
+   */
+  normalizeTime(time) {
+    if (!time) return "00:00:00";
+
+    // Si ya tiene formato HH:MM:SS, retornar
+    if (time.length === 8 && time.split(':').length === 3) {
+      return time;
+    }
+
+    // Si tiene formato HH:MM, agregar :00
+    if (time.length === 5 && time.split(':').length === 2) {
+      return `${time}:00`;
+    }
+
+    return time;
   }
 }
 
