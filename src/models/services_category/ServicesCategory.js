@@ -1,47 +1,31 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../../config/database');
 
-const ServicesCategory = sequelize.define(
-  "ServicesCategory",
-  {
-    id_servicio: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+const ServiceCategory = sequelize.define('ServiceCategory', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        field: 'id_categoria_servicio'
     },
     nombre: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: true,
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        unique: true
     },
     descripcion: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+        type: DataTypes.STRING(250),
+        allowNull: false
     },
-    precio: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
-    },
-    estado: {
+    estado: { 
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    tableName: "categoria_servicios",
-    timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
+      defaultValue: true // true = activo, false = inactivo
   }
-);
+}, {
+    tableName: 'categorias_servicios',
+    timestamps: false
+});
 
-module.exports = ServicesCategory;
+// La relación con el modelo 'Service' ha sido removida para que este archivo sea independiente.
+
+module.exports = ServiceCategory;

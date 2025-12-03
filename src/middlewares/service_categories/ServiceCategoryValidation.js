@@ -1,5 +1,5 @@
 const { body, param } = require('express-validator');
-const ServiceCategory = require('../../models/services_categories/ServiceCategory');
+const ServiceCategory = require('../../models/services_category/ServicesCategory');
 
 const categoryExists = async (id) => {
     const category = await ServiceCategory.findByPk(id);

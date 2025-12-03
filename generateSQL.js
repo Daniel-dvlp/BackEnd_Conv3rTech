@@ -25,7 +25,6 @@ const Product = require('./src/models/products/Product');
 const Feature = require('./src/models/products/Feature');
 const Datasheet = require('./src/models/products/Datasheet');
 
-const ServiceCategory = require('./src/models/services_categories/ServiceCategory');
 const Service = require('./src/models/services/Service');
 
 const Purchase = require('./src/models/purchase/PurchaseModel');
@@ -54,7 +53,7 @@ const PaymentInstallment = require('./src/models/payments_installments/payments_
 
 const RolPermisoPrivilegio = require('./src/models/rol_permiso_privilegio/rol_permiso_privilegio');
 const RolePrivilege = require('./src/models/auth/RolePrivilege');
-const ServicesCategory = require('./src/models/services_category/ServicesCategory');
+const ServiceCategory = require('./src/models/services_category/ServicesCategory');
 
 const models = {
   Role,

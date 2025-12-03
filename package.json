@@ -14,7 +14,7 @@
     "create-test-user": "node src/scripts/createTestUser.js",
     "setup-auth": "npm run setup-db && npm run seed-auth && npm run create-admin",
     "update:db": "node src/scripts/updateProductionDB.js",
-    "test": "node test_complete.js",
+    "test": "jest --runInBand",
     "test-auth": "node test_auth.js",
     "test-profile": "node test_profile.js",
     "test-projects": "node test_projects.js",
@@ -51,7 +51,9 @@
     "to-regex-range": "^5.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "is-extglob": "^2.1.1",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
   }
