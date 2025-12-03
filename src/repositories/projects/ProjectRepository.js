@@ -35,18 +35,28 @@ class ProjectRepository {
       whereClause.prioridad = filters.prioridad;
     }
 
+    // Filtro de robustez para usuarios técnicos
+    // Busca proyectos donde el usuario es responsable O está en la lista de empleados asociados
+    if (filters.usuarioAsignadoId) {
+      whereClause[Op.and] = [
+        ...(whereClause[Op.and] || []),
+        {
+          [Op.or]: [
+            { id_responsable: filters.usuarioAsignadoId },
+            { '$empleadosAsociados.id_usuario$': filters.usuarioAsignadoId }
+          ]
+        }
+      ];
+    }
+
     return Project.findAll({
+      attributes: { exclude: ["id_cotizacion"] },
       where: whereClause,
       include: [
         {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre", "documento"],
-        },
-        {
-          model: require("../../models/quotes/Quote"),
-          as: "cotizacion",
-          attributes: ["id_cotizacion", "nombre_cotizacion", "estado"],
         },
         {
           model: require("../../models/users/Users"),
@@ -160,17 +170,13 @@ class ProjectRepository {
   // Obtener un proyecto por ID
   async getProjectById(id, transaction = null) {
     return Project.findByPk(id, {
+      attributes: { exclude: ["id_cotizacion"] },
       transaction,
       include: [
         {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre", "documento"],
-        },
-        {
-          model: require("../../models/quotes/Quote"),
-          as: "cotizacion",
-          attributes: ["id_cotizacion", "nombre_cotizacion", "estado", "monto_cotizacion"],
         },
         {
           model: require("../../models/users/Users"),
@@ -436,6 +442,10 @@ class ProjectRepository {
       }
       throw error;
     }
+  }
+
+  async countAll() {
+    return Project.count();
   }
 
   // Actualizar un proyecto

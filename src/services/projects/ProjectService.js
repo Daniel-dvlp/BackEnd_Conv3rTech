@@ -345,11 +345,13 @@ class ProjectService {
       } : null,
       cliente: project.cliente?.nombre || "Cliente no encontrado",
       responsable: project.responsable ? {
+        id: project.responsable.id_usuario,
         nombre: `${project.responsable.nombre || ""} ${
           project.responsable.apellido || ""
         }`.trim(),
         avatarSeed: project.responsable.nombre || "User",
       } : {
+        id: null,
         nombre: "Sin asignar",
         avatarSeed: "User",
       },
@@ -361,6 +363,7 @@ class ProjectService {
       ubicacion: project.ubicacion,
       empleadosAsociados:
         project.empleadosAsociados?.map((emp) => ({
+          id: emp.empleado?.id_usuario,
           nombre: `${emp.empleado?.nombre || ""} ${
             emp.empleado?.apellido || ""
           }`.trim(),
@@ -551,9 +554,8 @@ class ProjectService {
 
   // Generar número de contrato
   async generateContractNumber() {
-    const projects = await ProjectRepository.getAllProjects();
     const currentYear = new Date().getFullYear();
-    const projectCount = projects.length + 1;
+    const projectCount = (await ProjectRepository.countAll()) + 1;
     return `CT-${currentYear}-${projectCount.toString().padStart(3, "0")}`;
   }
 }
