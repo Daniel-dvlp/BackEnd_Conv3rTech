@@ -17,8 +17,8 @@ class AppointmentService {
     // 📌 Reglas de negocio al crear una cita
 
     // 1. Validar campos obligatorios
-    const { id_cliente, id_usuario, id_servicio, fecha, hora_inicio, hora_fin, direccion } = data;
-    if (!id_cliente || !id_usuario || !id_servicio || !fecha || !hora_inicio || !hora_fin || !direccion) {
+    const { id_cliente, id_usuario, id_servicio, fecha, hora_inicio, hora_fin } = data;
+    if (!id_cliente || !id_usuario || !id_servicio || !fecha || !hora_inicio || !hora_fin) {
       throw new Error("Todos los campos obligatorios deben ser proporcionados");
     }
 

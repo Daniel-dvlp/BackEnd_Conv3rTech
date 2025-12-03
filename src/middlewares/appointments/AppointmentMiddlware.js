@@ -7,7 +7,8 @@ exports.validateAppointment = [
   body("fecha").isDate().withMessage("Fecha inválida"),
   body("hora_inicio").notEmpty().withMessage("Hora de inicio requerida"),
   body("hora_fin").notEmpty().withMessage("Hora de fin requerida"),
-  body("direccion").notEmpty().withMessage("Dirección requerida"),
+  body("direccion").optional().isString().withMessage("Dirección debe ser texto"),
+  body("observaciones").optional().isString().withMessage("Observaciones debe ser texto"),
   body("estado")
     .optional()
     .isIn(["Pendiente", "Confirmada", "Cancelada", "Completada"])
