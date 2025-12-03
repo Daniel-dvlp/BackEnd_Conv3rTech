@@ -3,6 +3,7 @@ const Appointment = require('../../models/appointments/Appointments');
 const Client = require("../../models/clients/Clients");
 const Service = require("../../models/services/Service");
 const User = require("../../models/users/Users");
+const AddressClients = require("../../models/clients/AddressClients"); // Importar modelo
 
 class AppointmentRepository {
   async findAll() {
@@ -22,6 +23,11 @@ class AppointmentRepository {
           model: Service,
           as: "servicio",
           attributes: ["id_servicio", "nombre", "descripcion", "precio", "duracion"],
+        },
+        {
+          model: AddressClients,
+          as: "direccion_cliente",
+          attributes: ["id_direccion", "nombre_direccion", "direccion", "ciudad"],
         },
       ],
     });
@@ -44,6 +50,11 @@ class AppointmentRepository {
           model: Service,
           as: "servicio",
           attributes: ["id_servicio", "nombre", "descripcion", "precio", "duracion"],
+        },
+        {
+          model: AddressClients,
+          as: "direccion_cliente",
+          attributes: ["id_direccion", "nombre_direccion", "direccion", "ciudad"],
         },
       ],
     });

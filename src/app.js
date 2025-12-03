@@ -58,29 +58,9 @@ const Supplier = require("./models/supplier/SupplierModel");
 const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
-const Programacion = require("./models/labor_scheduling/ProgramacionModel");
-const Novedad = require("./models/labor_scheduling/NovedadModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
-function setupAssociations() {
-  const models = {
-    Product,
-    Supplier,
-    Purchase,
-    PurchaseDetail,
-    User,
-    Programacion,
-    Novedad,
-    // ... Agrega todos tus modelos aquí
-  };
-
-  Object.values(models).forEach((model) => {
-    if (model.associate) {
-      model.associate(models);
-    }
-  });
-}
-setupAssociations();
+require("./models/labor_scheduling/associations");
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
