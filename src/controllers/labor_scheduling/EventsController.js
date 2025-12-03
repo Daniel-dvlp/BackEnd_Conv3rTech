@@ -9,9 +9,19 @@ const getEvents = async (req, res, next) => {
                 message: 'Debe enviar rangeStart y rangeEnd en formato YYYY-MM-DD',
             });
         }
-        const userFilter = usuarioIds
-            ? usuarioIds.split(',').map((id) => parseInt(id, 10)).filter(Boolean)
+
+        // ROBUST PERMISSION CHECK: Si NO es Admin, forzar filtro por su propio usuarioId
+        let enforcedUserIds = usuarioIds;
+        if (req.user && req.user.id_rol !== 1) {
+             // Si el usuario intenta pedir otros IDs, los ignoramos y forzamos el suyo
+             enforcedUserIds = String(req.user.id_usuario);
+             console.log(`🔒 [EventsController] Restringiendo eventos para usuario ${req.user.id_usuario}`);
+        }
+
+        const userFilter = enforcedUserIds
+            ? enforcedUserIds.split(',').map((id) => parseInt(id, 10)).filter(Boolean)
             : undefined;
+
         const data = await LaborSchedulingService.getCalendarEvents({
             rangeStart,
             rangeEnd,
