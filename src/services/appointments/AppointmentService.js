@@ -1,5 +1,5 @@
 const appointmentRepository = require("../../repositories/appointments/AppointmentRepository");
-const Programacion = require("../../models/labor_scheduling/ProgramacionModel");
+const { Programacion } = require("../../models/labor_scheduling/associations");
 const { Op } = require("sequelize");
 
 class AppointmentService {
