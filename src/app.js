@@ -224,10 +224,26 @@ app.use((err, req, res, next) => {
   });
 });
 
+// --- Configuración para servir el Frontend (SPA) ---
+const frontendPath = path.join(__dirname, "../../Conv3rTech-Frontend/dist");
+app.use(express.static(frontendPath));
+
 app.use("*", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Ruta no encontrada",
+  // Si la ruta comienza con /api, devolvemos 404 JSON
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(404).json({
+      success: false,
+      message: "Ruta no encontrada",
+    });
+  }
+
+  // Para cualquier otra ruta, servimos el index.html del frontend
+  res.sendFile(path.join(frontendPath, "index.html"), (err) => {
+    if (err) {
+      // Si falla (por ejemplo, no se ha hecho build), devolvemos 404 básico
+      console.error("Error enviando index.html:", err);
+      res.status(404).send("Frontend no encontrado. Asegúrate de haber ejecutado 'npm run build' en la carpeta del frontend.");
+    }
   });
 });
 
