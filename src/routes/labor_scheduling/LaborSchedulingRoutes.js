@@ -19,7 +19,23 @@ router.get("/", /* permissionMiddleware("Programación laboral", "Ver"), */ Labo
 
 // GET /api/labor-scheduling/:scheduleId
 // Obtener un horario por ID
-router.get("/:scheduleId", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getScheduleById);
+router.get("/usuarios-disponibles", /* permissionMiddleware("Programación laboral", "Ver"), */ async (req, res) => {
+  try {
+    const users = await Users.findAll({ attributes: ["id_usuario", "nombre", "apellido", "documento"], where: { estado_usuario: "Activo" } });
+    const data = users.map((u) => ({ id: u.id_usuario, nombre: u.nombre, apellido: u.apellido, documento: u.documento }));
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.get("/novedades", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedades);
+router.get("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedadById);
+router.post("/novedades", /* permissionMiddleware("Programación laboral", "Crear"), */ LaborSchedulingController.createNovedad);
+router.put("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Editar"), */ LaborSchedulingController.updateNovedad);
+router.delete("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Eliminar"), */ LaborSchedulingController.deleteNovedad);
+
+router.get("/:scheduleId(\\d+)", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getScheduleById);
 
 // POST /api/labor-scheduling/recurring
 // Crear un horario recurrente
@@ -33,31 +49,15 @@ router.post("/one-time", /* permissionMiddleware("Programación laboral", "Crear
 
 // POST /api/labor-scheduling/:scheduleId/assign
 // Asignar un horario a usuarios
-router.post("/:scheduleId/assign", /* permissionMiddleware("Programación laboral", "Editar"), */ validateAssignScheduleToUsers, LaborSchedulingController.assignScheduleToUsers);
+router.post("/:scheduleId(\\d+)/assign", /* permissionMiddleware("Programación laboral", "Editar"), */ validateAssignScheduleToUsers, LaborSchedulingController.assignScheduleToUsers);
 
 // PUT /api/labor-scheduling/:scheduleId
 // Actualizar un horario
-router.put("/:scheduleId", /* permissionMiddleware("Programación laboral", "Editar"), */ validateUpdateSchedule, LaborSchedulingController.updateSchedule);
+router.put("/:scheduleId(\\d+)", /* permissionMiddleware("Programación laboral", "Editar"), */ validateUpdateSchedule, LaborSchedulingController.updateSchedule);
 
 // DELETE /api/labor-scheduling/:scheduleId
 // Eliminar un horario
-router.delete("/:scheduleId", /* permissionMiddleware("Programación laboral", "Eliminar"), */ LaborSchedulingController.deleteSchedule);
+router.delete("/:scheduleId(\\d+)", /* permissionMiddleware("Programación laboral", "Eliminar"), */ LaborSchedulingController.deleteSchedule);
 
-router.get("/usuarios-disponibles", /* permissionMiddleware("Programación laboral", "Ver"), */ async (req, res) => {
-  try {
-    const users = await Users.findAll({ attributes: ["id_usuario", "nombre", "apellido", "documento"], where: { estado_usuario: "Activo" } });
-    const data = users.map((u) => ({ id: u.id_usuario, nombre: u.nombre, apellido: u.apellido, documento: u.documento }));
-    res.status(200).json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Rutas de Novedades
-router.get("/novedades", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedades);
-router.get("/novedades/:id", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedadById);
-router.post("/novedades", /* permissionMiddleware("Programación laboral", "Crear"), */ LaborSchedulingController.createNovedad);
-router.put("/novedades/:id", /* permissionMiddleware("Programación laboral", "Editar"), */ LaborSchedulingController.updateNovedad);
-router.delete("/novedades/:id", /* permissionMiddleware("Programación laboral", "Eliminar"), */ LaborSchedulingController.deleteNovedad);
 
 module.exports = router;
