@@ -29,6 +29,16 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+const getUsersByRole = async (req, res) => {
+    try {
+        const { roleName } = req.params;
+        const users = await UsersServices.getUsersByRoleName(roleName);
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 const getUserById = async (req, res) => {
     try {
         const user = await UsersServices.getUserById(req.params.id);
@@ -152,5 +162,6 @@ module.exports = {
     searchUsers,
     getMyProfile,
     updateMyProfile,
-    changeMyPassword
+    changeMyPassword,
+    getUsersByRole
 };

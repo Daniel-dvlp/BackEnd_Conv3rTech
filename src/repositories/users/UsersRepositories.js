@@ -37,6 +37,20 @@ const getAllUsers = async () => {
   });
 };
 
+const getUsersByRoleName = async (roleName) => {
+  return User.findAll({
+    include: [
+      {
+        model: Role,
+        as: "rol",
+        where: { nombre_rol: roleName },
+        attributes: ["id_rol", "nombre_rol", "descripcion"],
+      },
+    ],
+    attributes: { exclude: ["contrasena"] },
+  });
+};
+
 const getUserById = async (id) => {
   return User.findByPk(id, {
     include: [
@@ -112,4 +126,5 @@ module.exports = {
   updateUser,
   deleteUser,
   searchUsers,
+  getUsersByRoleName,
 };

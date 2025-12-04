@@ -1,18 +1,8 @@
 const Programacion = require('./ProgramacionModel');
 const Novedad = require('./NovedadModel');
-const User = require('../users/Users');
 
-// Asociaciones de Programación
-Programacion.belongsTo(User, {
-    foreignKey: 'usuario_id',
-    as: 'usuario',
-});
-
-// Asociaciones de Novedad
-Novedad.belongsTo(User, {
-    foreignKey: 'usuario_id',
-    as: 'usuario',
-});
+// Las asociaciones se manejan ahora en los modelos individuales mediante el método .associate()
+// y se inicializan en app.js / server.js para evitar duplicados.
 
 module.exports = {
     Programacion,

@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3006;
     console.log("✅ Conexión a la base de datos establecida correctamente");
 
     if (process.env.NODE_ENV !== "production") {
-      await sequelize.sync();
+      await sequelize.sync({ alter: true });
       console.log("✅ Modelos sincronizados (dev)");
     }
 

@@ -23,6 +23,11 @@ router.get(
   UsersControllers.getAllUsers
 );
 router.get(
+  "/role/:roleName",
+  permissionMiddleware("Usuarios", "Leer"),
+  UsersControllers.getUsersByRole
+);
+router.get(
   "/:id",
   permissionMiddleware("Usuarios", "Leer"),
   UsuariosValidations.findUserByIdValidation,
