@@ -58,29 +58,9 @@ const Supplier = require("./models/supplier/SupplierModel");
 const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
-const Programacion = require("./models/labor_scheduling/ProgramacionModel");
-const Novedad = require("./models/labor_scheduling/NovedadModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
-function setupAssociations() {
-  const models = {
-    Product,
-    Supplier,
-    Purchase,
-    PurchaseDetail,
-    User,
-    Programacion,
-    Novedad,
-    // ... Agrega todos tus modelos aquí
-  };
-
-  Object.values(models).forEach((model) => {
-    if (model.associate) {
-      model.associate(models);
-    }
-  });
-}
-setupAssociations();
+require("./models/labor_scheduling/associations");
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
@@ -153,12 +133,83 @@ const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
-const ProgramacionesRoutes = require("./routes/labor_scheduling/ProgramacionesRoutes");
-app.use("/api/programaciones", ProgramacionesRoutes);
-const NovedadesRoutes = require("./routes/labor_scheduling/NovedadesRoutes");
-app.use("/api/novedades", NovedadesRoutes);
-const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
-app.use("/api/events", EventsRoutes);
+const LaborSchedulingRoutes = require("./routes/labor_scheduling/LaborSchedulingRoutes");
+app.use("/api/labor-scheduling", LaborSchedulingRoutes);
+// Mapeo de rutas antiguas para compatibilidad o archivos faltantes
+// const ProgramacionesRoutes = require("./routes/labor_scheduling/ProgramacionesRoutes");
+app.use("/api/programaciones", LaborSchedulingRoutes); // Usando LaborSchedulingRoutes como reemplazo temporal
+// const NovedadesRoutes = require("./routes/labor_scheduling/NovedadesRoutes");
+// app.use("/api/novedades", NovedadesRoutes);
+// const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
+const Programacion = require("./models/labor_scheduling/ProgramacionModel");
+app.get("/api/events", authMiddleware, async (req, res) => {
+  try {
+    const rangeStart = req.query.rangeStart;
+    const rangeEnd = req.query.rangeEnd;
+    const usuarioIds = (req.query.usuarioIds || "")
+      .split(",")
+      .map((v) => Number(v))
+      .filter((v) => !Number.isNaN(v));
+    const include = [{ model: require("./models/users/Users"), as: "usuario" }];
+    const where = {};
+    if (usuarioIds.length) where.usuario_id = usuarioIds;
+    const items = await Programacion.findAll({ include, where });
+    const startDate = rangeStart ? new Date(rangeStart) : null;
+    const endDate = rangeEnd ? new Date(rangeEnd) : null;
+    const result = [];
+    const dayMap = {
+      0: "domingo",
+      1: "lunes",
+      2: "martes",
+      3: "miercoles",
+      4: "jueves",
+      5: "viernes",
+      6: "sabado",
+    };
+    function formatTime(dateStr, time) {
+      return `${dateStr}T${time.length === 5 ? time : (time || "00:00")}:00`;
+    }
+    function iterateDates(from, to, cb) {
+      if (!from || !to) return;
+      const d = new Date(from);
+      while (d <= to) {
+        cb(new Date(d));
+        d.setDate(d.getDate() + 1);
+      }
+    }
+    iterateDates(startDate, endDate, (date) => {
+      const dateStr = date.toISOString().split("T")[0];
+      const dayLabel = dayMap[date.getDay()];
+      items.forEach((s) => {
+        const slots = (s.dias || {})[dayLabel] || [];
+        slots.forEach((slot, idx) => {
+          const color = slot.color || s.color || "#2563EB";
+          result.push({
+            id: `prog-${s.id_programacion}-${dateStr}-${idx}`,
+            title: slot.subtitulo || s.titulo,
+            start: formatTime(dateStr, slot.horaInicio),
+            end: formatTime(dateStr, slot.horaFin),
+            allDay: false,
+            backgroundColor: color,
+            borderColor: color,
+            extendedProps: {
+              type: "programacion",
+              meta: {
+                programacionId: s.id_programacion,
+                usuarioId: s.usuario_id,
+                usuario: s.usuario,
+                descripcion: s.descripcion,
+              },
+            },
+          });
+        });
+      });
+    });
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 //Rutas de Categoria de Servicio
 const ServiceCategoryRoutes = require("./routes/service_categories/ServiceCategoryRoutes");
@@ -224,26 +275,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// --- Configuración para servir el Frontend (SPA) ---
-const frontendPath = path.join(__dirname, "../../Conv3rTech-Frontend/dist");
-app.use(express.static(frontendPath));
-
 app.use("*", (req, res) => {
-  // Si la ruta comienza con /api, devolvemos 404 JSON
-  if (req.originalUrl.startsWith("/api")) {
-    return res.status(404).json({
-      success: false,
-      message: "Ruta no encontrada",
-    });
-  }
-
-  // Para cualquier otra ruta, servimos el index.html del frontend
-  res.sendFile(path.join(frontendPath, "index.html"), (err) => {
-    if (err) {
-      // Si falla (por ejemplo, no se ha hecho build), devolvemos 404 básico
-      console.error("Error enviando index.html:", err);
-      res.status(404).send("Frontend no encontrado. Asegúrate de haber ejecutado 'npm run build' en la carpeta del frontend.");
-    }
+  res.status(404).json({
+    success: false,
+    message: "Ruta no encontrada",
   });
 });
 

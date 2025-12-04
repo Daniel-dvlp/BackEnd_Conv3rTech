@@ -1,5 +1,5 @@
 const appointmentRepository = require("../../repositories/appointments/AppointmentRepository");
-const Programacion = require("../../models/labor_scheduling/ProgramacionModel");
+const { Programacion } = require("../../models/labor_scheduling/associations");
 const { Op } = require("sequelize");
 
 class AppointmentService {
@@ -17,9 +17,16 @@ class AppointmentService {
     // 📌 Reglas de negocio al crear una cita
 
     // 1. Validar campos obligatorios
-    const { id_cliente, id_usuario, id_servicio, fecha, hora_inicio, hora_fin } = data;
+    const { id_cliente, id_usuario, id_servicio, fecha, hora_inicio, hora_fin, id_direccion } = data;
+    
+    // Validamos campos básicos. id_direccion es opcional en BD pero requerido por negocio si se quiere asignar dirección.
+    // El usuario pidió "se le asigna a un cliente y la direccion del cliente", así que lo haremos requerido si no envían "direccion" texto.
     if (!id_cliente || !id_usuario || !id_servicio || !fecha || !hora_inicio || !hora_fin) {
-      throw new Error("Todos los campos obligatorios deben ser proporcionados");
+      throw new Error("Todos los campos obligatorios deben ser proporcionados (cliente, usuario, servicio, fecha, horas)");
+    }
+
+    if (!id_direccion && !data.direccion) {
+        throw new Error("Debe proporcionar una dirección (id_direccion o texto)");
     }
 
     // 2. Validar que hora_fin sea posterior a hora_inicio
@@ -45,9 +52,24 @@ class AppointmentService {
     const citaExistente = await appointmentRepository.findById(id);
     if (!citaExistente) throw new Error("Cita no encontrada");
 
-    // Solo se permite editar si está Pendiente o Confirmada
-    if (["Completada", "Cancelada"].includes(citaExistente.estado)) {
-      throw new Error("No se puede modificar una cita Completada o Cancelada");
+    // Si la cita ya está completada, no se debería editar salvo quizás por un admin, pero por regla general:
+    if (citaExistente.estado === "Completada") {
+       // Si solo estamos subiendo foto o notas adicionales podría permitirse, pero si intentamos cambiar hora/fecha no.
+       if (data.fecha || data.hora_inicio || data.hora_fin) {
+           throw new Error("No se puede modificar fecha/hora de una cita Completada");
+       }
+    }
+
+    if (citaExistente.estado === "Cancelada") {
+      throw new Error("No se puede modificar una cita Cancelada");
+    }
+
+    // Validación de cambio de estado a Completada
+    if (data.estado === "Completada" && citaExistente.estado !== "Completada") {
+        // Requisito: "una cita puede cambiar a estar completada cuando el tecnico suba la foto"
+        if (!data.evidencia_foto && !citaExistente.evidencia_foto) {
+            throw new Error("Para completar la cita, es obligatorio subir la evidencia fotográfica.");
+        }
     }
 
     // Si se están actualizando fecha/hora, validar horario laboral y solapamiento
