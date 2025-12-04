@@ -39,10 +39,10 @@ module.exports = {
         body('usuarioIds').optional().isArray().withMessage('usuarioIds debe ser un arreglo'),
         body('usuarioId').optional().isInt().withMessage('usuarioId debe ser entero'),
         body('fechaInicio').isDate().withMessage('Fecha de inicio inválida'),
-        body('fechaFin').optional().isDate().withMessage('Fecha de fin inválida'),
+        body('fechaFin').optional({ nullable: true, checkFalsy: true }).isDate().withMessage('Fecha de fin inválida'),
         body('allDay').optional().isBoolean().withMessage('allDay debe ser booleano'),
-        body('horaInicio').optional().matches(/^\d{2}:\d{2}$/).withMessage('horaInicio debe ser HH:MM'),
-        body('horaFin').optional().matches(/^\d{2}:\d{2}$/).withMessage('horaFin debe ser HH:MM'),
+        body('horaInicio').optional({ nullable: true, checkFalsy: true }).matches(/^\d{2}:\d{2}$/).withMessage('horaInicio debe ser HH:MM'),
+        body('horaFin').optional({ nullable: true, checkFalsy: true }).matches(/^\d{2}:\d{2}$/).withMessage('horaFin debe ser HH:MM'),
         body('color').optional().matches(/^#[0-9A-F]{6}$/i).withMessage('color debe ser #RRGGBB'),
         (req, res, next) => {
             const { allDay, horaInicio, horaFin, fechaInicio, fechaFin } = req.body || {};
@@ -65,10 +65,10 @@ module.exports = {
         param('id').isInt().withMessage('ID de novedad inválido'),
         body('titulo').optional().notEmpty().withMessage('El título no puede estar vacío'),
         body('fechaInicio').optional().isDate().withMessage('Fecha de inicio inválida'),
-        body('fechaFin').optional().isDate().withMessage('Fecha de fin inválida'),
+        body('fechaFin').optional({ nullable: true, checkFalsy: true }).isDate().withMessage('Fecha de fin inválida'),
         body('allDay').optional().isBoolean().withMessage('allDay debe ser booleano'),
-        body('horaInicio').optional().matches(/^\d{2}:\d{2}$/).withMessage('horaInicio debe ser HH:MM'),
-        body('horaFin').optional().matches(/^\d{2}:\d{2}$/).withMessage('horaFin debe ser HH:MM'),
+        body('horaInicio').optional({ nullable: true, checkFalsy: true }).matches(/^\d{2}:\d{2}$/).withMessage('horaInicio debe ser HH:MM'),
+        body('horaFin').optional({ nullable: true, checkFalsy: true }).matches(/^\d{2}:\d{2}$/).withMessage('horaFin debe ser HH:MM'),
         body('color').optional().matches(/^#[0-9A-F]{6}$/i).withMessage('color debe ser #RRGGBB'),
         (req, res, next) => {
             const { allDay, horaInicio, horaFin, fechaInicio, fechaFin } = req.body || {};
