@@ -149,11 +149,13 @@ module.exports = {
     // Novedades
     getNovedades: async (req, res) => {
         try {
+            console.log('[Novedades] getNovedades params', req.query);
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const User = require('../../models/users/Users');
             const items = await Novedad.findAll({
                 include: [{ model: User, as: 'usuario' }]
             });
+            console.log('[Novedades] getNovedades count', items.length);
             const data = items.map(n => ({
                 id: n.id_novedad,
                 usuarioId: n.usuario_id,
@@ -170,6 +172,7 @@ module.exports = {
             }));
             res.status(200).json({ success: true, data });
         } catch (error) {
+            console.error('[Novedades] getNovedades error', error);
             res.status(500).json({ success: false, message: error.message });
         }
     },
@@ -178,6 +181,7 @@ module.exports = {
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const User = require('../../models/users/Users');
             const { id } = req.params;
+            console.log('[Novedades] getNovedadById', id);
             const n = await Novedad.findByPk(id, {
                 include: [{ model: User, as: 'usuario' }]
             });
@@ -198,6 +202,7 @@ module.exports = {
             };
             res.status(200).json({ success: true, data });
         } catch (error) {
+            console.error('[Novedades] getNovedadById error', error);
             res.status(500).json({ success: false, message: error.message });
         }
     },
@@ -205,6 +210,7 @@ module.exports = {
         try {
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const body = req.body;
+            console.log('[Novedades] create payload', body);
             // body.usuarioIds es array, o body.usuarioId
             const uids = body.usuarioIds && Array.isArray(body.usuarioIds) ? body.usuarioIds : [body.usuarioId];
             const created = [];
@@ -224,8 +230,10 @@ module.exports = {
                 const newItem = await Novedad.create(payload);
                 created.push(newItem);
             }
+            console.log('[Novedades] create count', created.length);
             res.status(201).json({ success: true, message: 'Novedad creada', data: created });
         } catch (error) {
+            console.error('[Novedades] create error', error);
             res.status(500).json({ success: false, message: error.message });
         }
     },
@@ -234,6 +242,7 @@ module.exports = {
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const { id } = req.params;
             const body = req.body;
+            console.log('[Novedades] update', id, body);
             const item = await Novedad.findByPk(id);
             if (!item) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
             await item.update({
@@ -246,8 +255,10 @@ module.exports = {
                 descripcion: body.descripcion,
                 color: body.color
             });
+            console.log('[Novedades] update ok', id);
             res.status(200).json({ success: true, message: 'Novedad actualizada', data: item });
         } catch (error) {
+            console.error('[Novedades] update error', error);
             res.status(500).json({ success: false, message: error.message });
         }
     },
@@ -255,11 +266,14 @@ module.exports = {
         try {
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const { id } = req.params;
+            console.log('[Novedades] delete', id);
             const item = await Novedad.findByPk(id);
             if (!item) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
             await item.destroy();
+            console.log('[Novedades] delete ok', id);
             res.status(200).json({ success: true, message: 'Novedad eliminada' });
         } catch (error) {
+            console.error('[Novedades] delete error', error);
             res.status(500).json({ success: false, message: error.message });
         }
     }

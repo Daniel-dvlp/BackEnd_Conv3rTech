@@ -146,6 +146,7 @@ const Programacion = require("./models/labor_scheduling/ProgramacionModel");
 const Novedad = require("./models/labor_scheduling/NovedadModel");
 app.get("/api/events", authMiddleware, async (req, res) => {
   try {
+    const { Op } = require("sequelize");
     const rangeStart = req.query.rangeStart;
     const rangeEnd = req.query.rangeEnd;
     const usuarioIds = (req.query.usuarioIds || "")
@@ -162,8 +163,20 @@ app.get("/api/events", authMiddleware, async (req, res) => {
     // Fetch Programaciones
     const items = await Programacion.findAll({ include: [includeUser], where });
     
-    // Fetch Novedades
-    const novedades = await Novedad.findAll({ include: [includeUser], where });
+    // Fetch Novedades (filtradas por rango si está presente)
+    const novedadesWhere = { ...where };
+    if (rangeStart && rangeEnd) {
+      const from = rangeStart;
+      const to = rangeEnd;
+      Object.assign(novedadesWhere, {
+        [Op.or]: [
+          { fecha_inicio: { [Op.between]: [from, to] } },
+          { fecha_fin: { [Op.between]: [from, to] } },
+          { fecha_inicio: { [Op.lte]: from }, fecha_fin: { [Op.gte]: to } },
+        ],
+      });
+    }
+    const novedades = await Novedad.findAll({ include: [includeUser], where: novedadesWhere });
 
     const startDate = rangeStart ? new Date(rangeStart) : null;
     const endDate = rangeEnd ? new Date(rangeEnd) : null;
@@ -189,6 +202,12 @@ app.get("/api/events", authMiddleware, async (req, res) => {
       }
     }
     
+    // Logging de conteo
+    console.log(
+      `[Events] usuarioIds=${usuarioIds.join(',') || 'ALL'} range=${rangeStart || '-'}..${rangeEnd || '-'} ` +
+      `programaciones=${items.length} novedades=${novedades.length}`
+    );
+
     // Process Programaciones
     iterateDates(startDate, endDate, (date) => {
       const dateStr = date.toISOString().split("T")[0];
