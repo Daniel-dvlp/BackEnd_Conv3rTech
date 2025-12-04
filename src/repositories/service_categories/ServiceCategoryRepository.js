@@ -1,4 +1,4 @@
-const ServiceCategory = require('../../models/services_categories/ServiceCategory');
+const ServiceCategory = require('../../models/services_category/ServicesCategory');
 
 // Se ha eliminado la importación de 'Service' para independizar el módulo.
 

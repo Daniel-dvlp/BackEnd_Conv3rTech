@@ -1,6 +1,6 @@
 const { body, param } = require('express-validator');
 const Service = require('../../models/services/Service');
-const ServiceCategory = require('../../models/services_categories/ServiceCategory');
+const ServiceCategory = require('../../models/services_category/ServicesCategory');
 
 const serviceExists = async (id) => {
     const service = await Service.findOne({ where: { id_servicio: id } });

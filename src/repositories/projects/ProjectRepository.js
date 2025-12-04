@@ -88,14 +88,14 @@ class ProjectRepository {
                   attributes: ["id_servicio", "nombre", "precio"],
                   include: [
                     {
-                      model: require("../../models/services_categories/ServiceCategory"),
+                      model: require("../../models/services_category/ServicesCategory"),
                       as: "categoria",
                       attributes: ["id", "nombre", "descripcion"],
                     },
                   ],
                   include: [
                     {
-                      model: require("../../models/services_categories/ServiceCategory"),
+                      model: require("../../models/services_category/ServicesCategory"),
                       as: "categoria",
                       attributes: ["id", "nombre", "descripcion"],
                     },
@@ -208,14 +208,14 @@ class ProjectRepository {
                   attributes: ["id_servicio", "nombre", "precio"],
                   include: [
                     {
-                      model: require("../../models/services_categories/ServiceCategory"),
+                      model: require("../../models/services_category/ServicesCategory"),
                       as: "categoria",
                       attributes: ["id", "nombre", "descripcion"],
                     },
                   ],
                   include: [
                     {
-                      model: require("../../models/services_categories/ServiceCategory"),
+                      model: require("../../models/services_category/ServicesCategory"),
                       as: "categoria",
                       attributes: ["id", "nombre", "descripcion"],
                     },
