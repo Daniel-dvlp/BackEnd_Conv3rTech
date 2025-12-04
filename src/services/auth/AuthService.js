@@ -10,13 +10,13 @@ class AuthService {
       // Buscar usuario por email
       const user = await userRepository.findByEmail(email);
       if (!user) {
-        throw new Error("Credenciales inválidas");
+        throw new Error("Usuario no encontrado");
       }
 
       // Verificar contraseña
       const isValidPassword = await bcrypt.compare(password, user.contrasena);
       if (!isValidPassword) {
-        throw new Error("Credenciales inválidas");
+        throw new Error("Contraseña incorrecta");
       }
 
       // Verificar que el usuario esté activo

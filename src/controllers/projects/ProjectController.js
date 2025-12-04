@@ -11,6 +11,13 @@ class ProjectController {
         prioridad: req.query.prioridad,
       };
 
+      // ROBUST PERMISSION CHECK: Si NO es Admin, forzar filtro por usuario asignado
+      // req.user viene del middleware authMiddleware
+      if (req.user && req.user.id_rol !== 1) {
+        filters.usuarioAsignadoId = req.user.id_usuario;
+        console.log(`🔒 [ProjectController] Restringiendo proyectos para usuario ${req.user.id_usuario} (Rol: ${req.user.id_rol})`);
+      }
+
       const projects = await ProjectService.getAllProjects(filters);
 
       res.status(200).json({

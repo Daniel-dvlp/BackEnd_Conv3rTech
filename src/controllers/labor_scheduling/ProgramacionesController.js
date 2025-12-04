@@ -3,7 +3,15 @@ const LaborSchedulingService = require('../../services/labor_scheduling/LaborSch
 const list = async (req, res, next) => {
     try {
         const includeInactive = req.query.includeInactive === 'true';
-        const usuarioId = req.query.usuarioId ? parseInt(req.query.usuarioId, 10) : undefined;
+        
+        // ROBUST PERMISSION CHECK: Si NO es Admin, forzar filtro por su propio usuarioId
+        let usuarioId = req.query.usuarioId ? parseInt(req.query.usuarioId, 10) : undefined;
+        
+        if (req.user && req.user.id_rol !== 1) {
+            usuarioId = req.user.id_usuario;
+            console.log(`🔒 [ProgramacionesController] Restringiendo lista para usuario ${req.user.id_usuario}`);
+        }
+
         const data = await LaborSchedulingService.listProgramaciones({ includeInactive, usuarioId });
         res.status(200).json({ success: true, data });
     } catch (error) {
