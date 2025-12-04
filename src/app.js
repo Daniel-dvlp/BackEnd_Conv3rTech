@@ -61,6 +61,7 @@ const User = require("./models/users/Users");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
 require("./models/labor_scheduling/associations");
+require("./models/appointments/associations");
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
@@ -142,6 +143,7 @@ app.use("/api/programaciones", LaborSchedulingRoutes); // Usando LaborScheduling
 // app.use("/api/novedades", NovedadesRoutes);
 // const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
 const Programacion = require("./models/labor_scheduling/ProgramacionModel");
+const Novedad = require("./models/labor_scheduling/NovedadModel");
 app.get("/api/events", authMiddleware, async (req, res) => {
   try {
     const rangeStart = req.query.rangeStart;
@@ -150,10 +152,19 @@ app.get("/api/events", authMiddleware, async (req, res) => {
       .split(",")
       .map((v) => Number(v))
       .filter((v) => !Number.isNaN(v));
-    const include = [{ model: require("./models/users/Users"), as: "usuario" }];
+    
+    const User = require("./models/users/Users");
+    const includeUser = { model: User, as: "usuario" };
+    
     const where = {};
     if (usuarioIds.length) where.usuario_id = usuarioIds;
-    const items = await Programacion.findAll({ include, where });
+    
+    // Fetch Programaciones
+    const items = await Programacion.findAll({ include: [includeUser], where });
+    
+    // Fetch Novedades
+    const novedades = await Novedad.findAll({ include: [includeUser], where });
+
     const startDate = rangeStart ? new Date(rangeStart) : null;
     const endDate = rangeEnd ? new Date(rangeEnd) : null;
     const result = [];
@@ -177,6 +188,8 @@ app.get("/api/events", authMiddleware, async (req, res) => {
         d.setDate(d.getDate() + 1);
       }
     }
+    
+    // Process Programaciones
     iterateDates(startDate, endDate, (date) => {
       const dateStr = date.toISOString().split("T")[0];
       const dayLabel = dayMap[date.getDay()];
@@ -205,8 +218,41 @@ app.get("/api/events", authMiddleware, async (req, res) => {
         });
       });
     });
+
+    // Process Novedades
+    novedades.forEach((n) => {
+        // Basic date filtering
+        const nStart = new Date(n.fecha_inicio);
+        const nEnd = n.fecha_fin ? new Date(n.fecha_fin) : new Date(n.fecha_inicio);
+        
+        // Check overlap with requested range if provided
+        if (startDate && endDate) {
+             if (nEnd < startDate || nStart > endDate) return;
+        }
+
+        result.push({
+            id: `nov-${n.id_novedad}`,
+            title: n.titulo,
+            start: n.all_day ? n.fecha_inicio : formatTime(n.fecha_inicio, n.hora_inicio),
+            end: n.all_day ? (n.fecha_fin ? n.fecha_fin : n.fecha_inicio) : formatTime(n.fecha_fin || n.fecha_inicio, n.hora_fin),
+            allDay: n.all_day,
+            backgroundColor: n.color,
+            borderColor: n.color,
+            extendedProps: {
+                type: "novedad",
+                meta: {
+                    novedadId: n.id_novedad,
+                    usuarioId: n.usuario_id,
+                    usuario: n.usuario,
+                    descripcion: n.descripcion
+                }
+            }
+        });
+    });
+
     res.status(200).json({ success: true, data: result });
   } catch (error) {
+    console.error("Error fetching events:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

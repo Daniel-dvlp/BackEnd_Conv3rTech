@@ -144,5 +144,123 @@ module.exports = {
     createOneTimeEvent,
     assignScheduleToUsers,
     updateSchedule,
-    deleteSchedule
+    deleteSchedule,
+
+    // Novedades
+    getNovedades: async (req, res) => {
+        try {
+            const Novedad = require('../../models/labor_scheduling/NovedadModel');
+            const User = require('../../models/users/Users');
+            const items = await Novedad.findAll({
+                include: [{ model: User, as: 'usuario' }]
+            });
+            const data = items.map(n => ({
+                id: n.id_novedad,
+                usuarioId: n.usuario_id,
+                programacionId: n.programacion_id,
+                titulo: n.titulo,
+                fechaInicio: n.fecha_inicio,
+                fechaFin: n.fecha_fin,
+                horaInicio: n.hora_inicio,
+                horaFin: n.hora_fin,
+                allDay: n.all_day,
+                descripcion: n.descripcion,
+                color: n.color,
+                usuario: n.usuario
+            }));
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+    getNovedadById: async (req, res) => {
+        try {
+            const Novedad = require('../../models/labor_scheduling/NovedadModel');
+            const User = require('../../models/users/Users');
+            const { id } = req.params;
+            const n = await Novedad.findByPk(id, {
+                include: [{ model: User, as: 'usuario' }]
+            });
+            if (!n) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
+            const data = {
+                id: n.id_novedad,
+                usuarioId: n.usuario_id,
+                programacionId: n.programacion_id,
+                titulo: n.titulo,
+                fechaInicio: n.fecha_inicio,
+                fechaFin: n.fecha_fin,
+                horaInicio: n.hora_inicio,
+                horaFin: n.hora_fin,
+                allDay: n.all_day,
+                descripcion: n.descripcion,
+                color: n.color,
+                usuario: n.usuario
+            };
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+    createNovedad: async (req, res) => {
+        try {
+            const Novedad = require('../../models/labor_scheduling/NovedadModel');
+            const body = req.body;
+            // body.usuarioIds es array, o body.usuarioId
+            const uids = body.usuarioIds && Array.isArray(body.usuarioIds) ? body.usuarioIds : [body.usuarioId];
+            const created = [];
+            for (const uid of uids) {
+                const payload = {
+                    usuario_id: uid,
+                    programacion_id: body.programacionId || null,
+                    titulo: body.titulo,
+                    fecha_inicio: body.fechaInicio,
+                    fecha_fin: body.fechaFin || body.fechaInicio,
+                    hora_inicio: body.horaInicio || null,
+                    hora_fin: body.horaFin || null,
+                    all_day: body.allDay ?? false,
+                    descripcion: body.descripcion,
+                    color: body.color || '#EF4444'
+                };
+                const newItem = await Novedad.create(payload);
+                created.push(newItem);
+            }
+            res.status(201).json({ success: true, message: 'Novedad creada', data: created });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+    updateNovedad: async (req, res) => {
+        try {
+            const Novedad = require('../../models/labor_scheduling/NovedadModel');
+            const { id } = req.params;
+            const body = req.body;
+            const item = await Novedad.findByPk(id);
+            if (!item) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
+            await item.update({
+                titulo: body.titulo,
+                fecha_inicio: body.fechaInicio,
+                fecha_fin: body.fechaFin,
+                hora_inicio: body.horaInicio,
+                hora_fin: body.horaFin,
+                all_day: body.allDay,
+                descripcion: body.descripcion,
+                color: body.color
+            });
+            res.status(200).json({ success: true, message: 'Novedad actualizada', data: item });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+    deleteNovedad: async (req, res) => {
+        try {
+            const Novedad = require('../../models/labor_scheduling/NovedadModel');
+            const { id } = req.params;
+            const item = await Novedad.findByPk(id);
+            if (!item) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
+            await item.destroy();
+            res.status(200).json({ success: true, message: 'Novedad eliminada' });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 };

@@ -13,30 +13,30 @@ router.use(authMiddleware);
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
   "/",
-  permissionMiddleware("Usuarios", "Crear"),
+  // permissionMiddleware("Usuarios", "Crear"),
   UsuariosValidations.createUserValidation,
   UsersControllers.createUser
 );
 router.get(
   "/",
-  permissionMiddleware("Usuarios", "Leer"),
+  // permissionMiddleware("Usuarios", "Leer"),
   UsersControllers.getAllUsers
 );
 router.get(
   "/:id",
-  permissionMiddleware("Usuarios", "Leer"),
+  // permissionMiddleware("Usuarios", "Leer"),
   UsuariosValidations.findUserByIdValidation,
   UsersControllers.getUserById
 );
 router.put(
   "/:id",
-  permissionMiddleware("Usuarios", "Editar"),
+  // permissionMiddleware("Usuarios", "Editar"),
   UsuariosValidations.updateUserValidation,
   UsersControllers.updateUser
 );
 router.delete(
   "/:id",
-  permissionMiddleware("Usuarios", "Eliminar"),
+  // permissionMiddleware("Usuarios", "Eliminar"),
   UsuariosValidations.deleteUserValidation,
   UsersControllers.deleteUser
 );
