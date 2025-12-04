@@ -6,6 +6,8 @@ const {
     validateCreateOneTimeEvent,
     validateAssignScheduleToUsers,
     validateUpdateSchedule,
+    validateCreateNovedad,
+    validateUpdateNovedad,
 } = require("../../middlewares/labor_scheduling/LaborSchedulingMiddleware");
 const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 const Users = require("../../models/users/Users");
@@ -31,8 +33,8 @@ router.get("/usuarios-disponibles", /* permissionMiddleware("Programación labor
 
 router.get("/novedades", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedades);
 router.get("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getNovedadById);
-router.post("/novedades", /* permissionMiddleware("Programación laboral", "Crear"), */ LaborSchedulingController.createNovedad);
-router.put("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Editar"), */ LaborSchedulingController.updateNovedad);
+router.post("/novedades", /* permissionMiddleware("Programación laboral", "Crear"), */ validateCreateNovedad, LaborSchedulingController.createNovedad);
+router.put("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Editar"), */ validateUpdateNovedad, LaborSchedulingController.updateNovedad);
 router.delete("/novedades/:id(\\d+)", /* permissionMiddleware("Programación laboral", "Eliminar"), */ LaborSchedulingController.deleteNovedad);
 
 router.get("/:scheduleId(\\d+)", /* permissionMiddleware("Programación laboral", "Ver"), */ LaborSchedulingController.getScheduleById);

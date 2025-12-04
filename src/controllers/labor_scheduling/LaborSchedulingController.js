@@ -149,13 +149,23 @@ module.exports = {
     // Novedades
     getNovedades: async (req, res) => {
         try {
-            console.log('[Novedades] getNovedades params', req.query);
+            const { Op } = require('sequelize');
             const Novedad = require('../../models/labor_scheduling/NovedadModel');
             const User = require('../../models/users/Users');
-            const items = await Novedad.findAll({
-                include: [{ model: User, as: 'usuario' }]
-            });
-            console.log('[Novedades] getNovedades count', items.length);
+            const { usuarioId, from, to, includeInactive } = req.query || {};
+            const where = {};
+            if (usuarioId) where.usuario_id = Number(usuarioId);
+            if (!includeInactive) where.estado = 'Activa';
+            if (from && to) {
+                Object.assign(where, {
+                    [Op.or]: [
+                        { fecha_inicio: { [Op.between]: [from, to] } },
+                        { fecha_fin: { [Op.between]: [from, to] } },
+                        { fecha_inicio: { [Op.lte]: from }, fecha_fin: { [Op.gte]: to } },
+                    ],
+                });
+            }
+            const items = await Novedad.findAll({ include: [{ model: User, as: 'usuario' }], where });
             const data = items.map(n => ({
                 id: n.id_novedad,
                 usuarioId: n.usuario_id,
@@ -231,7 +241,20 @@ module.exports = {
                 created.push(newItem);
             }
             console.log('[Novedades] create count', created.length);
-            res.status(201).json({ success: true, message: 'Novedad creada', data: created });
+            const data = created.map((n) => ({
+                id_novedad: n.id_novedad,
+                usuario_id: n.usuario_id,
+                programacion_id: n.programacion_id,
+                titulo: n.titulo,
+                fecha_inicio: n.fecha_inicio,
+                fecha_fin: n.fecha_fin,
+                hora_inicio: n.hora_inicio,
+                hora_fin: n.hora_fin,
+                all_day: n.all_day,
+                descripcion: n.descripcion,
+                color: n.color,
+            }));
+            res.status(201).json({ success: true, message: 'Novedad creada', data });
         } catch (error) {
             console.error('[Novedades] create error', error);
             res.status(500).json({ success: false, message: error.message });
@@ -256,7 +279,20 @@ module.exports = {
                 color: body.color
             });
             console.log('[Novedades] update ok', id);
-            res.status(200).json({ success: true, message: 'Novedad actualizada', data: item });
+            const data = {
+                id_novedad: item.id_novedad,
+                usuario_id: item.usuario_id,
+                programacion_id: item.programacion_id,
+                titulo: item.titulo,
+                fecha_inicio: item.fecha_inicio,
+                fecha_fin: item.fecha_fin,
+                hora_inicio: item.hora_inicio,
+                hora_fin: item.hora_fin,
+                all_day: item.all_day,
+                descripcion: item.descripcion,
+                color: item.color,
+            };
+            res.status(200).json({ success: true, message: 'Novedad actualizada', data });
         } catch (error) {
             console.error('[Novedades] update error', error);
             res.status(500).json({ success: false, message: error.message });
