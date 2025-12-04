@@ -8,6 +8,7 @@ const {
     validateUpdateSchedule,
 } = require("../../middlewares/labor_scheduling/LaborSchedulingMiddleware");
 const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const Users = require("../../models/users/Users");
 
 // Middleware de autenticación para todas las rutas
 router.use(authMiddleware);
@@ -24,6 +25,8 @@ router.get("/:scheduleId", permissionMiddleware("Programación laboral", "Ver"),
 // Crear un horario recurrente
 router.post("/recurring", permissionMiddleware("Programación laboral", "Crear"), validateCreateRecurringSchedule, LaborSchedulingController.createRecurringSchedule);
 
+router.post("/", permissionMiddleware("Programación laboral", "Crear"), validateCreateRecurringSchedule, LaborSchedulingController.createRecurringSchedule);
+
 // POST /api/labor-scheduling/one-time
 // Crear un evento único
 router.post("/one-time", permissionMiddleware("Programación laboral", "Crear"), validateCreateOneTimeEvent, LaborSchedulingController.createOneTimeEvent);
@@ -39,5 +42,15 @@ router.put("/:scheduleId", permissionMiddleware("Programación laboral", "Editar
 // DELETE /api/labor-scheduling/:scheduleId
 // Eliminar un horario
 router.delete("/:scheduleId", permissionMiddleware("Programación laboral", "Eliminar"), LaborSchedulingController.deleteSchedule);
+
+router.get("/usuarios-disponibles", permissionMiddleware("Programación laboral", "Ver"), async (req, res) => {
+  try {
+    const users = await Users.findAll({ attributes: ["id_usuario", "nombre", "apellido", "documento"], where: { estado_usuario: "Activo" } });
+    const data = users.map((u) => ({ id: u.id_usuario, nombre: u.nombre, apellido: u.apellido, documento: u.documento }));
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 module.exports = router;

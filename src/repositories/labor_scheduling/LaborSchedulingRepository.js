@@ -1,4 +1,4 @@
-const LaborScheduling = require('../../models/labor_scheduling/LaborSchedulingModel');
+const LaborScheduling = require('../../models/labor_scheduling/ProgramacionModel');
 const User = require('../../models/users/Users');
 
 const createLaborScheduling = async (schedulingData) => {
@@ -9,7 +9,7 @@ const getAllLaborSchedulings = async () => {
     return LaborScheduling.findAll({
         include: [{
             model: User,
-            as: 'user'
+            as: 'usuario'
         }]
     });
 };
@@ -18,7 +18,7 @@ const getLaborSchedulingById = async (id) => {
     return LaborScheduling.findByPk(id, {
         include: [{
             model: User,
-            as: 'user'
+            as: 'usuario'
         }]
     });
 };
