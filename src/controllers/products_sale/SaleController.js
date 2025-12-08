@@ -4,6 +4,11 @@ const saleDetailService = require('../../services/products_sale/SaleDetailServic
 
 // Crear venta con detalles
 const createSale = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para crear ventas." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log('Errores de validación:', errors.array());
@@ -97,6 +102,11 @@ const getSaleById = async (req, res) => {
 
 // Actualizar venta
 const updateSale = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para editar ventas." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -113,6 +123,11 @@ const updateSale = async (req, res) => {
 
 // Eliminar venta
 const deleteSale = async (req, res) => {
+    // Solo Admin (1)
+    if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({ message: "Solo administradores pueden eliminar ventas." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -126,8 +141,13 @@ const deleteSale = async (req, res) => {
     }
 };
 
-// Cambiar estado de venta (ej: Anular)
+// // Cambiar estado de venta
 const changeSaleState = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para cambiar estado de ventas." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

@@ -2,6 +2,11 @@ const { validationResult } = require("express-validator");
 const purchaseService = require('../../services/purchase/PurchaseService');
 
 const createPurchase = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para crear compras." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -37,6 +42,11 @@ const getPurchaseById = async (req, res) => {
 };
 
 const updatePurchase = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para editar compras." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -54,6 +64,11 @@ const updatePurchase = async (req, res) => {
 };
 
 const deletePurchase = async (req, res) => {
+    // Solo Admin (1)
+    if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({ error: "Solo administradores pueden eliminar compras." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -70,6 +85,11 @@ const deletePurchase = async (req, res) => {
 };
 
 const changeStatePurchase = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para cambiar estado de compras." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

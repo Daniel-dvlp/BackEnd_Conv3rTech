@@ -91,40 +91,45 @@ const createProductValidation = [
 // Actualizar producto
 const updateProductValidation = [
     body('nombre')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ min: 3 })
         .withMessage('El nombre debe tener al menos 3 caracteres'),
     body('modelo')
-        .optional()
+        .optional({ checkFalsy: true })
         .notEmpty()
         .withMessage('El modelo es obligatorio'),
     body('id_categoria')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt().withMessage('La categoría debe ser un número entero')
         .custom(validateCategoryExistence),
     body('unidad_medida')
-        .optional()
+        .optional({ checkFalsy: true })
         .isIn(['unidad', 'metros', 'tramo 2 metros', 'tramo 3 metros', 'paquetes', 'kit'])
         .withMessage('Unidad de medida inválida'),
     body('precio')
-        .optional()
-        .isDecimal({ decimal_digits: '0,2' }).withMessage('El precio debe ser un número decimal válido')
-        .custom(value => value >= 0).withMessage('El precio no puede ser negativo'),
+        .optional({ checkFalsy: true })
+        .isNumeric().withMessage('El precio debe ser un número válido')
+        .custom(value => parseFloat(value) >= 0).withMessage('El precio no puede ser negativo'),
     body('stock')
-        .optional()
+        .optional({ checkFalsy: true })
         .isNumeric().withMessage('El stock debe ser un número válido')
         .custom(value => parseInt(value) >= 0).withMessage('El stock debe ser mayor o igual a 0'),
     body('garantia')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt()
         .isIn([6, 12, 24, 36])
         .withMessage('La garantía debe ser 6, 12, 24 o 36 meses'),
     body('codigo_barra')
-        .optional()
+        .optional({ checkFalsy: true })
         .isString()
         .withMessage('El código de barras debe ser un texto'),
     body('estado')
-        .optional()
+        .optional() // No usamos checkFalsy porque false es un valor válido
+        .customSanitizer(value => {
+            if (value === 'true') return true;
+            if (value === 'false') return false;
+            return value;
+        })
         .isBoolean()
         .withMessage('El estado debe ser un booleano'),
     param('id')

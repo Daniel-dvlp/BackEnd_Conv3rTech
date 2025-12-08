@@ -61,6 +61,15 @@ const updateStock = async (id, newStock, transaction = null) => {
 
 // Actualizar producto
 const updateProduct = async (id, product) => {
+    // Asegurar que el precio no exceda el límite de DECIMAL(15, 2)
+    if (product.precio) {
+        const precio = parseFloat(product.precio);
+        // El valor máximo para DECIMAL(15, 2) es 9999999999999.99
+        if (precio > 9999999999999.99) {
+            throw new Error('El precio excede el límite permitido.');
+        }
+    }
+
     await Product.update(product, { where: { id_producto: id } });
     return Product.findByPk(id, {
         include: [

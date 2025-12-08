@@ -66,10 +66,25 @@ const deleteCategory = async (req, res) => {
     }
 };
 
+const changeStateCategory = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const updatedCategory = await serviceCategoryService.changeStateCategory(req.params.id, req.body.estado);
+        res.status(200).json({ message: 'Estado de la categoría actualizado exitosamente.', category: updatedCategory });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
     updateCategory,
     deleteCategory,
+    changeStateCategory
 };

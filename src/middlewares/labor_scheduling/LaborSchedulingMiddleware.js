@@ -1,10 +1,27 @@
 const { body, param } = require('express-validator');
 const validateResult = require('../validate');
 
+const validateDateNotPast = (value) => {
+    if (!value) return true;
+    const date = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Ajustar la fecha recibida para ignorar la hora y zona horaria al comparar solo fecha
+    const inputDate = new Date(date.toISOString().split('T')[0] + 'T00:00:00');
+    
+    // Comparar timestamps para evitar problemas de zona horaria
+    const todayTimestamp = new Date(today.toISOString().split('T')[0] + 'T00:00:00').getTime();
+    
+    if (inputDate.getTime() < todayTimestamp) {
+        throw new Error('La fecha no puede ser anterior a hoy');
+    }
+    return true;
+};
+
 const validateCreateRecurringSchedule = [
     body('titulo').notEmpty().withMessage('El título es obligatorio'),
     body('usuarioIds').isArray().withMessage('usuarioIds debe ser un arreglo'),
-    body('fechaInicio').isDate().withMessage('Fecha de inicio inválida'),
+    body('fechaInicio').isDate().withMessage('Fecha de inicio inválida').custom(validateDateNotPast),
     body('dias').notEmpty().withMessage('Los días son obligatorios'),
     validateResult
 ];
@@ -12,7 +29,7 @@ const validateCreateRecurringSchedule = [
 const validateCreateOneTimeEvent = [
     body('titulo').notEmpty().withMessage('El título es obligatorio'),
     body('usuarioIds').isArray().withMessage('usuarioIds debe ser un arreglo'),
-    body('fechaInicio').isDate().withMessage('Fecha de inicio inválida'),
+    body('fechaInicio').isDate().withMessage('Fecha de inicio inválida').custom(validateDateNotPast),
     body('fechaFin').optional().isDate().withMessage('Fecha de fin inválida'),
     validateResult
 ];

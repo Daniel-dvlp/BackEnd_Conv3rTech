@@ -6,8 +6,15 @@ const User = require("../../models/users/Users");
 const AddressClients = require("../../models/clients/AddressClients"); // Importar modelo
 
 class AppointmentRepository {
-  async findAll() {
+  async findAll(filters = {}) {
+    const whereClause = {};
+    
+    if (filters.id_usuario) {
+      whereClause.id_usuario = filters.id_usuario;
+    }
+
     return await Appointment.findAll({
+      where: whereClause,
       include: [
         {
           model: User,

@@ -3,6 +3,11 @@ const UsersServices = require('../../services/users/UsersServices');
 const Users = require('../../models/users/Users');
 
 const createUser = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2) pueden crear usuarios
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para crear usuarios" });
+    }
+
     console.log("Body recibido:", req.body);
     console.log("Headers:", req.headers);
     
@@ -60,6 +65,11 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
+        // Solo Admin (1) puede eliminar
+        if (req.user && req.user.id_rol !== 1) {
+            return res.status(403).json({ error: "Solo administradores pueden eliminar usuarios" });
+        }
+
         const deleted = await UsersServices.deleteUser(req.params.id);
         if (deleted) {
             return res.status(200).json({ message: 'Usuario borrado exitosamente' });
@@ -68,6 +78,55 @@ const deleteUser = async (req, res) => {
     } catch (error) {
         const status = error.statusCode || 400;
         return res.status(status).json({ error: error.message });
+    }
+};
+
+const getUsersByRole = async (req, res) => {
+    try {
+        const users = await UsersServices.getUsersByRole(req.params.roleName);
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const changeUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado_usuario } = req.body;
+        const requesterId = req.user ? req.user.id : null;
+        
+        if (!estado_usuario) {
+            return res.status(400).json({ error: "El campo 'estado_usuario' es requerido" });
+        }
+
+        const userToUpdate = await UsersServices.getUserById(id);
+        if (!userToUpdate) {
+             return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        if (estado_usuario === 'Inactivo') {
+            // Validar que no sea Admin
+            if (userToUpdate.id_rol === 1) {
+                return res.status(403).json({ error: "Error, no puedes desactivar al administrador" });
+            }
+            // Validar auto-desactivación
+            if (requesterId && String(requesterId) === String(id)) {
+                return res.status(403).json({ error: "Error, no puedes desactivar tu propio usuario" });
+            }
+        }
+
+        const updatedUser = await UsersServices.changeUserStatus(id, estado_usuario);
+        
+        if (updatedUser) {
+            return res.status(200).json({
+                message: 'Estado de usuario actualizado exitosamente',
+                user: updatedUser
+            });
+        }
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -152,5 +211,7 @@ module.exports = {
     searchUsers,
     getMyProfile,
     updateMyProfile,
-    changeMyPassword
+    changeMyPassword,
+    getUsersByRole,
+    changeUserStatus
 };

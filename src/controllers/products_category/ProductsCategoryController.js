@@ -2,6 +2,11 @@ const { validationResult } = require('express-validator');
 const categoryService = require('../../services/products_category/ProductsCategoryService');
 
 const createCategory = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para crear categorías." });
+    }
+
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({errors: errors.array()})
@@ -40,6 +45,11 @@ const getCategoryById = async (req, res) => {
 }
 
 const updateCategory = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para editar categorías." });
+    }
+
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({errors: errors.array()})
@@ -53,6 +63,11 @@ const updateCategory = async (req, res) => {
 };
 
 const deleteCategory = async (req, res) => {
+    // Solo Admin (1)
+    if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({ message: "Solo administradores pueden eliminar categorías." });
+    }
+
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({errors: errors.array()})
@@ -66,6 +81,11 @@ const deleteCategory = async (req, res) => {
 }
 
 const changeStateCategory = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para cambiar estado." });
+    }
+
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({errors: errors.array()})

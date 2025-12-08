@@ -3,8 +3,8 @@ const { Programacion } = require("../../models/labor_scheduling/associations");
 const { Op } = require("sequelize");
 
 class AppointmentService {
-  async getAppointments() {
-    return await appointmentRepository.findAll();
+  async getAppointments(filters = {}) {
+    return await appointmentRepository.findAll(filters);
   }
 
   async getAppointmentById(id) {

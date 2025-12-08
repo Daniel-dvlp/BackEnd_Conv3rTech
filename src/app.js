@@ -62,6 +62,7 @@ const User = require("./models/users/Users");
 // 2. Ejecutar las funciones de asociación de cada modelo
 require("./models/labor_scheduling/associations");
 require("./models/appointments/associations");
+require("./models/purchase/associations");
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
@@ -161,7 +162,16 @@ app.get("/api/events", authMiddleware, async (req, res) => {
     if (usuarioIds.length) where.usuario_id = usuarioIds;
     
     // Fetch Programaciones
+    console.log('[Events Debug] Executing Programacion.findAll with where:', JSON.stringify(where));
     const items = await Programacion.findAll({ include: [includeUser], where });
+    console.log(`[Events Debug] Found ${items.length} programaciones raw from DB`);
+    if (items.length > 0) {
+        console.log('[Events Debug] First programacion sample:', JSON.stringify(items[0].toJSON(), null, 2));
+    } else {
+        console.log('[Events Debug] No programaciones found. Checking table count...');
+        const count = await Programacion.count();
+        console.log(`[Events Debug] Total rows in programaciones table: ${count}`);
+    }
     
     // Fetch Novedades (filtradas por rango si está presente)
     const novedadesWhere = { ...where };
@@ -207,13 +217,30 @@ app.get("/api/events", authMiddleware, async (req, res) => {
       `[Events] usuarioIds=${usuarioIds.join(',') || 'ALL'} range=${rangeStart || '-'}..${rangeEnd || '-'} ` +
       `programaciones=${items.length} novedades=${novedades.length}`
     );
+    
+    // Log titles for debugging "Accidente" issue
+    const progTitles = items.map(i => i.titulo).join(', ');
+    const novTitles = novedades.map(n => n.titulo).join(', ');
+    console.log(`[Events Debug] ProgTitles: [${progTitles}] | NovTitles: [${novTitles}]`);
 
     // Process Programaciones
+    console.log(`[Events Debug] Starting date iteration from ${startDate?.toISOString()} to ${endDate?.toISOString()}`);
     iterateDates(startDate, endDate, (date) => {
       const dateStr = date.toISOString().split("T")[0];
       const dayLabel = dayMap[date.getDay()];
+      // console.log(`[Events Debug] Checking date: ${dateStr} (${dayLabel})`); // Too verbose for large ranges
+      
       items.forEach((s) => {
+        // Check if schedule is active for this date (must be >= fecha_inicio)
+        if (s.fecha_inicio && dateStr < s.fecha_inicio) return;
+
         const slots = (s.dias || {})[dayLabel] || [];
+        
+        // If no slots for this day, skip
+        if (slots.length === 0) return;
+
+        // console.log(`[Events Debug] Match found for prog ${s.id_programacion} on ${dateStr}`);
+
         slots.forEach((slot, idx) => {
           const color = slot.color || s.color || "#2563EB";
           result.push({
@@ -231,6 +258,8 @@ app.get("/api/events", authMiddleware, async (req, res) => {
                 usuarioId: s.usuario_id,
                 usuario: s.usuario,
                 descripcion: s.descripcion,
+                estado: s.estado,
+                motivoAnulacion: s.motivo_anulacion
               },
             },
           });
@@ -263,7 +292,9 @@ app.get("/api/events", authMiddleware, async (req, res) => {
                     novedadId: n.id_novedad,
                     usuarioId: n.usuario_id,
                     usuario: n.usuario,
-                    descripcion: n.descripcion
+                    descripcion: n.descripcion,
+                    estado: n.estado,
+                    motivoAnulacion: n.motivo_anulacion
                 }
             }
         });

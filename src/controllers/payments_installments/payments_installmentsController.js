@@ -17,6 +17,9 @@ function err(res, error) {
 
 const createPagoAbono = async (req, res) => {
   try {
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: { code: 'auth.forbidden', message: 'No tienes permisos para crear pagos.' } });
+    }
     const created = await Service.createPagoAbono(req.body);
     return ok(res, created, { message: 'Pago/Abono creado' }, 201);
   } catch (error) {
@@ -58,6 +61,10 @@ const searchPagosAbonos = async (req, res) => {
 
 const cancelPagoAbono = async (req, res) => {
   try {
+    // RBAC: Solo Administrador puede anular pagos
+    if (req.user && req.user.id_rol !== 1) {
+      return res.status(403).json({ error: { code: 'auth.forbidden', message: 'No tienes permisos para anular pagos.' } });
+    }
     const { motivo_anulacion } = req.body;
     await Service.cancelPagoAbono(req.params.id, motivo_anulacion);
     // Mantener 200 por compatibilidad en endpoint legacy
@@ -71,6 +78,11 @@ const cancelPagoAbono = async (req, res) => {
 
 const createProjectPayment = async (req, res) => {
   try {
+    // RBAC: Admin y Coordinador pueden crear
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: { code: 'auth.forbidden', message: 'No tienes permisos para crear pagos.' } });
+    }
+
     const projectId = Number(req.params.projectId);
     const payload = {
       id_proyecto: projectId,
@@ -114,6 +126,10 @@ const getProjectPayment = async (req, res) => {
 
 const deleteProjectPayment = async (req, res) => {
   try {
+    // RBAC: Solo Administrador puede eliminar
+    if (req.user && req.user.id_rol !== 1) {
+      return res.status(403).json({ error: { code: 'auth.forbidden', message: 'No tienes permisos para eliminar pagos.' } });
+    }
     const projectId = Number(req.params.projectId);
     const paymentId = Number(req.params.paymentId);
 

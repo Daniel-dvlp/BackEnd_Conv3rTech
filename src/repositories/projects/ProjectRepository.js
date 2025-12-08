@@ -144,7 +144,7 @@ class ProjectRepository {
   }
 
   // Búsqueda rápida por número de contrato, nombre de proyecto o nombre de cliente
-  async quickSearch(term, { limit = 10 } = {}) {
+  async quickSearch(term, { limit = 10, usuarioAsignadoId = null } = {}) {
     const whereClause = {
       [Op.or]: [
         { nombre: { [Op.like]: `%${term}%` } },
@@ -153,17 +153,39 @@ class ProjectRepository {
       ],
     };
 
-    return Project.findAll({
-      where: whereClause,
-      include: [
+    const include = [
         {
           model: require("../../models/clients/Clients"),
           as: "cliente",
           attributes: ["id_cliente", "nombre"],
         },
-      ],
+    ];
+
+    if (usuarioAsignadoId) {
+      include.push({
+          model: ProjectEmpleado,
+          as: "empleadosAsociados",
+          attributes: [], 
+          include: []
+      });
+
+      whereClause[Op.and] = [
+        ...(whereClause[Op.and] || []),
+        {
+          [Op.or]: [
+            { id_responsable: usuarioAsignadoId },
+            { '$empleadosAsociados.id_usuario$': usuarioAsignadoId }
+          ]
+        }
+      ];
+    }
+
+    return Project.findAll({
+      where: whereClause,
+      include: include,
       order: [["fecha_creacion", "DESC"]],
       limit,
+      subQuery: false
     });
   }
 
@@ -301,7 +323,7 @@ class ProjectRepository {
 
   // Crear un nuevo proyecto
   async createProject(projectData, transaction = null) {
-    console.error(`[DEBUG-V3] [ProjectRepository] createProject called for client ${projectData.id_cliente}, quote ${projectData.id_cotizacion}`);
+    console.log(`[DEBUG-V3] [ProjectRepository] createProject called for client ${projectData.id_cliente}, quote ${projectData.id_cotizacion}`);
     const t = transaction || await Project.sequelize.transaction();
 
     try {
@@ -332,10 +354,13 @@ class ProjectRepository {
         projectDataToCreate.id_responsable = null;
       }
 
+      console.log("[ProjectRepository] Creating Project record:", JSON.stringify(projectDataToCreate, null, 2));
       const project = await Project.create(projectDataToCreate, { transaction: t });
+      console.log("[ProjectRepository] Project created with ID:", project.id_proyecto);
 
       // Crear materiales del proyecto
       if (projectData.materiales && projectData.materiales.length > 0) {
+        console.log(`[ProjectRepository] Adding ${projectData.materiales.length} materials...`);
         const materiales = projectData.materiales.map((material) => {
           const qty = Number.isFinite(Number(material.cantidad)) ? Number(material.cantidad) : 0;
           const unit = Number.isFinite(Number(material.precio_unitario)) ? Number(material.precio_unitario) : 0;
@@ -353,6 +378,7 @@ class ProjectRepository {
 
       // Crear servicios del proyecto
       if (projectData.servicios && projectData.servicios.length > 0) {
+        console.log(`[ProjectRepository] Adding ${projectData.servicios.length} services...`);
         const servicios = projectData.servicios.map((servicio) => {
           const qty = Number.isFinite(Number(servicio.cantidad)) ? Number(servicio.cantidad) : 0;
           const unit = Number.isFinite(Number(servicio.precio_unitario)) ? Number(servicio.precio_unitario) : 0;
@@ -431,13 +457,16 @@ class ProjectRepository {
 
       // Solo hacer commit si NO se proporcionó una transacción externa
       if (!transaction) {
+        console.log("[ProjectRepository] Committing transaction...");
         await t.commit();
       }
       
-      return this.getProjectById(project.id_proyecto, t);
+      return this.getProjectById(project.id_proyecto);
     } catch (error) {
+      console.error("❌ [ProjectRepository] Error in createProject:", error);
       // Solo hacer rollback si NO se proporcionó una transacción externa
       if (!transaction) {
+        console.warn("[ProjectRepository] Rolling back transaction...");
         await t.rollback();
       }
       throw error;
@@ -552,14 +581,25 @@ class ProjectRepository {
 
       // Actualizar sedes
       if (projectData.sedes) {
-        // Obtener sedes existentes
+        // 1. Obtener sedes existentes
         const sedesExistentes = await ProjectSede.findAll({
           where: { id_proyecto: id },
           transaction,
         });
 
-        // Eliminar sedes existentes y sus relaciones
-        for (const sede of sedesExistentes) {
+        const incomingSedes = projectData.sedes;
+        // IDs que vienen en la petición
+        const incomingIds = incomingSedes
+          .map((s) => s.id_proyecto_sede)
+          .filter((id) => id);
+
+        // 2. Eliminar sedes que ya no están en la lista
+        const sedesToDelete = sedesExistentes.filter(
+          (s) => !incomingIds.includes(s.id_proyecto_sede)
+        );
+
+        for (const sede of sedesToDelete) {
+          // Eliminar relaciones
           await SedeMaterial.destroy({
             where: { id_proyecto_sede: sede.id_proyecto_sede },
             transaction,
@@ -568,59 +608,121 @@ class ProjectRepository {
             where: { id_proyecto_sede: sede.id_proyecto_sede },
             transaction,
           });
+          // Eliminar sede
+          await ProjectSede.destroy({
+            where: { id_proyecto_sede: sede.id_proyecto_sede },
+            transaction,
+          });
         }
 
-        await ProjectSede.destroy({
-          where: { id_proyecto: id },
-          transaction,
-        });
+        // 3. Actualizar o Crear sedes
+        for (const sedeData of incomingSedes) {
+          let sede;
 
-        // Crear nuevas sedes
-        if (projectData.sedes.length > 0) {
-          for (const sedeData of projectData.sedes) {
-            const sede = await ProjectSede.create(
+          if (sedeData.id_proyecto_sede) {
+            // Intentar buscar para actualizar
+            sede = await ProjectSede.findByPk(sedeData.id_proyecto_sede, {
+              transaction,
+            });
+          }
+
+          if (sede) {
+            // ACTUALIZAR
+            await sede.update(
               {
-                id_proyecto: id,
                 nombre: sedeData.nombre,
                 ubicacion: sedeData.ubicacion,
-                presupuesto_materiales: Number.isFinite(Number(sedeData.presupuesto_materiales)) ? Number(sedeData.presupuesto_materiales) : 0,
-                presupuesto_servicios: Number.isFinite(Number(sedeData.presupuesto_servicios)) ? Number(sedeData.presupuesto_servicios) : 0,
-                presupuesto_total: Number.isFinite(Number(sedeData.presupuesto_total)) ? Number(sedeData.presupuesto_total) : 0,
-                presupuesto_restante: Number.isFinite(Number(sedeData.presupuesto_restante)) ? Number(sedeData.presupuesto_restante) : 0,
+                presupuesto_materiales:
+                  Number.isFinite(Number(sedeData.presupuesto_materiales))
+                    ? Number(sedeData.presupuesto_materiales)
+                    : 0,
+                presupuesto_servicios:
+                  Number.isFinite(Number(sedeData.presupuesto_servicios))
+                    ? Number(sedeData.presupuesto_servicios)
+                    : 0,
+                presupuesto_total:
+                  Number.isFinite(Number(sedeData.presupuesto_total))
+                    ? Number(sedeData.presupuesto_total)
+                    : 0,
+                // Validar asignación de restante: Si viene null/undefined, mantener el actual
+                presupuesto_restante:
+                  sedeData.presupuesto_restante !== undefined &&
+                  sedeData.presupuesto_restante !== null
+                    ? Number(sedeData.presupuesto_restante)
+                    : sede.presupuesto_restante,
               },
               { transaction }
             );
 
-            // Crear materiales asignados a la sede
-            if (
-              sedeData.materialesAsignados &&
-              sedeData.materialesAsignados.length > 0
-            ) {
-              const sedeMateriales = sedeData.materialesAsignados.map(
-                (material) => ({
-                  id_proyecto_sede: sede.id_proyecto_sede,
-                  id_producto: material.id_producto,
-                  cantidad: material.cantidad,
-                })
-              );
-              await SedeMaterial.bulkCreate(sedeMateriales, { transaction });
-            }
+            // Limpiar materiales/servicios para recrearlos (sincronización simple)
+            await SedeMaterial.destroy({
+              where: { id_proyecto_sede: sede.id_proyecto_sede },
+              transaction,
+            });
+            await SedeServicio.destroy({
+              where: { id_proyecto_sede: sede.id_proyecto_sede },
+              transaction,
+            });
+          } else {
+            // CREAR (Nueva sede o ID no encontrado)
+            sede = await ProjectSede.create(
+              {
+                id_proyecto: id,
+                nombre: sedeData.nombre,
+                ubicacion: sedeData.ubicacion,
+                presupuesto_materiales:
+                  Number.isFinite(Number(sedeData.presupuesto_materiales))
+                    ? Number(sedeData.presupuesto_materiales)
+                    : 0,
+                presupuesto_servicios:
+                  Number.isFinite(Number(sedeData.presupuesto_servicios))
+                    ? Number(sedeData.presupuesto_servicios)
+                    : 0,
+                presupuesto_total:
+                  Number.isFinite(Number(sedeData.presupuesto_total))
+                    ? Number(sedeData.presupuesto_total)
+                    : 0,
+                // Inicializar restante
+                presupuesto_restante:
+                  Number.isFinite(Number(sedeData.presupuesto_restante))
+                    ? Number(sedeData.presupuesto_restante)
+                    : Number.isFinite(Number(sedeData.presupuesto_total))
+                    ? Number(sedeData.presupuesto_total)
+                    : 0,
+              },
+              { transaction }
+            );
+          }
 
-            // Crear servicios asignados a la sede
-            if (
-              sedeData.serviciosAsignados &&
-              sedeData.serviciosAsignados.length > 0
-            ) {
-              const sedeServicios = sedeData.serviciosAsignados.map(
-                (servicio) => ({
-                  id_proyecto_sede: sede.id_proyecto_sede,
-                  id_servicio: servicio.id_servicio,
-                  cantidad: servicio.cantidad,
-                  precio_unitario: servicio.precio_unitario,
-                })
-              );
-              await SedeServicio.bulkCreate(sedeServicios, { transaction });
-            }
+          // Crear materiales asignados a la sede
+          if (
+            sedeData.materialesAsignados &&
+            sedeData.materialesAsignados.length > 0
+          ) {
+            const sedeMateriales = sedeData.materialesAsignados.map(
+              (material) => ({
+                id_proyecto_sede: sede.id_proyecto_sede,
+                id_producto: material.id_producto,
+                cantidad: material.cantidad,
+              })
+            );
+            await SedeMaterial.bulkCreate(sedeMateriales, { transaction });
+          }
+
+          // Crear servicios asignados a la sede
+          if (
+            sedeData.serviciosAsignados &&
+            sedeData.serviciosAsignados.length > 0
+          ) {
+            const sedeServicios = sedeData.serviciosAsignados.map(
+              (servicio) => ({
+                id_proyecto_sede: sede.id_proyecto_sede,
+                id_servicio: servicio.id_servicio,
+                cantidad: servicio.cantidad,
+                precio_unitario: servicio.precio_unitario,
+              })
+            );
+            await SedeServicio.bulkCreate(sedeServicios, { transaction });
           }
         }
       }

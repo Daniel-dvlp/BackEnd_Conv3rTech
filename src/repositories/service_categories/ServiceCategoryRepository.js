@@ -1,6 +1,5 @@
 const ServiceCategory = require('../../models/services_categories/ServiceCategory');
-
-// Se ha eliminado la importación de 'Service' para independizar el módulo.
+const Service = require('../../models/services/Service');
 
 const create = async (data) => {
     return await ServiceCategory.create(data);
@@ -15,14 +14,41 @@ const findById = async (id) => {
 };
 
 const update = async (id, data) => {
+    if (data.estado === 'inactivo') {
+        const activeServicesCount = await Service.count({
+            where: {
+                id_categoria_servicio: id,
+                estado: 'activo'
+            }
+        });
+        if (activeServicesCount > 0) {
+            throw new Error("Error, no puedes desactivar esta categoría porque tiene servicios asociados activos.");
+        }
+    }
     return await ServiceCategory.update(data, { where: { id } });
 };
 
-// **FUNCIÓN MODIFICADA**
 const remove = async (id) => {
-    // Se elimina la categoría directamente sin validar si tiene servicios asociados.
-    // Esta es la versión independiente que solicitaste.
+    const servicesCount = await Service.count({ where: { id_categoria_servicio: id } });
+    if (servicesCount > 0) {
+        throw new Error("Error, no puedes eliminar esta categoría porque tiene servicios asociados.");
+    }
     return await ServiceCategory.destroy({ where: { id } });
+};
+
+const changeState = async (id, state) => {
+    if (state === 'inactivo') {
+        const activeServicesCount = await Service.count({
+            where: {
+                id_categoria_servicio: id,
+                estado: 'activo'
+            }
+        });
+        if (activeServicesCount > 0) {
+            throw new Error("Error, no puedes desactivar esta categoría porque tiene servicios asociados activos.");
+        }
+    }
+    return await ServiceCategory.update({ estado: state }, { where: { id } });
 };
 
 module.exports = {
@@ -31,4 +57,5 @@ module.exports = {
     findById,
     update,
     remove,
+    changeState
 };

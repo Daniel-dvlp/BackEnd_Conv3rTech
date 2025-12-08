@@ -7,24 +7,24 @@ const {
   updateServiceValidation,
   serviceIdValidation,
 } = require("../../middlewares/services/ServicesMiddleware");
-const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 // LISTAR TODOS
-router.get("/", serviceController.getAllServices);
+router.get("/", permissionMiddleware("Servicios", "Ver"), serviceController.getAllServices);
 
 // LISTAR POR ID
-router.get("/:id", serviceIdValidation, serviceController.getServiceById);
+router.get("/:id", permissionMiddleware("Servicios", "Ver"), serviceIdValidation, serviceController.getServiceById);
 
 // CREAR
-router.post("/", createServiceValidation, serviceController.createService);
+router.post("/", permissionMiddleware("Servicios", "Crear"), createServiceValidation, serviceController.createService);
 
 // ACTUALIZAR
-router.put("/:id", updateServiceValidation, serviceController.updateService);
+router.put("/:id", permissionMiddleware("Servicios", "Editar"), updateServiceValidation, serviceController.updateService);
 
 // ELIMINAR
-router.delete("/:id", serviceIdValidation, serviceController.deleteService);
+router.delete("/:id", permissionMiddleware("Servicios", "Eliminar"), serviceIdValidation, serviceController.deleteService);
 
 module.exports = router;

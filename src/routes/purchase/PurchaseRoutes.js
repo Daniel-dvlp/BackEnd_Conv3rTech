@@ -7,18 +7,19 @@ const {
   validateChangeStatePurchase,
   validatePurchaseId,
 } = require("../../middlewares/purchase/PurchaseValidations");
-const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
-router.post("/", validateCreatePurchase, purchaseController.createPurchase);
-router.get("/", purchaseController.getAllPurchases);
-router.get("/:id", validatePurchaseId, purchaseController.getPurchaseById);
-router.put("/:id", validateUpdatePurchase, purchaseController.updatePurchase);
-router.delete("/:id", validatePurchaseId, purchaseController.deletePurchase);
+router.post("/", permissionMiddleware("Compras", "Crear"), validateCreatePurchase, purchaseController.createPurchase);
+router.get("/", permissionMiddleware("Compras", "Ver"), purchaseController.getAllPurchases);
+router.get("/:id", permissionMiddleware("Compras", "Ver"), validatePurchaseId, purchaseController.getPurchaseById);
+router.put("/:id", permissionMiddleware("Compras", "Editar"), validateUpdatePurchase, purchaseController.updatePurchase);
+router.delete("/:id", permissionMiddleware("Compras", "Eliminar"), validatePurchaseId, purchaseController.deletePurchase);
 router.patch(
   "/state/:id",
+  permissionMiddleware("Compras", "Editar"),
   validateChangeStatePurchase,
   purchaseController.changeStatePurchase
 );

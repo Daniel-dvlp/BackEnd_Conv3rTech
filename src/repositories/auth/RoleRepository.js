@@ -5,42 +5,103 @@ const RolPermisoPrivilegio = require("../../models/rol_permiso_privilegio/rol_pe
 
 class RoleRepository {
   async findAll() {
-    return Role.findAll({
-      where: { estado: true },
+    const roles = await Role.findAll({
       include: [
         {
-          model: Permission,
-          as: "permisos",
-          through: { attributes: [] },
+          model: RolPermisoPrivilegio,
+          as: "rolePermissions",
           include: [
             {
+              model: Permission,
+              as: "permiso",
+            },
+            {
               model: Privilege,
-              as: "privilegios",
-              through: { attributes: [] },
+              as: "privilegio",
             },
           ],
         },
       ],
+    });
+
+    return roles.map((role) => {
+      const roleJson = role.toJSON();
+      const permisosMap = new Map();
+
+      if (roleJson.rolePermissions) {
+        roleJson.rolePermissions.forEach((rp) => {
+          if (!rp.permiso) return;
+          
+          const permId = rp.permiso.id_permiso;
+          if (!permisosMap.has(permId)) {
+            permisosMap.set(permId, {
+              ...rp.permiso,
+              privilegios: [],
+            });
+          }
+          
+          if (rp.privilegio) {
+            permisosMap.get(permId).privilegios.push(rp.privilegio);
+          }
+        });
+      }
+
+      return {
+        ...roleJson,
+        permisos: Array.from(permisosMap.values()),
+        rolePermissions: undefined, // Remove intermediate data
+      };
     });
   }
 
   async findById(id) {
-    return Role.findByPk(id, {
+    const role = await Role.findByPk(id, {
       include: [
         {
-          model: Permission,
-          as: "permisos",
-          through: { attributes: [] },
+          model: RolPermisoPrivilegio,
+          as: "rolePermissions",
           include: [
             {
+              model: Permission,
+              as: "permiso",
+            },
+            {
               model: Privilege,
-              as: "privilegios",
-              through: { attributes: [] },
+              as: "privilegio",
             },
           ],
         },
       ],
     });
+
+    if (!role) return null;
+
+    const roleJson = role.toJSON();
+    const permisosMap = new Map();
+
+    if (roleJson.rolePermissions) {
+      roleJson.rolePermissions.forEach((rp) => {
+        if (!rp.permiso) return;
+        
+        const permId = rp.permiso.id_permiso;
+        if (!permisosMap.has(permId)) {
+          permisosMap.set(permId, {
+            ...rp.permiso,
+            privilegios: [],
+          });
+        }
+        
+        if (rp.privilegio) {
+          permisosMap.get(permId).privilegios.push(rp.privilegio);
+        }
+      });
+    }
+
+    return {
+      ...roleJson,
+      permisos: Array.from(permisosMap.values()),
+      rolePermissions: undefined,
+    };
   }
 
   async create(roleData) {

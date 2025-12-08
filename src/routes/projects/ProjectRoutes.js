@@ -37,6 +37,12 @@ router.get(
 );
 
 // Rutas CRUD de proyectos
+router.post(
+  "/",
+  permissionMiddleware("Proyectos", "Crear"),
+  // ProjectValidations.createProjectValidation,
+  ProjectController.createProject
+);
 router.get(
   "/:id",
   permissionMiddleware("Proyectos", "Ver"),

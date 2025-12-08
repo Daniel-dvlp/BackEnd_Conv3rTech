@@ -13,32 +13,44 @@ router.use(authMiddleware);
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
   "/",
-  // permissionMiddleware("Usuarios", "Crear"),
+  permissionMiddleware("Usuarios", "Crear"),
   UsuariosValidations.createUserValidation,
   UsersControllers.createUser
 );
 router.get(
   "/",
-  // permissionMiddleware("Usuarios", "Leer"),
+  permissionMiddleware("Usuarios", "Ver"),
   UsersControllers.getAllUsers
 );
 router.get(
+  "/role/:roleName",
+  permissionMiddleware("Usuarios", "Ver"),
+  UsersControllers.getUsersByRole
+);
+router.get(
   "/:id",
-  // permissionMiddleware("Usuarios", "Leer"),
+  permissionMiddleware("Usuarios", "Ver"),
   UsuariosValidations.findUserByIdValidation,
   UsersControllers.getUserById
 );
 router.put(
   "/:id",
-  // permissionMiddleware("Usuarios", "Editar"),
+  permissionMiddleware("Usuarios", "Editar"),
   UsuariosValidations.updateUserValidation,
   UsersControllers.updateUser
 );
 router.delete(
   "/:id",
-  // permissionMiddleware("Usuarios", "Eliminar"),
+  permissionMiddleware("Usuarios", "Eliminar"),
   UsuariosValidations.deleteUserValidation,
   UsersControllers.deleteUser
+);
+
+router.patch(
+  "/:id/status",
+  permissionMiddleware("Usuarios", "Editar"),
+  // Se puede agregar validación específica si es necesario
+  UsersControllers.changeUserStatus
 );
 
 // Rutas para el perfil del usuario logueado (solo requieren autenticación)

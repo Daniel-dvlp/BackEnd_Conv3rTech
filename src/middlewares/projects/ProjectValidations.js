@@ -127,6 +127,12 @@ const createProjectValidation = [
     .isFloat({ min: 0 })
     .withMessage("El precio unitario debe ser un número positivo"),
 
+  body("servicios.*.observaciones")
+    .if(body("servicios").exists())
+    .optional()
+    .isLength({ max: 1000 })
+    .withMessage("Las observaciones no pueden exceder los 1000 caracteres"),
+
   // Validaciones para empleados asociados
   body("empleadosAsociados")
     .optional()
@@ -251,7 +257,7 @@ const updateProjectValidation = [
     .withMessage("El ID del proyecto debe ser un número entero"),
 
   body("nombre")
-    .optional()
+    .optional() // Allow update to not include nombre if not changing
     .notEmpty()
     .withMessage("El nombre del proyecto no puede estar vacío")
     .isLength({ max: 200 })
