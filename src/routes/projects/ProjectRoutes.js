@@ -40,7 +40,7 @@ router.get(
 router.post(
   "/",
   permissionMiddleware("Proyectos", "Crear"),
-  ProjectValidations.createProjectValidation,
+  // ProjectValidations.createProjectValidation,
   ProjectController.createProject
 );
 router.get(

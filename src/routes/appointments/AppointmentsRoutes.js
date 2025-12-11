@@ -5,20 +5,20 @@ const appointmentController = require("../../controllers/appointments/Appointmen
 const {
   validateAppointment,
 } = require("../../middlewares/appointments/AppointmentMiddlware");
-const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 // Rutas
-router.get("/", (req, res) => appointmentController.getAll(req, res));
-router.get("/:id", (req, res) => appointmentController.getById(req, res));
-router.post("/", validateAppointment, (req, res) =>
+router.get("/", permissionMiddleware("Citas", "Ver"), (req, res) => appointmentController.getAll(req, res));
+router.get("/:id", permissionMiddleware("Citas", "Ver"), (req, res) => appointmentController.getById(req, res));
+router.post("/", permissionMiddleware("Citas", "Crear"), validateAppointment, (req, res) =>
   appointmentController.create(req, res)
 );
-router.put("/:id", validateAppointment, (req, res) =>
+router.put("/:id", permissionMiddleware("Citas", "Editar"), validateAppointment, (req, res) =>
   appointmentController.update(req, res)
 );
-router.delete("/:id", (req, res) => appointmentController.delete(req, res));
+router.delete("/:id", permissionMiddleware("Citas", "Eliminar"), (req, res) => appointmentController.delete(req, res));
 
 module.exports = router;

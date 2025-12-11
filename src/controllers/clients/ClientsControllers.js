@@ -51,6 +51,11 @@ const updateClient = async (req, res) => {
 
 const deleteClient = async (req, res) => {
     try {
+        // Solo Admin (1) puede eliminar
+        if (req.user && req.user.id_rol !== 1) {
+            return res.status(403).json({ error: "Solo administradores pueden eliminar clientes" });
+        }
+
         const client = await ClientsServices.deleteClient(req.params.id);
         if (!client) {
             return res.status(404).json({ error: 'Cliente no encontrado' });

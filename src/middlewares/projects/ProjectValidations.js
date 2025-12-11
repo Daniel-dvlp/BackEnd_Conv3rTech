@@ -39,9 +39,9 @@ const createProjectValidation = [
   body("estado")
     .notEmpty()
     .withMessage("El estado es obligatorio")
-    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado"])
+    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado", "En Pausa"])
     .withMessage(
-      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado"
+      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado, En Pausa"
     ),
 
   body("progreso")
@@ -126,6 +126,12 @@ const createProjectValidation = [
     .optional()
     .isFloat({ min: 0 })
     .withMessage("El precio unitario debe ser un número positivo"),
+
+  body("servicios.*.observaciones")
+    .if(body("servicios").exists())
+    .optional()
+    .isLength({ max: 1000 })
+    .withMessage("Las observaciones no pueden exceder los 1000 caracteres"),
 
   // Validaciones para empleados asociados
   body("empleadosAsociados")
@@ -251,7 +257,7 @@ const updateProjectValidation = [
     .withMessage("El ID del proyecto debe ser un número entero"),
 
   body("nombre")
-    .optional()
+    .optional() // Allow update to not include nombre if not changing
     .notEmpty()
     .withMessage("El nombre del proyecto no puede estar vacío")
     .isLength({ max: 200 })
@@ -284,9 +290,9 @@ const updateProjectValidation = [
 
   body("estado")
     .optional()
-    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado"])
+    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado", "En Pausa"])
     .withMessage(
-      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado"
+      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado, En Pausa"
     ),
 
   body("progreso")
@@ -431,9 +437,9 @@ const updateStatusValidation = [
   body("estado")
     .notEmpty()
     .withMessage("El estado es obligatorio")
-    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado"])
+    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado", "En Pausa"])
     .withMessage(
-      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado"
+      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado, En Pausa"
     ),
 ];
 
@@ -446,9 +452,9 @@ const searchProjectsValidation = [
 
   query("estado")
     .optional()
-    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado"])
+    .isIn(["Pendiente", "En Progreso", "Completado", "Cancelado", "En Pausa"])
     .withMessage(
-      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado"
+      "El estado debe ser uno de: Pendiente, En Progreso, Completado, Cancelado, En Pausa"
     ),
 
   query("prioridad")

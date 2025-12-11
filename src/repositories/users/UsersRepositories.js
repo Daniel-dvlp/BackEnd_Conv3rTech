@@ -37,20 +37,6 @@ const getAllUsers = async () => {
   });
 };
 
-const getUsersByRoleName = async (roleName) => {
-  return User.findAll({
-    include: [
-      {
-        model: Role,
-        as: "rol",
-        where: { nombre_rol: roleName },
-        attributes: ["id_rol", "nombre_rol", "descripcion"],
-      },
-    ],
-    attributes: { exclude: ["contrasena"] },
-  });
-};
-
 const getUserById = async (id) => {
   return User.findByPk(id, {
     include: [
@@ -117,6 +103,22 @@ const searchUsers = async (term) => {
   }
 
   return User.findAll({ where: { [Op.or]: orConditions } });
+};
+
+const getUsersByRoleName = async (roleName) => {
+  return User.findAll({
+    include: [
+      {
+        model: Role,
+        as: "rol",
+        where: { nombre_rol: roleName },
+        attributes: ["id_rol", "nombre_rol", "descripcion"],
+        // Removed nested includes to prevent potential 400 errors and improve performance
+        // as frontend typically only needs user info, not full permissions tree here
+      },
+    ],
+    attributes: { exclude: ["contrasena"] },
+  });
 };
 
 module.exports = {

@@ -14,17 +14,26 @@ const categoryExists = async (id_categoria_servicio) => {
     if (!category) {
         return Promise.reject('La categoría asignada no existe.');
     }
+    if (category.estado === 'inactivo') {
+        return Promise.reject('No se puede asignar una categoría inactiva.');
+    }
 };
 
 const createServiceValidation = [
     body('nombre').notEmpty().withMessage('El nombre es obligatorio.'),
     body('descripcion').notEmpty().withMessage('La descripción es obligatoria.'),
     body('precio').notEmpty().withMessage('El precio es obligatorio.')
-        .isDecimal().withMessage('El precio debe ser un número decimal.'),
+        .isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo.')
+        .custom((value) => {
+            if (value > 9999999999999.99) {
+                throw new Error('El precio excede el límite permitido.');
+            }
+            return true;
+        }),
     body('duracion')
         .optional()
         .isString().withMessage('La duración debe ser un texto.')
-        .matches(/^\d+h\s*\d*m?$|^\d+h$|^\d+m$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
+        .matches(/^(\d+h(\s*\d+m)?|\d+m)$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
     body('url_imagen')
         .optional()
         .custom((value) => {
@@ -44,11 +53,18 @@ const updateServiceValidation = [
     param('id').isInt().withMessage('El ID debe ser un número entero.').custom(serviceExists),
     body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío.'),
     body('descripcion').optional().notEmpty().withMessage('La descripción no puede estar vacía.'),
-    body('precio').optional().isDecimal().withMessage('El precio debe ser un número decimal.'),
+    body('precio').optional()
+        .isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo.')
+        .custom((value) => {
+            if (value > 9999999999999.99) {
+                throw new Error('El precio excede el límite permitido.');
+            }
+            return true;
+        }),
     body('duracion')
         .optional()
         .isString().withMessage('La duración debe ser un texto.')
-        .matches(/^\d+h\s*\d*m?$|^\d+h$|^\d+m$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
+        .matches(/^(\d+h(\s*\d+m)?|\d+m)$/).withMessage('La duración debe tener el formato "1h 30m", "2h" o "45m"'),
     body('url_imagen')
         .optional()
         .custom((value) => {

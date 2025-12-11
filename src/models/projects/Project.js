@@ -47,25 +47,26 @@ const Project = sequelize.define(
     },
     fecha_inicio: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
+      allowNull: true,
     },
     fecha_fin: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
+      allowNull: true,
     },
     estado: {
       type: DataTypes.ENUM(
         "Pendiente",
         "En Progreso",
         "Completado",
-        "Cancelado"
+        "Cancelado",
+        "En Pausa"
       ),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "Pendiente",
     },
     progreso: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
       validate: {
         min: 0,
@@ -74,7 +75,7 @@ const Project = sequelize.define(
     },
     prioridad: {
       type: DataTypes.ENUM("Baja", "Media", "Alta"),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "Media",
     },
     ubicacion: {
@@ -91,22 +92,22 @@ const Project = sequelize.define(
     },
     costo_mano_obra: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
     costo_total_materiales: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
     costo_total_servicios: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
     costo_total_proyecto: {
       type: DataTypes.DECIMAL(15, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
     fecha_creacion: {

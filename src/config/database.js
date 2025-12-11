@@ -1,14 +1,21 @@
 const { Sequelize } = require("sequelize");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
 const url = process.env.MYSQL_PUBLIC_URL || process.env.MYSQL_URL || process.env.DATABASE_URL;
 const ssl = String(process.env.DB_SSL || "false").toLowerCase() === "true";
+const connectTimeout = Number(process.env.DB_CONNECT_TIMEOUT || 15000);
+const dialectOptions = {};
+if (ssl) {
+  dialectOptions.ssl = { require: true, rejectUnauthorized: false };
+}
+dialectOptions.connectTimeout = connectTimeout;
 const common = {
   dialect: process.env.DB_DIALECT || "mysql",
   logging: process.env.NODE_ENV === "development" ? console.log : false,
   pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
   define: { timestamps: false, underscored: true },
-  dialectOptions: ssl ? { ssl: { require: true, rejectUnauthorized: false } } : undefined,
+  dialectOptions,
 };
 
 if (url) {

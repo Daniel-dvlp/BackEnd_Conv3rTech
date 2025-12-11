@@ -13,7 +13,7 @@ const createQuote = async (quote) => {
 // ✅ Obtener todas las cotizaciones
 const getAllQuotes = async () => {
     return Quote.findAll({
-        where: { convertida_a_proyecto: false },
+        // where: { convertida_a_proyecto: false }, // Comentado temporalmente si la columna no existe
         attributes: [
             'id_cotizacion',
             'nombre_cotizacion',
@@ -74,11 +74,17 @@ const getQuoteById = async (id) => {
 
 // ✅ Actualizar cotización
 const updateQuote = async (id, quote, transaction = null) => {
+    // Aseguramos que solo pasamos campos que existen en la base de datos
+    // Eliminamos campos virtuales o que no pertenecen a la tabla
+    const cleanData = { ...quote };
+    delete cleanData.convertida_a_proyecto; // Este campo no existe en la BD según el error
+    delete cleanData.detalles; // Los detalles se manejan aparte
+
     const options = { where: { id_cotizacion: id } };
     if (transaction) {
         options.transaction = transaction;
     }
-    await Quote.update(quote, options);
+    await Quote.update(cleanData, options);
     // Retorna la cotización actualizada con cliente y detalles
     return Quote.findByPk(id, {
         attributes: [
@@ -134,6 +140,10 @@ const changeQuoteState = async (id, state, motivoAnulacion = null, transaction =
     if (motivoAnulacion) {
         updateData.motivo_anulacion = motivoAnulacion;
     }
+    
+    // Si el estado es "Aprobada", podríamos querer marcarla como convertida, pero como el campo no existe en BD, NO LO AGREGAMOS.
+    // Solo actualizamos estado y motivo.
+
     const options = { where: { id_cotizacion: id } };
     if (transaction) {
         options.transaction = transaction;

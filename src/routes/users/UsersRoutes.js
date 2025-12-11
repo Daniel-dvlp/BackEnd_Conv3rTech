@@ -10,6 +10,20 @@ const {
 // Middleware de autenticación para todas las rutas
 router.use(authMiddleware);
 
+// Rutas para el perfil del usuario logueado (solo requieren autenticación)
+// Deben ir ANTES de las rutas con parámetros como /:id para evitar conflictos
+router.get("/profile/me", UsersControllers.getMyProfile);
+router.put(
+  "/profile/me",
+  UsuariosValidations.updateMyProfileValidation,
+  UsersControllers.updateMyProfile
+);
+router.put(
+  "/profile/change-password",
+  UsuariosValidations.changeMyPasswordValidation,
+  UsersControllers.changeMyPassword
+);
+
 // Rutas para usuarios (requieren autenticación y permisos)
 router.post(
   "/",
@@ -19,17 +33,17 @@ router.post(
 );
 router.get(
   "/",
-  permissionMiddleware("Usuarios", "Leer"),
+  permissionMiddleware("Usuarios", "Ver"),
   UsersControllers.getAllUsers
 );
 router.get(
   "/role/:roleName",
-  permissionMiddleware("Usuarios", "Leer"),
+  permissionMiddleware("Usuarios", "Ver"),
   UsersControllers.getUsersByRole
 );
 router.get(
   "/:id",
-  permissionMiddleware("Usuarios", "Leer"),
+  permissionMiddleware("Usuarios", "Ver"),
   UsuariosValidations.findUserByIdValidation,
   UsersControllers.getUserById
 );
@@ -46,17 +60,11 @@ router.delete(
   UsersControllers.deleteUser
 );
 
-// Rutas para el perfil del usuario logueado (solo requieren autenticación)
-router.get("/profile/me", UsersControllers.getMyProfile);
-router.put(
-  "/profile/me",
-  UsuariosValidations.updateMyProfileValidation,
-  UsersControllers.updateMyProfile
-);
-router.put(
-  "/profile/change-password",
-  UsuariosValidations.changeMyPasswordValidation,
-  UsersControllers.changeMyPassword
+router.patch(
+  "/:id/status",
+  permissionMiddleware("Usuarios", "Editar"),
+  // Se puede agregar validación específica si es necesario
+  UsersControllers.changeUserStatus
 );
 
 module.exports = router;

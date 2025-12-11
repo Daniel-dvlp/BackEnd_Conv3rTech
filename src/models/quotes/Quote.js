@@ -53,11 +53,8 @@ const Quote = sequelize.define('Quote', {
         type: DataTypes.ENUM('Pendiente', 'Aprobada', 'Rechazada'),
         allowNull: false,
         defaultValue: 'Pendiente'
-    },
-    convertida_a_proyecto: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
     }
+    // convertida_a_proyecto: { type: DataTypes.BOOLEAN, defaultValue: false } // Eliminado porque no existe en BD
 }, {
     tableName: 'cotizaciones',
     timestamps: false

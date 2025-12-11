@@ -24,6 +24,11 @@ const updateUser = async (id, userData) => {
   if (updated[0] > 0) {
     return UserRepository.getUserById(id);
   }
+  // Si no se actualizó nada, verificar si el usuario existe
+  const user = await UserRepository.getUserById(id);
+  if (user) {
+    return user;
+  }
   return null;
 };
 
@@ -49,6 +54,18 @@ const deleteUser = async (id) => {
 
   const deleted = await UserRepository.deleteUser(id);
   return deleted > 0;
+};
+
+const getUsersByRole = async (roleName) => {
+  return UserRepository.getUsersByRoleName(roleName);
+};
+
+const changeUserStatus = async (id, status) => {
+  const updated = await UserRepository.updateUser(id, { estado_usuario: status });
+  if (updated[0] > 0) {
+    return UserRepository.getUserById(id);
+  }
+  return null;
 };
 
 // Nuevas funciones para el perfil del usuario logueado
@@ -137,5 +154,6 @@ module.exports = {
   deleteUser,
   updateMyProfile,
   changeMyPassword,
-  getUsersByRoleName,
+  getUsersByRole,
+  changeUserStatus,
 };

@@ -62,8 +62,12 @@ const Novedad = sequelize.define('Novedad', {
         },
     },
     estado: {
-        type: DataTypes.ENUM('Activa', 'Inactiva'),
+        type: DataTypes.ENUM('Activa', 'Inactiva', 'Anulada'),
         defaultValue: 'Activa',
+    },
+    motivo_anulacion: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     fecha_creacion: {
         type: DataTypes.DATE,

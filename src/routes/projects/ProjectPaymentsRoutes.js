@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Controller = require("../../controllers/payments_installments/payments_installmentsController");
 const Validations = require("../../middlewares/payments_installments/payments_installmentsMiddlewares");
-const { authMiddleware } = require("../../middlewares/auth/AuthMiddleware");
+const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth/AuthMiddleware");
 
 // Middleware de autenticación para todas las rutas
 router.use(authMiddleware);
@@ -12,7 +12,7 @@ router.use(authMiddleware);
 // Crear pago para un proyecto
 router.post(
   "/:projectId/payments",
-
+  permissionMiddleware("Pagos y abonos", "Crear"),
   Validations.createProjectPaymentValidation,
   Controller.createProjectPayment
 );
@@ -20,7 +20,7 @@ router.post(
 // Listar pagos del proyecto
 router.get(
   "/:projectId/payments",
-
+  permissionMiddleware("Pagos y abonos", "Ver"),
   Validations.listProjectPaymentsValidation,
   Controller.listProjectPayments
 );
@@ -28,7 +28,7 @@ router.get(
 // Obtener pago específico del proyecto
 router.get(
   "/:projectId/payments/:paymentId",
-
+  permissionMiddleware("Pagos y abonos", "Ver"),
   Validations.getProjectPaymentValidation,
   Controller.getProjectPayment
 );
@@ -36,7 +36,7 @@ router.get(
 // Anular (cancelar) un pago del proyecto
 router.delete(
   "/:projectId/payments/:paymentId",
-
+  permissionMiddleware("Pagos y abonos", "Eliminar"),
   Validations.deleteProjectPaymentValidation,
   Controller.deleteProjectPayment
 );

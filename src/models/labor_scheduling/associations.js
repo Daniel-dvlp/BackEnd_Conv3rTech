@@ -1,8 +1,15 @@
 const Programacion = require('./ProgramacionModel');
 const Novedad = require('./NovedadModel');
+const User = require('../users/Users');
 
-// Las asociaciones se manejan ahora en los modelos individuales mediante el método .associate()
-// y se inicializan en app.js / server.js para evitar duplicados.
+// Ejecutar las asociaciones
+if (Programacion.associate) {
+    Programacion.associate({ User });
+}
+
+if (Novedad.associate) {
+    Novedad.associate({ User, Programacion });
+}
 
 module.exports = {
     Programacion,

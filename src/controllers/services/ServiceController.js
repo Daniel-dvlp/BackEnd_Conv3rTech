@@ -18,7 +18,9 @@ const createService = async (req, res) => {
 
 const getAllServices = async (req, res) => {
     try {
-        const services = await serviceService.getAllServices();
+        // Permitir filtrar por query params, ej: ?estado=activo
+        const query = req.query || {};
+        const services = await serviceService.getAllServices(query);
         res.status(200).json({
             success: true,
             data: services,

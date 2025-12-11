@@ -3,6 +3,11 @@ const UsersServices = require('../../services/users/UsersServices');
 const Users = require('../../models/users/Users');
 
 const createUser = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2) pueden crear usuarios
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para crear usuarios" });
+    }
+
     console.log("Body recibido:", req.body);
     console.log("Headers:", req.headers);
     
@@ -32,10 +37,16 @@ const getAllUsers = async (req, res) => {
 const getUsersByRole = async (req, res) => {
     try {
         const { roleName } = req.params;
+        console.log(`Searching users by role: ${roleName}`);
         const users = await UsersServices.getUsersByRoleName(roleName);
         res.status(200).json(users);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Error in getUsersByRole:", error);
+        res.status(400).json({ 
+            error: error.message,
+            stack: error.stack,
+            details: "Error fetching users by role" 
+        });
     }
 };
 
@@ -70,6 +81,11 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
+        // Solo Admin (1) puede eliminar
+        if (req.user && req.user.id_rol !== 1) {
+            return res.status(403).json({ error: "Solo administradores pueden eliminar usuarios" });
+        }
+
         const deleted = await UsersServices.deleteUser(req.params.id);
         if (deleted) {
             return res.status(200).json({ message: 'Usuario borrado exitosamente' });
@@ -81,10 +97,50 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const changeUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado_usuario } = req.body;
+        const requesterId = req.user ? req.user.id : null;
+        
+        if (!estado_usuario) {
+            return res.status(400).json({ error: "El campo 'estado_usuario' es requerido" });
+        }
+
+        const userToUpdate = await UsersServices.getUserById(id);
+        if (!userToUpdate) {
+             return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        if (estado_usuario === 'Inactivo') {
+            // Validar que no sea Admin
+            if (userToUpdate.id_rol === 1) {
+                return res.status(403).json({ error: "Error, no puedes desactivar al administrador" });
+            }
+            // Validar auto-desactivación
+            if (requesterId && String(requesterId) === String(id)) {
+                return res.status(403).json({ error: "Error, no puedes desactivar tu propio usuario" });
+            }
+        }
+
+        const updatedUser = await UsersServices.changeUserStatus(id, estado_usuario);
+        
+        if (updatedUser) {
+            return res.status(200).json({
+                message: 'Estado de usuario actualizado exitosamente',
+                user: updatedUser
+            });
+        }
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Nuevas funciones para el perfil del usuario logueado
 const getMyProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const user = await UsersServices.getUserById(userId);
         if (!user) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -110,7 +166,7 @@ const updateMyProfile = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const updatedUser = await UsersServices.updateMyProfile(userId, req.body);
         if (updatedUser) {
             return res.status(200).json({
@@ -131,7 +187,7 @@ const changeMyPassword = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const { currentPassword, newPassword } = req.body;
         
         const result = await UsersServices.changeMyPassword(userId, currentPassword, newPassword);
@@ -163,5 +219,6 @@ module.exports = {
     getMyProfile,
     updateMyProfile,
     changeMyPassword,
-    getUsersByRole
+    getUsersByRole,
+    changeUserStatus
 };

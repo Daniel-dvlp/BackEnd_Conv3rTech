@@ -49,17 +49,17 @@ const Purchase = sequelize.define('Purchase', {
 });
 
 // Definir las asociaciones después de que los modelos han sido registrados en Sequelize
-Purchase.associate = (models) => {
-    // Asociación con el modelo de Proveedor
-    Purchase.belongsTo(models.Supplier, {
-        foreignKey: 'id_proveedor',
-        as: 'supplier'
-    });
-    // Asociación con el modelo de Detalle de Compra
-    Purchase.hasMany(models.PurchaseDetail, {
-        foreignKey: 'id_compra',
-        as: 'purchaseDetails'
-    });
-};
+// Purchase.associate = (models) => {
+//     // Asociación con el modelo de Proveedor
+//     Purchase.belongsTo(models.Supplier, {
+//         foreignKey: 'id_proveedor',
+//         as: 'supplier'
+//     });
+//     // Asociación con el modelo de Detalle de Compra
+//     Purchase.hasMany(models.PurchaseDetail, {
+//         foreignKey: 'id_compra',
+//         as: 'purchaseDetails'
+//     });
+// };
 
 module.exports = Purchase;

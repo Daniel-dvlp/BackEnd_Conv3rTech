@@ -20,6 +20,10 @@ const Programacion = sequelize.define('Programacion', {
         type: DataTypes.DATEONLY,
         allowNull: false,
     },
+    fecha_fin: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
     titulo: {
         type: DataTypes.STRING(120),
         allowNull: false,
@@ -42,8 +46,12 @@ const Programacion = sequelize.define('Programacion', {
         comment: 'Objeto { lunes: [{horaInicio, horaFin, subtitulo?, color?}], ... }',
     },
     estado: {
-        type: DataTypes.ENUM('Activa', 'Inactiva'),
+        type: DataTypes.ENUM('Activa', 'Inactiva', 'Anulada'),
         defaultValue: 'Activa',
+    },
+    motivo_anulacion: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     fecha_creacion: {
         type: DataTypes.DATE,
@@ -66,5 +74,3 @@ Programacion.associate = (models) => {
 };
 
 module.exports = Programacion;
-
-

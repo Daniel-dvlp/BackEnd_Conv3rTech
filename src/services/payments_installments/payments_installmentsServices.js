@@ -1,13 +1,19 @@
 const Repository = require('../../repositories/payments_installments/payments_installmentsRepository');
 const PagosAbonos = require('../../models/payments_installments/payments_installments');
 const Project = require('../../models/projects/Project');
+const ProjectMaterial = require('../../models/projects/ProjectMaterial');
+const ProjectServicio = require('../../models/projects/ProjectServicio');
 
 /**
- * Carga proyecto con cliente (para leer 'credito') dentro o fuera de transacción
+ * Carga proyecto con cliente (para leer 'credito') y detalles de costos dentro o fuera de transacción
  */
 async function loadProjectWithClient(idProyecto, transaction) {
   const proyecto = await Project.findByPk(idProyecto, {
-    include: [{ model: require('../../models/clients/Clients'), as: 'cliente', attributes: ['id_cliente', 'credito', 'nombre'] }],
+    include: [
+      { model: require('../../models/clients/Clients'), as: 'cliente', attributes: ['id_cliente', 'credito', 'nombre'] },
+      { model: ProjectMaterial, as: 'materiales' },
+      { model: ProjectServicio, as: 'servicios' }
+    ],
     transaction,
     lock: transaction ? transaction.LOCK.UPDATE : undefined,
   });
@@ -26,7 +32,27 @@ async function calculateOutstanding(idProyecto, transaction) {
     err.statusCode = 404;
     throw err;
   }
-  const totalProyecto = Number(proyecto.costo_total_proyecto || 0);
+
+  // Calcular total basado en los componentes si el total en BD es 0 o nulo
+  const totalMateriales = (proyecto.materiales || []).reduce((acc, m) => {
+    const unit = parseFloat(m.precio_unitario || 0);
+    const qty = parseFloat(m.cantidad || 0);
+    return acc + unit * qty;
+  }, 0);
+
+  const totalServicios = (proyecto.servicios || []).reduce((acc, s) => {
+    const unit = parseFloat(s.precio_unitario || 0);
+    const qty = parseFloat(s.cantidad || 0);
+    return acc + unit * qty;
+  }, 0);
+
+  const manoDeObra = parseFloat(proyecto.costo_mano_obra || 0);
+  const calculatedTotal = totalMateriales + totalServicios + manoDeObra;
+
+  const dbTotal = parseFloat(proyecto.costo_total_proyecto || 0);
+  
+  // Usar el mayor entre el total guardado y el calculado para evitar bloqueos por desincronización
+  const totalProyecto = Math.max(dbTotal, calculatedTotal);
 
   // Bloquear pagos aprobados y sumar en memoria
   const pagosAprobados = await PagosAbonos.findAll({

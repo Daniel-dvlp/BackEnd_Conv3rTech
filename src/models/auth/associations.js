@@ -4,7 +4,7 @@ const Privilege = require("./Privilege");
 const PermissionPrivilege = require("./PermissionPrivilege");
 const RolPermisoPrivilegio = require("../rol_permiso_privilegio/rol_permiso_privilegio");
 const Users = require("../users/Users");
-const UsuarioPermisoPrivilegio = require("../usuario_permiso_privilegio/usuario_permiso_privilegio");
+const UsuarioPermisoPrivilegio = require("./usuario_permiso_privilegio");
 
 // Asociaciones entre Roles y Usuarios
 Role.hasMany(Users, { foreignKey: "id_rol", as: "usuarios" });
@@ -85,6 +85,11 @@ Privilege.belongsToMany(Users, {
 
 // Asociaciones directas del pivot para facilitar inclusiones
 // Esto habilita includes como { model: Permission, as: "permiso" } en consultas al pivot
+Role.hasMany(RolPermisoPrivilegio, {
+  foreignKey: "id_rol",
+  as: "rolePermissions",
+});
+
 RolPermisoPrivilegio.belongsTo(Permission, {
   foreignKey: "id_permiso",
   as: "permiso",
