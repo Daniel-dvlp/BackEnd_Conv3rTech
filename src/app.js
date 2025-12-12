@@ -2,9 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
-require("dotenv").config();
 
 const app = express();
+
+// --- NUEVO: Ruta raíz para verificación de estado ---
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "🚀 API Conv3rTech funcionando correctamente",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 // Middleware de logging global
 app.use((req, res, next) => {
@@ -147,7 +156,7 @@ const Programacion = require("./models/labor_scheduling/ProgramacionModel");
 const Novedad = require("./models/labor_scheduling/NovedadModel");
 app.get("/api/events", authMiddleware, async (req, res) => {
   try {
-    const { Op } = require("sequelize");
+    const { Op } = require("./config/sequelize");
     const rangeStart = req.query.rangeStart;
     const rangeEnd = req.query.rangeEnd;
     const usuarioIds = (req.query.usuarioIds || "")

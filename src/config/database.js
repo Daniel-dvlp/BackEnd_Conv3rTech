@@ -1,5 +1,9 @@
 const { Sequelize } = require("sequelize");
-require("dotenv").config();
+const path = require("path");
+// Use absolute path for .env to avoid casing issues in require context
+if (!process.env.DB_HOST) {
+  require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
+}
 
 const url = process.env.MYSQL_PUBLIC_URL || process.env.MYSQL_URL || process.env.DATABASE_URL;
 const ssl = String(process.env.DB_SSL || "false").toLowerCase() === "true";
@@ -21,7 +25,7 @@ if (url) {
   module.exports = new Sequelize(url, common);
 } else {
   const host = process.env.MYSQLHOST || process.env.DB_HOST;
-  const port = Number(process.env.MYSQLPORT || process.env.DB_PORT || 3306);
+  const port = Number(process.env.MYSQLPORT || process.env.DB_PORT);
   const database = process.env.MYSQLDATABASE || process.env.DB_NAME;
   const user = process.env.MYSQLUSER || process.env.DB_USER;
   const password = process.env.MYSQLPASSWORD || process.env.DB_PASSWORD;

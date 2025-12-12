@@ -22,10 +22,10 @@ class ProjectController {
       };
 
       // Si es Técnico (id_rol 2), solo ve sus proyectos asignados
-      // Esto requiere que ProjectService soporte filtro por id_empleado/usuario
-      if (req.user && (req.user.id_rol === 2 || req.user.id_rol === 3)) {
+      if (req.user && req.user.id_rol === 2) {
         filters.id_empleado = req.user.id_usuario;
       }
+      // Coordinador (id_rol 3) ve todo (o podríamos filtrar por sede si fuera necesario)
 
       const result = await ProjectService.getAllProjects(filters);
 
@@ -120,8 +120,8 @@ class ProjectController {
     console.log("📦 [ProjectController] Request Body:", JSON.stringify(req.body, null, 2));
     
     try {
-      // Solo Admin (1) y Coordinador (2) pueden crear
-      if (req.user && ![1, 2].includes(req.user.id_rol)) {
+      // Solo Admin (1) y Coordinador (2) pueden crear -> CORRECCIÓN: Admin (1) y Coordinador (3). Técnico (2) NO.
+      if (req.user && ![1, 3].includes(req.user.id_rol)) {
         console.warn(`⚠️ [ProjectController] Unauthorized attempt by user role: ${req.user.id_rol}`);
         return res.status(403).json({
           success: false,
@@ -160,8 +160,8 @@ class ProjectController {
   // Actualizar un proyecto
   async updateProject(req, res) {
     try {
-      // Solo Admin (1) y Coordinador (2) pueden editar
-      if (req.user && ![1, 2].includes(req.user.id_rol)) {
+      // Solo Admin (1) y Coordinador (3) pueden editar. Técnico (2) NO.
+      if (req.user && ![1, 3].includes(req.user.id_rol)) {
         return res.status(403).json({
           success: false,
           message: "No tienes permisos para editar proyectos.",

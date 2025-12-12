@@ -39,6 +39,7 @@ class AuthService {
         nombre: user.nombre,
         apellido: user.apellido,
         correo: user.correo,
+        documento: user.documento, // Added document
         rol: user.rol.nombre_rol,
         id_rol: user.rol.id_rol,
         permisos: rolePermissionsObj

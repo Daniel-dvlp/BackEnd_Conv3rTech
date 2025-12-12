@@ -113,18 +113,8 @@ const getUsersByRoleName = async (roleName) => {
         as: "rol",
         where: { nombre_rol: roleName },
         attributes: ["id_rol", "nombre_rol", "descripcion"],
-        include: [
-          {
-            model: Permission,
-            as: "permisos",
-            through: { attributes: [] },
-          },
-          {
-            model: Privilege,
-            as: "privilegios",
-            through: { attributes: [] },
-          },
-        ],
+        // Removed nested includes to prevent potential 400 errors and improve performance
+        // as frontend typically only needs user info, not full permissions tree here
       },
     ],
     attributes: { exclude: ["contrasena"] },

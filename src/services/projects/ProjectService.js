@@ -401,6 +401,14 @@ class ProjectService {
 
     const projectTotals = calculateProjectTotals(project);
 
+    // Debug log for sedes
+    // console.log("🔍 [ProjectService] Transforming Project ID:", project.id_proyecto);
+    // if (project.sedes) {
+    //   project.sedes.forEach((s, i) => {
+    //     console.log(`   - Sede ${i} (${s.nombre}): Materials=${s.materialesAsignados?.length}, Services=${s.serviciosAsignados?.length}`);
+    //   });
+    // }
+
     return {
       id: project.id_proyecto,
       numeroContrato: project.numero_contrato,
@@ -440,6 +448,7 @@ class ProjectService {
       descripcion: project.descripcion,
       materiales:
         project.materiales?.map((mat) => ({
+          id_producto: mat.id_producto, // Include ID
           item: mat.producto?.nombre || "Material no encontrado",
           cantidad: mat.cantidad,
           precio: parseFloat(mat.precio_unitario),
@@ -448,16 +457,20 @@ class ProjectService {
         project.servicios?.map((serv) => ({
           servicio: serv.servicio?.nombre || "Servicio no encontrado",
           cantidad: serv.cantidad,
-          precio: parseFloat(serv.precio_unitario),
+          precio: Number.isFinite(Number(serv.precio_unitario)) && Number(serv.precio_unitario) > 0 
+            ? parseFloat(serv.precio_unitario) 
+            : parseFloat(serv.servicio?.precio || 0),
         })) || [],
       costos: projectTotals,
       observaciones: project.observaciones,
       sedes:
         project.sedes?.map((sede) => ({
+          id_proyecto_sede: sede.id_proyecto_sede, // Include ID for updates
           nombre: sede.nombre,
           ubicacion: sede.ubicacion,
           materialesAsignados:
             sede.materialesAsignados?.map((mat) => ({
+              id_producto: mat.id_producto, // Include ID
               item: mat.producto?.nombre || "Material no encontrado",
               cantidad: mat.cantidad,
             })) || [],
@@ -466,7 +479,9 @@ class ProjectService {
               id: serv.id_sede_servicio,
               servicio: serv.servicio?.nombre || "Servicio no encontrado",
               cantidad: serv.cantidad,
-              precio: parseFloat(serv.precio_unitario),
+              precio: Number.isFinite(Number(serv.precio_unitario)) && Number(serv.precio_unitario) > 0 
+                ? parseFloat(serv.precio_unitario) 
+                : parseFloat(serv.servicio?.precio || 0),
               estado: serv.estado || "pendiente",
               fechaCompletado: serv.fecha_completado,
               categoria: serv.servicio?.categoria

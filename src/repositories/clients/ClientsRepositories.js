@@ -8,7 +8,14 @@ const createClient = async (clientData) => {
 
 const getAllClients = async () => {
     return Client.findAll(
-        { include: [{ model: AddressClients, as: 'AddressClients' }] }
+        { 
+            include: [{ 
+                model: AddressClients, 
+                as: 'AddressClients', // Make sure this matches the alias in model association if defined, or uses default
+                // In Clients.js: Clients.hasMany(AddressClients, { foreignKey: "id_cliente" }); -> Default alias is AddressClients
+            }],
+            order: [['nombre', 'ASC']]
+        }
     );
 }
 

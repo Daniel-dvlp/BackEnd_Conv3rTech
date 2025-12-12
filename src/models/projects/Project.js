@@ -58,7 +58,8 @@ const Project = sequelize.define(
         "Pendiente",
         "En Progreso",
         "Completado",
-        "Cancelado"
+        "Cancelado",
+        "En Pausa"
       ),
       allowNull: true,
       defaultValue: "Pendiente",

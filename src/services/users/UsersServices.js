@@ -11,6 +11,10 @@ const getAllUsers = async () => {
   return UserRepository.getAllUsers();
 };
 
+const getUsersByRoleName = async (roleName) => {
+  return UserRepository.getUsersByRoleName(roleName);
+};
+
 const getUserById = async (id) => {
   return UserRepository.getUserById(id);
 };
