@@ -2,17 +2,14 @@ const Programacion = require('./ProgramacionModel');
 const Novedad = require('./NovedadModel');
 const User = require('../users/Users');
 
-// Asociaciones de Programación
-Programacion.belongsTo(User, {
-    foreignKey: 'usuario_id',
-    as: 'usuario',
-});
+// Ejecutar las asociaciones
+if (Programacion.associate) {
+    Programacion.associate({ User });
+}
 
-// Asociaciones de Novedad
-Novedad.belongsTo(User, {
-    foreignKey: 'usuario_id',
-    as: 'usuario',
-});
+if (Novedad.associate) {
+    Novedad.associate({ User, Programacion });
+}
 
 module.exports = {
     Programacion,

@@ -34,6 +34,22 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+const getUsersByRole = async (req, res) => {
+    try {
+        const { roleName } = req.params;
+        console.log(`Searching users by role: ${roleName}`);
+        const users = await UsersServices.getUsersByRoleName(roleName);
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error in getUsersByRole:", error);
+        res.status(400).json({ 
+            error: error.message,
+            stack: error.stack,
+            details: "Error fetching users by role" 
+        });
+    }
+};
+
 const getUserById = async (req, res) => {
     try {
         const user = await UsersServices.getUserById(req.params.id);
@@ -81,15 +97,6 @@ const deleteUser = async (req, res) => {
     }
 };
 
-const getUsersByRole = async (req, res) => {
-    try {
-        const users = await UsersServices.getUsersByRole(req.params.roleName);
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-};
-
 const changeUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -133,7 +140,7 @@ const changeUserStatus = async (req, res) => {
 // Nuevas funciones para el perfil del usuario logueado
 const getMyProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const user = await UsersServices.getUserById(userId);
         if (!user) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -159,7 +166,7 @@ const updateMyProfile = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const updatedUser = await UsersServices.updateMyProfile(userId, req.body);
         if (updatedUser) {
             return res.status(200).json({
@@ -180,7 +187,7 @@ const changeMyPassword = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const userId = req.user.id;
+        const userId = req.user.id_usuario || req.user.id;
         const { currentPassword, newPassword } = req.body;
         
         const result = await UsersServices.changeMyPassword(userId, currentPassword, newPassword);

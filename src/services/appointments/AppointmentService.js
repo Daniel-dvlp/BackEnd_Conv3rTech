@@ -105,13 +105,16 @@ class AppointmentService {
       throw new Error("No se puede eliminar una cita Completada o Cancelada");
     }
 
-    // Validar que falten más de 3 horas para la cita
+    // Validar que falten más de 3 horas para la cita (solo si es futura)
     const ahora = new Date();
     const fechaHoraCita = new Date(`${citaExistente.fecha}T${citaExistente.hora_inicio}`);
-    const diferenciaHoras = (fechaHoraCita - ahora) / (1000 * 60 * 60);
-
-    if (diferenciaHoras < 3) {
-      throw new Error("No se puede eliminar una cita faltando menos de 3 horas para su realización");
+    
+    // Si la cita es futura, validar el tiempo mínimo de cancelación
+    if (fechaHoraCita > ahora) {
+      const diferenciaHoras = (fechaHoraCita - ahora) / (1000 * 60 * 60);
+      if (diferenciaHoras < 3) {
+        throw new Error("No se puede eliminar una cita faltando menos de 3 horas para su realización");
+      }
     }
 
     return await appointmentRepository.delete(id);

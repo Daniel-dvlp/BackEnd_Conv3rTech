@@ -54,6 +54,7 @@ const Quote = sequelize.define('Quote', {
         allowNull: false,
         defaultValue: 'Pendiente'
     }
+    // convertida_a_proyecto: { type: DataTypes.BOOLEAN, defaultValue: false } // Eliminado porque no existe en BD
 }, {
     tableName: 'cotizaciones',
     timestamps: false

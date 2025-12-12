@@ -1,4 +1,7 @@
 // src/server.js
+const path = require("path");
+require("dotenv").config();
+
 const app = require("./app");
 const sequelize = require("./config/database");
 require("./models/auth/associations");

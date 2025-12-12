@@ -93,13 +93,6 @@ class ProjectRepository {
                       attributes: ["id", "nombre", "descripcion"],
                     },
                   ],
-                  include: [
-                    {
-                      model: require("../../models/services_categories/ServiceCategory"),
-                      as: "categoria",
-                      attributes: ["id", "nombre", "descripcion"],
-                    },
-                  ],
                 },
               ],
             },
@@ -212,6 +205,7 @@ class ProjectRepository {
             {
               model: SedeMaterial,
               as: "materialesAsignados",
+              required: false, // Ensure LEFT JOIN to get sedes even if no materials
               include: [
                 {
                   model: require("../../models/products/Product"),
@@ -223,18 +217,12 @@ class ProjectRepository {
             {
               model: SedeServicio,
               as: "serviciosAsignados",
+              required: false, // Ensure LEFT JOIN
               include: [
                 {
                   model: require("../../models/services/Service"),
                   as: "servicio",
                   attributes: ["id_servicio", "nombre", "precio"],
-                  include: [
-                    {
-                      model: require("../../models/services_categories/ServiceCategory"),
-                      as: "categoria",
-                      attributes: ["id", "nombre", "descripcion"],
-                    },
-                  ],
                   include: [
                     {
                       model: require("../../models/services_categories/ServiceCategory"),
@@ -248,6 +236,7 @@ class ProjectRepository {
             {
               model: SalidaMaterial,
               as: "salidasMaterial",
+              required: false,
               include: [
                 {
                   model: require("../../models/products/Product"),
