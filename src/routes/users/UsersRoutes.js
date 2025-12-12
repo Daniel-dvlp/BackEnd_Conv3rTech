@@ -33,12 +33,19 @@ router.post(
 );
 router.get(
   "/",
-  permissionMiddleware("Usuarios", "Ver"),
+  // FIX: Permitir a Coordinadores (Rol 3) ver la lista de usuarios para asignaciones
+  (req, res, next) => {
+    if (Number(req.user.id_rol) === 3) return next(); // Bypass para Coordinador
+    permissionMiddleware("Usuarios", "Ver")(req, res, next);
+  },
   UsersControllers.getAllUsers
 );
 router.get(
   "/role/:roleName",
-  permissionMiddleware("Usuarios", "Ver"),
+  (req, res, next) => {
+    if (Number(req.user.id_rol) === 3) return next(); // Bypass para Coordinador
+    permissionMiddleware("Usuarios", "Ver")(req, res, next);
+  },
   UsersControllers.getUsersByRole
 );
 router.get(
