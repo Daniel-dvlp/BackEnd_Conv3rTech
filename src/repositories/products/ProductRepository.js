@@ -63,6 +63,16 @@ const updateStock = async (id, newStock, transaction = null) => {
 const updateProduct = async (id, product) => {
     // Asegurar que el precio no exceda el límite de DECIMAL(15, 2)
     if (product.precio) {
+        // Eliminar puntos de miles si viene formateado como string (e.g. "150.000")
+        // pero mantener el punto decimal si existe (e.g. "150000.50")
+        let precioLimpio = product.precio;
+        if (typeof product.precio === 'string') {
+             // Si tiene puntos como separadores de miles, quitarlos
+             if (product.precio.includes('.') && !product.precio.includes(',')) {
+                 product.precio = product.precio.replace(/\./g, '');
+             }
+        }
+
         const precio = parseFloat(product.precio);
         // El valor máximo para DECIMAL(15, 2) es 9999999999999.99
         if (precio > 9999999999999.99) {
