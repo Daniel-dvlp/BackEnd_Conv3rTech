@@ -56,6 +56,14 @@ class RoleController {
         message: "Rol creado exitosamente",
       });
     } catch (error) {
+      // Manejo específico de errores de Sequelize
+      if (error.name === 'SequelizeUniqueConstraintError') {
+         return res.status(400).json({
+           success: false,
+           message: "El nombre del rol ya existe. Por favor, elija otro.",
+         });
+      }
+      
       res.status(400).json({
         success: false,
         message: error.message,

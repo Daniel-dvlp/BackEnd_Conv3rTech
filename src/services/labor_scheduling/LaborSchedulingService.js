@@ -1,7 +1,6 @@
 const { Op } = require('sequelize');
 const sequelize = require('../../config/database');
-const Programacion = require('../../models/labor_scheduling/ProgramacionModel');
-const Novedad = require('../../models/labor_scheduling/NovedadModel');
+const { Programacion, Novedad } = require('../../models/labor_scheduling/associations');
 const User = require('../../models/users/Users');
 
 const DAY_NAMES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];

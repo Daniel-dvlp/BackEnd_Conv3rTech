@@ -2,6 +2,11 @@ const { validationResult } = require("express-validator");
 const supplierService = require('../../services/supplier/SupplierService');
 
 const createSupplier = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para crear proveedores." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -40,6 +45,11 @@ const getSupplierById = async (req, res) => {
 };
 
 const updateSupplier = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para editar proveedores." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -57,6 +67,11 @@ const updateSupplier = async (req, res) => {
 };
 
 const deleteSupplier = async (req, res) => {
+    // Solo Admin (1)
+    if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({ error: "Solo administradores pueden eliminar proveedores." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -73,6 +88,11 @@ const deleteSupplier = async (req, res) => {
 };
 
 const changeStateSupplier = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ error: "No tienes permisos para cambiar estado de proveedores." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

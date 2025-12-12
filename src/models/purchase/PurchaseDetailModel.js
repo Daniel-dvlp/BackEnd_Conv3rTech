@@ -39,9 +39,9 @@ const PurchaseDetail = sequelize.define('PurchaseDetail', {
 
 // Definimos la asociación unilateral desde PurchaseDetail a Product
 // No necesitamos modificar el modelo de Producto, solo lo importamos aquí
-PurchaseDetail.belongsTo(Product, {
-    foreignKey: 'id_producto',
-    as: 'product'
-});
+// PurchaseDetail.belongsTo(Product, {
+//     foreignKey: 'id_producto',
+//     as: 'product'
+// });
 
 module.exports = PurchaseDetail;

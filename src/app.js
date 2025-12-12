@@ -2,9 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
-require("dotenv").config();
 
 const app = express();
+
+// --- NUEVO: Ruta raíz para verificación de estado ---
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "🚀 API Conv3rTech funcionando correctamente",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
 
 // Middleware de logging global
 app.use((req, res, next) => {
@@ -58,29 +67,11 @@ const Supplier = require("./models/supplier/SupplierModel");
 const Purchase = require("./models/purchase/PurchaseModel");
 const PurchaseDetail = require("./models/purchase/PurchaseDetailModel");
 const User = require("./models/users/Users");
-const Programacion = require("./models/labor_scheduling/ProgramacionModel");
-const Novedad = require("./models/labor_scheduling/NovedadModel");
 
 // 2. Ejecutar las funciones de asociación de cada modelo
-function setupAssociations() {
-  const models = {
-    Product,
-    Supplier,
-    Purchase,
-    PurchaseDetail,
-    User,
-    Programacion,
-    Novedad,
-    // ... Agrega todos tus modelos aquí
-  };
-
-  Object.values(models).forEach((model) => {
-    if (model.associate) {
-      model.associate(models);
-    }
-  });
-}
-setupAssociations();
+require("./models/labor_scheduling/associations");
+require("./models/appointments/associations");
+require("./models/purchase/associations");
 // --- Fin del bloque de código nuevo ---
 // Importar asociaciones de autenticación
 
@@ -153,12 +144,177 @@ const ClientsRoutes = require("./routes/clients/ClientsRoutes");
 app.use("/api/clients", ClientsRoutes);
 const AddressClientsRoutes = require("./routes/clients/AddressClientsRoutes");
 app.use("/api/address-clients", AddressClientsRoutes);
-const ProgramacionesRoutes = require("./routes/labor_scheduling/ProgramacionesRoutes");
-app.use("/api/programaciones", ProgramacionesRoutes);
-const NovedadesRoutes = require("./routes/labor_scheduling/NovedadesRoutes");
-app.use("/api/novedades", NovedadesRoutes);
-const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
-app.use("/api/events", EventsRoutes);
+const LaborSchedulingRoutes = require("./routes/labor_scheduling/LaborSchedulingRoutes");
+app.use("/api/labor-scheduling", LaborSchedulingRoutes);
+// Mapeo de rutas antiguas para compatibilidad o archivos faltantes
+// const ProgramacionesRoutes = require("./routes/labor_scheduling/ProgramacionesRoutes");
+app.use("/api/programaciones", LaborSchedulingRoutes); // Usando LaborSchedulingRoutes como reemplazo temporal
+// const NovedadesRoutes = require("./routes/labor_scheduling/NovedadesRoutes");
+// app.use("/api/novedades", NovedadesRoutes);
+// const EventsRoutes = require("./routes/labor_scheduling/EventsRoutes");
+const Programacion = require("./models/labor_scheduling/ProgramacionModel");
+const Novedad = require("./models/labor_scheduling/NovedadModel");
+app.get("/api/events", authMiddleware, async (req, res) => {
+  try {
+    const { Op } = require("./config/sequelize");
+    const rangeStart = req.query.rangeStart;
+    const rangeEnd = req.query.rangeEnd;
+    const usuarioIds = (req.query.usuarioIds || "")
+      .split(",")
+      .map((v) => Number(v))
+      .filter((v) => !Number.isNaN(v));
+    
+    const User = require("./models/users/Users");
+    const includeUser = { model: User, as: "usuario" };
+    
+    const where = {};
+    if (usuarioIds.length) where.usuario_id = usuarioIds;
+    
+    // Fetch Programaciones
+    console.log('[Events Debug] Executing Programacion.findAll with where:', JSON.stringify(where));
+    const items = await Programacion.findAll({ include: [includeUser], where });
+    console.log(`[Events Debug] Found ${items.length} programaciones raw from DB`);
+    if (items.length > 0) {
+        console.log('[Events Debug] First programacion sample:', JSON.stringify(items[0].toJSON(), null, 2));
+    } else {
+        console.log('[Events Debug] No programaciones found. Checking table count...');
+        const count = await Programacion.count();
+        console.log(`[Events Debug] Total rows in programaciones table: ${count}`);
+    }
+    
+    // Fetch Novedades (filtradas por rango si está presente)
+    const novedadesWhere = { ...where };
+    if (rangeStart && rangeEnd) {
+      const from = rangeStart;
+      const to = rangeEnd;
+      Object.assign(novedadesWhere, {
+        [Op.or]: [
+          { fecha_inicio: { [Op.between]: [from, to] } },
+          { fecha_fin: { [Op.between]: [from, to] } },
+          { fecha_inicio: { [Op.lte]: from }, fecha_fin: { [Op.gte]: to } },
+        ],
+      });
+    }
+    const novedades = await Novedad.findAll({ include: [includeUser], where: novedadesWhere });
+
+    const startDate = rangeStart ? new Date(rangeStart) : null;
+    const endDate = rangeEnd ? new Date(rangeEnd) : null;
+    const result = [];
+    const dayMap = {
+      0: "domingo",
+      1: "lunes",
+      2: "martes",
+      3: "miercoles",
+      4: "jueves",
+      5: "viernes",
+      6: "sabado",
+    };
+    function formatTime(dateStr, time) {
+      return `${dateStr}T${time.length === 5 ? time : (time || "00:00")}:00`;
+    }
+    function iterateDates(from, to, cb) {
+      if (!from || !to) return;
+      const d = new Date(from);
+      while (d <= to) {
+        cb(new Date(d));
+        d.setDate(d.getDate() + 1);
+      }
+    }
+    
+    // Logging de conteo
+    console.log(
+      `[Events] usuarioIds=${usuarioIds.join(',') || 'ALL'} range=${rangeStart || '-'}..${rangeEnd || '-'} ` +
+      `programaciones=${items.length} novedades=${novedades.length}`
+    );
+    
+    // Log titles for debugging "Accidente" issue
+    const progTitles = items.map(i => i.titulo).join(', ');
+    const novTitles = novedades.map(n => n.titulo).join(', ');
+    console.log(`[Events Debug] ProgTitles: [${progTitles}] | NovTitles: [${novTitles}]`);
+
+    // Process Programaciones
+    console.log(`[Events Debug] Starting date iteration from ${startDate?.toISOString()} to ${endDate?.toISOString()}`);
+    iterateDates(startDate, endDate, (date) => {
+      const dateStr = date.toISOString().split("T")[0];
+      const dayLabel = dayMap[date.getDay()];
+      // console.log(`[Events Debug] Checking date: ${dateStr} (${dayLabel})`); // Too verbose for large ranges
+      
+      items.forEach((s) => {
+        // Check if schedule is active for this date (must be >= fecha_inicio)
+        if (s.fecha_inicio && dateStr < s.fecha_inicio) return;
+
+        const slots = (s.dias || {})[dayLabel] || [];
+        
+        // If no slots for this day, skip
+        if (slots.length === 0) return;
+
+        // console.log(`[Events Debug] Match found for prog ${s.id_programacion} on ${dateStr}`);
+
+        slots.forEach((slot, idx) => {
+          const color = slot.color || s.color || "#2563EB";
+          result.push({
+            id: `prog-${s.id_programacion}-${dateStr}-${idx}`,
+            title: slot.subtitulo || s.titulo,
+            start: formatTime(dateStr, slot.horaInicio),
+            end: formatTime(dateStr, slot.horaFin),
+            allDay: false,
+            backgroundColor: color,
+            borderColor: color,
+            extendedProps: {
+              type: "programacion",
+              meta: {
+                programacionId: s.id_programacion,
+                usuarioId: s.usuario_id,
+                usuario: s.usuario,
+                descripcion: s.descripcion,
+                estado: s.estado,
+                motivoAnulacion: s.motivo_anulacion
+              },
+            },
+          });
+        });
+      });
+    });
+
+    // Process Novedades
+    novedades.forEach((n) => {
+        // Basic date filtering
+        const nStart = new Date(n.fecha_inicio);
+        const nEnd = n.fecha_fin ? new Date(n.fecha_fin) : new Date(n.fecha_inicio);
+        
+        // Check overlap with requested range if provided
+        if (startDate && endDate) {
+             if (nEnd < startDate || nStart > endDate) return;
+        }
+
+        result.push({
+            id: `nov-${n.id_novedad}`,
+            title: n.titulo,
+            start: n.all_day ? n.fecha_inicio : formatTime(n.fecha_inicio, n.hora_inicio),
+            end: n.all_day ? (n.fecha_fin ? n.fecha_fin : n.fecha_inicio) : formatTime(n.fecha_fin || n.fecha_inicio, n.hora_fin),
+            allDay: n.all_day,
+            backgroundColor: n.color,
+            borderColor: n.color,
+            extendedProps: {
+                type: "novedad",
+                meta: {
+                    novedadId: n.id_novedad,
+                    usuarioId: n.usuario_id,
+                    usuario: n.usuario,
+                    descripcion: n.descripcion,
+                    estado: n.estado,
+                    motivoAnulacion: n.motivo_anulacion
+                }
+            }
+        });
+    });
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 //Rutas de Categoria de Servicio
 const ServiceCategoryRoutes = require("./routes/service_categories/ServiceCategoryRoutes");

@@ -4,6 +4,11 @@ const datasheetService = require('../../services/products/DatasheetService');
 const { deleteImage, extractPublicId } = require('../../config/cloudinary');
 
 const createProduct = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para crear productos." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log('Errores de validación:', errors.array());
@@ -108,6 +113,11 @@ const getProductById = async (req, res) => {
 
 // Actualizar producto
 const updateProduct = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para editar productos." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -216,6 +226,11 @@ const updateProduct = async (req, res) => {
 
 // Eliminar producto
 const deleteProduct = async (req, res) => {
+    // Solo Admin (1)
+    if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({ message: "Solo administradores pueden eliminar productos." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -252,6 +267,11 @@ const deleteProduct = async (req, res) => {
 
 // Cambiar estado de producto
 const changeStateProduct = async (req, res) => {
+    // Solo Admin (1) y Coordinador (2)
+    if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        return res.status(403).json({ message: "No tienes permisos para cambiar estado." });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

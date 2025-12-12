@@ -21,10 +21,15 @@ const deleteCategory = async (id) => {
     return await serviceCategoryRepository.remove(id);
 };
 
+const changeStateCategory = async (id, state) => {
+    return await serviceCategoryRepository.changeState(id, state);
+};
+
 module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
     updateCategory,
     deleteCategory,
+    changeStateCategory
 };

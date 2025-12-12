@@ -5,19 +5,34 @@ class ProjectController {
   // Obtener todos los proyectos
   async getAllProjects(req, res) {
     try {
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+        estado,
+        fecha_inicio,
+        fecha_fin,
+      } = req.query;
+      
       const filters = {
-        search: req.query.search,
-        estado: req.query.estado,
-        prioridad: req.query.prioridad,
+        search,
+        estado,
+        fecha_inicio,
+        fecha_fin,
       };
 
-      const projects = await ProjectService.getAllProjects(filters);
+      // Si es Técnico (id_rol 2), solo ve sus proyectos asignados
+      if (req.user && req.user.id_rol === 2) {
+        filters.id_empleado = req.user.id_usuario;
+      }
+      // Coordinador (id_rol 3) ve todo (o podríamos filtrar por sede si fuera necesario)
+
+      const result = await ProjectService.getAllProjects(filters);
 
       res.status(200).json({
         success: true,
-        data: projects,
-        total: projects.length,
-        message: "Proyectos obtenidos exitosamente"
+        data: result,
+        message: "Proyectos obtenidos exitosamente",
       });
     } catch (error) {
       res.status(500).json({
@@ -32,7 +47,14 @@ class ProjectController {
     try {
       const term = String(req.query.term || '').trim();
       const limit = Number(req.query.limit || 10);
-      const results = await ProjectService.quickSearch(term, { limit });
+
+      const options = { limit };
+      // RBAC: Filter for Tecnico
+      if (req.user && req.user.id_rol === 3) {
+          options.usuarioAsignadoId = req.user.id_usuario;
+      }
+
+      const results = await ProjectService.quickSearch(term, options);
       res.status(200).json({ success: true, data: results, total: results.length });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -44,6 +66,19 @@ class ProjectController {
     try {
       const { id } = req.params;
       const project = await ProjectService.getProjectById(id);
+
+      // RBAC Check for Tecnico
+      if (req.user && req.user.id_rol === 3) {
+          const isResponsible = project.responsable && project.responsable.id === req.user.id_usuario;
+          const isEmployee = project.empleadosAsociados && project.empleadosAsociados.some(e => e.id === req.user.id_usuario);
+          
+          if (!isResponsible && !isEmployee) {
+              return res.status(403).json({
+                  success: false,
+                  message: "No tienes permisos para ver este proyecto.",
+              });
+          }
+      }
 
       res.status(200).json({
         success: true,
@@ -81,9 +116,22 @@ class ProjectController {
 
   // Crear un nuevo proyecto
   async createProject(req, res) {
+    console.log("🚀 [ProjectController] createProject - Start");
+    console.log("📦 [ProjectController] Request Body:", JSON.stringify(req.body, null, 2));
+    
     try {
+      // Solo Admin (1) y Coordinador (2) pueden crear -> CORRECCIÓN: Admin (1) y Coordinador (3). Técnico (2) NO.
+      if (req.user && ![1, 3].includes(req.user.id_rol)) {
+        console.warn(`⚠️ [ProjectController] Unauthorized attempt by user role: ${req.user.id_rol}`);
+        return res.status(403).json({
+          success: false,
+          message: "No tienes permisos para crear proyectos.",
+        });
+      }
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.warn("⚠️ [ProjectController] Validation Errors:", errors.array());
         return res.status(400).json({
           success: false,
           message: "Datos de validación incorrectos",
@@ -92,6 +140,7 @@ class ProjectController {
       }
 
       const project = await ProjectService.createProject(req.body);
+      console.log("✅ [ProjectController] Project created successfully:", project.id);
 
       res.status(201).json({
         success: true,
@@ -99,6 +148,8 @@ class ProjectController {
         data: project,
       });
     } catch (error) {
+      console.error("❌ [ProjectController] Error creating project:", error);
+      console.error("❌ [ProjectController] Stack:", error.stack);
       res.status(400).json({
         success: false,
         message: error.message,
@@ -109,6 +160,14 @@ class ProjectController {
   // Actualizar un proyecto
   async updateProject(req, res) {
     try {
+      // Solo Admin (1) y Coordinador (3) pueden editar. Técnico (2) NO.
+      if (req.user && ![1, 3].includes(req.user.id_rol)) {
+        return res.status(403).json({
+          success: false,
+          message: "No tienes permisos para editar proyectos.",
+        });
+      }
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({
@@ -144,6 +203,14 @@ class ProjectController {
   // Eliminar un proyecto
   async deleteProject(req, res) {
     try {
+      // Verificación de permisos: Solo Administradores (id_rol = 1) pueden eliminar
+      if (req.user && req.user.id_rol !== 1) {
+        return res.status(403).json({
+          success: false,
+          message: "No tienes permisos para eliminar proyectos. Solo Administradores.",
+        });
+      }
+
       const { id } = req.params;
       const result = await ProjectService.deleteProject(id);
 

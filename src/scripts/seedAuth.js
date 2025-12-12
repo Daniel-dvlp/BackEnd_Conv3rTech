@@ -125,12 +125,7 @@ const permissions = [
     descripcion: "Gestión de pagos y abonos",
     estado: true,
   },
-  {
-    id_permiso: 17,
-    nombre_permiso: "Órdenes de servicio",
-    descripcion: "Gestión de órdenes de servicio",
-    estado: true,
-  },
+
 ];
 
 const privileges = [
@@ -260,14 +255,22 @@ async function seedAuth() {
     // Insertar relación rol-permiso-privilegio
     console.log("📝 Insertando relaciones rol-permiso-privilegio...");
     for (const rpp of rolePermissions) {
-      await RolPermisoPrivilegio.findOrCreate({
-        where: {
-          id_rol: rpp.id_rol,
-          id_permiso: rpp.id_permiso,
-          id_privilegio: rpp.id_privilegio,
-        },
-        defaults: rpp,
-      });
+      try {
+        await RolPermisoPrivilegio.findOrCreate({
+          where: {
+            id_rol: rpp.id_rol,
+            id_permiso: rpp.id_permiso,
+            id_privilegio: rpp.id_privilegio,
+          },
+          defaults: rpp,
+        });
+      } catch (err) {
+        // Ignorar error de duplicado, continuar con el siguiente
+        if (err.name === 'SequelizeUniqueConstraintError') {
+          continue;
+        }
+        console.warn(`⚠️ Error insertando rol-permiso-privilegio (Rol: ${rpp.id_rol}, Permiso: ${rpp.id_permiso}):`, err.message);
+      }
     }
 
     console.log("✅ Semillas de autenticación completadas exitosamente");

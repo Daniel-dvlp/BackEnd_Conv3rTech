@@ -115,41 +115,41 @@ const createSupplierValidation = [
 const updateSupplierValidation = [
     param('id').isInt().withMessage('El ID del proveedor debe ser un número entero').custom(validateSupplierExistence),
     body('nit')
-        .optional()
+        .optional({ checkFalsy: true })
         .isAlphanumeric().withMessage('El NIT debe ser alfanumérico')
         .isLength({ max: 30 }).withMessage('El NIT no puede exceder los 30 caracteres')
         .custom(validateUniqueNitUpdate),
     body('nombre_encargado')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 150 }).withMessage('El nombre del encargado no puede exceder los 150 caracteres'),
     body('nombre_empresa')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 150 }).withMessage('El nombre de la entidad no puede exceder los 150 caracteres')
         .custom(validateUniqueNameUpdate),
     body('telefono_entidad')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 20 }).withMessage('El teléfono de la entidad no puede exceder los 20 caracteres')
         .matches(/^[0-9+\-\s()]+$/).withMessage('El teléfono de la entidad contiene caracteres no válidos'),
     body('telefono_encargado')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 20 }).withMessage('El teléfono del encargado no puede exceder los 20 caracteres')
         .matches(/^[0-9+\-\s()]+$/).withMessage('El teléfono del encargado contiene caracteres no válidos'),
     body('correo_principal')
-        .optional()
+        .optional({ checkFalsy: true })
         .isEmail().withMessage('El correo principal debe ser válido')
         .custom(validateUniqueEmailUpdate),
     body('correo_secundario')
-        .optional()
+        .optional({ checkFalsy: true })
         .isEmail().withMessage('El correo secundario debe ser válido')
         .custom(validateUniqueEmailSecundarioUpdate),
     body('direccion')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 200 }).withMessage('La dirección no puede exceder los 200 caracteres'),
     body('estado')
-        .optional()
+        .optional({ checkFalsy: true })
         .isIn(['Activo', 'Inactivo']).withMessage('El estado debe ser Activo o Inactivo'),
     body('observaciones')
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 500 }).withMessage('Las observaciones no pueden exceder los 500 caracteres')
 ];
 

@@ -47,13 +47,19 @@ const updateClient = async (id, clientData , addressClientData) => {
     // Actualizamos direcciones existentes y creamos las nuevas
     if (addressesArray.length > 0) {
         for (const address of addressesArray) {
-            if (!address.id_direccion) {
-                continue;
+            // Si tiene id_direccion, actualizamos
+            if (address.id_direccion) {
+                await AddressClientServices.updateAddressClient(address.id_direccion, {
+                    ...address,
+                    id_cliente: id
+                });
+            } else {
+                // Si no tiene id_direccion, es nueva, la creamos
+                await AddressClientServices.createAddressClient({
+                    ...address,
+                    id_cliente: id
+                });
             }
-            await AddressClientServices.updateAddressClient(address.id_direccion, {
-                ...address,
-                id_cliente: id
-            });
         }
     }
 

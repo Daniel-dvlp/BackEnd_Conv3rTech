@@ -6,6 +6,8 @@ const Service = require("../services/Service");
 const Client = require("../clients/Clients"); // <-- cliente
 const User = require("../users/Users"); // <-- usuario
 
+const AddressClients = require("../clients/AddressClients"); // <-- direccion cliente
+
 const Appointment = sequelize.define(
   "Appointment",
   {
@@ -26,13 +28,26 @@ const Appointment = sequelize.define(
       type: DataTypes.TIME,
       allowNull: false,
     },
+    id_direccion: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Puede ser null si se usa el campo de texto antiguo, pero preferimos este
+      references: {
+        model: AddressClients,
+        key: "id_direccion",
+      },
+    },
     direccion: {
       type: DataTypes.STRING(200),
-      allowNull: true,
+      allowNull: true, // Mantener por compatibilidad o como fallback
     },
     observaciones: {
       type: DataTypes.STRING(300),
       allowNull: true,
+    },
+    evidencia_foto: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: "URL de la foto subida por el técnico al completar la cita",
     },
     id_usuario: {
       type: DataTypes.INTEGER,
@@ -82,6 +97,10 @@ Appointment.associate = (models) => {
   Appointment.belongsTo(models.Service, {
     foreignKey: "id_servicio",
     as: "servicio",
+  });
+  Appointment.belongsTo(models.AddressClients, {
+    foreignKey: "id_direccion",
+    as: "direccion_cliente",
   });
 };
 
