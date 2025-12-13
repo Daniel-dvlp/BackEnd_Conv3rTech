@@ -586,28 +586,28 @@ class ProjectService {
         );
       }
 
-      // Calcular stock disponible (excluyendo el proyecto actual si se está actualizando)
-      let stockDisponible = producto.stock;
+      let delta = Number(material.cantidad);
 
       if (projectId) {
-        // Obtener cantidad asignada en otros proyectos
-        const proyectosConMaterial = await ProjectRepository.getAllProjects();
-        for (const proyecto of proyectosConMaterial) {
-          if (proyecto.id_proyecto !== projectId) {
-            const materialEnProyecto = proyecto.materiales?.find(
+         // Obtener el proyecto actual para ver la asignación PREVIA
+         const currentProject = await ProjectRepository.getProjectById(projectId);
+         if (currentProject) {
+            const materialEnProyecto = currentProject.materiales?.find(
               (m) => m.id_producto === material.id_producto
             );
             if (materialEnProyecto) {
-              stockDisponible -= materialEnProyecto.cantidad;
+              delta = Number(material.cantidad) - Number(materialEnProyecto.cantidad);
             }
-          }
-        }
+         }
       }
 
-      if (material.cantidad > stockDisponible) {
-        throw new Error(
-          `Stock insuficiente para ${producto.nombre}. Disponible: ${stockDisponible}, Solicitado: ${material.cantidad}`
-        );
+      // Solo validar si estamos PIDIENDO MÁS material (delta > 0)
+      if (delta > 0) {
+          if (delta > producto.stock) {
+             throw new Error(
+               `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock}, Adicional Requerido: ${delta}`
+             );
+          }
       }
     }
   }

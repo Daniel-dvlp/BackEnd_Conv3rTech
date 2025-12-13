@@ -137,6 +137,7 @@ const createProgramaciones = async (payload) => {
         const {
             usuarioIds = [],
             fechaInicio,
+            fechaFin = null,
             titulo,
             descripcion = null,
             color = '#2563EB',
@@ -167,6 +168,7 @@ const createProgramaciones = async (payload) => {
             const data = await Programacion.create({
                 usuario_id: usuarioId,
                 fecha_inicio: fechaInicio,
+                fecha_fin: fechaFin,
                 titulo,
                 descripcion,
                 color,
@@ -192,6 +194,7 @@ const updateProgramacion = async (programacionId, payload = {}) => {
 
         const updates = {};
         if (payload.fechaInicio) updates.fecha_inicio = payload.fechaInicio;
+        if (payload.fechaFin !== undefined) updates.fecha_fin = payload.fechaFin;
         if (payload.titulo) updates.titulo = payload.titulo;
         if (payload.descripcion !== undefined) updates.descripcion = payload.descripcion;
         if (payload.color) updates.color = payload.color;
