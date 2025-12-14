@@ -6,12 +6,12 @@ class AppointmentController {
       console.log("🔍 [AppointmentsController] GET / - User:", req.user);
       const filters = {};
       
-      // Si es Técnico (id_rol 3), solo ve sus citas
+      // Si es Técnico (id_rol 2), solo ve sus citas
       // Aseguramos conversión a número por si viene como string
-      if (req.user && Number(req.user.id_rol) === 3) { 
+      if (req.user && Number(req.user.id_rol) === 2) { 
         filters.id_usuario = req.user.id_usuario;
       }
-      // Coordinador (2) y Admin (1) ven todas
+      // Coordinador (3) y Admin (1) ven todas
       
       console.log("🔍 [AppointmentsController] Filters applied:", filters);
 
@@ -28,8 +28,8 @@ class AppointmentController {
     try {
       const cita = await appointmentService.getAppointmentById(req.params.id);
       
-      // Si es técnico (3), verificar que sea su cita
-      if (req.user && Number(req.user.id_rol) === 3) {
+      // Si es técnico (2), verificar que sea su cita
+      if (req.user && Number(req.user.id_rol) === 2) {
          if (cita.trabajador.id_usuario !== req.user.id_usuario) {
              return res.status(403).json({ error: "No tienes permiso para ver esta cita" });
          }
@@ -43,14 +43,14 @@ class AppointmentController {
 
   async create(req, res) {
     try {
-       // Solo Admin (1) y Coordinador (2) pueden crear. Técnico (3) NO.
+       // Solo Admin (1) y Coordinador (3) pueden crear. Técnico (2) NO.
        const idRol = Number(req.user?.id_rol);
        
        console.log(`🔍 [AppointmentsController] Create - Request Body:`, JSON.stringify(req.body));
        console.log(`🔍 [AppointmentsController] Create - UserID: ${req.user?.id_usuario}, RoleID: ${idRol} (Type: ${typeof idRol})`);
        
-       if (req.user && ![1, 2].includes(idRol)) {
-           console.warn(`⛔ [AppointmentsController] 403 Forbidden - Role ${idRol} not allowed to create appointments. Allowed: [1, 2]`);
+       if (req.user && ![1, 3].includes(idRol)) {
+           console.warn(`⛔ [AppointmentsController] 403 Forbidden - Role ${idRol} not allowed to create appointments. Allowed: [1, 3]`);
            return res.status(403).json({ error: "No tienes permisos para crear citas (Rol no autorizado)" });
        }
 
@@ -66,12 +66,33 @@ class AppointmentController {
 
   async update(req, res) {
     try {
-      // Técnico (3) NO puede editar citas (solo verlas)
-      if (req.user && Number(req.user.id_rol) === 3) {
-          return res.status(403).json({ error: "No tienes permiso para editar citas, solo visualizarlas." });
+      const idRol = Number(req.user.id_rol);
+      
+      // Si es Técnico (ID 2 según seedAuth.js)
+      if (req.user && idRol === 2) { 
+          // 1. Buscar la cita para verificar que le pertenece
+          const cita = await appointmentService.getAppointmentById(req.params.id);
+          // Verificar si cita.trabajador existe y tiene id_usuario, o si la estructura es diferente
+          // Asumimos que getAppointmentById devuelve 'trabajador' poblado según el código existente
+          if (!cita.trabajador || cita.trabajador.id_usuario !== req.user.id_usuario) {
+              return res.status(403).json({ error: "No puedes editar citas que no te pertenecen." });
+          }
+
+          // 2. Permitir SOLO cambiar estado y evidencia
+          // Ignoramos cualquier otro campo que venga en el body
+          const allowedUpdates = {};
+          if (req.body.estado) allowedUpdates.estado = req.body.estado;
+          if (req.body.evidencia_foto) allowedUpdates.evidencia_foto = req.body.evidencia_foto;
+
+          if (Object.keys(allowedUpdates).length === 0) {
+             return res.status(400).json({ error: "No se proporcionaron campos válidos para actualizar." });
+          }
+
+          await appointmentService.updateAppointment(req.params.id, allowedUpdates);
+          return res.json({ message: "Estado de cita actualizado" });
       }
 
-      // Coordinador (2) y Admin (1) pueden actualizar
+      // Lógica normal para Admin (1) / Coordinador (3)
       await appointmentService.updateAppointment(req.params.id, req.body);
       res.json({ message: "Cita actualizada" });
     } catch (err) {

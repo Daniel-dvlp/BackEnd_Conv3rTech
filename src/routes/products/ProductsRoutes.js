@@ -12,7 +12,7 @@ router.use(authMiddleware);
 // Rutas específicas de imágenes DEBEN ir antes de las rutas genéricas
 router.post(
   "/upload-images",
-  permissionMiddleware("Productos", "Crear"),
+  // permissionMiddleware("Productos", "Crear"), // Eliminado para permitir a técnicos subir evidencia
   uploadProductImages.array('fotos', 4),
   imageUploadController.uploadImages
 );
