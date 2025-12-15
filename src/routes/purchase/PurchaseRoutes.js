@@ -12,9 +12,9 @@ const { authMiddleware, permissionMiddleware } = require("../../middlewares/auth
 // Middleware de autenticación para todas las rutas
 router.use(authMiddleware);
 
-router.post("/", permissionMiddleware("Compras", "Crear"), validateCreatePurchase, purchaseController.createPurchase);
-router.get("/", permissionMiddleware("Compras", "Ver"), purchaseController.getAllPurchases);
-router.get("/:id", permissionMiddleware("Compras", "Ver"), validatePurchaseId, purchaseController.getPurchaseById);
+router.post("/", /* permissionMiddleware("Compras", "Crear"), */ validateCreatePurchase, purchaseController.createPurchase);
+router.get("/", /* permissionMiddleware("Compras", "Ver"), */ purchaseController.getAllPurchases);
+router.get("/:id", /* permissionMiddleware("Compras", "Ver"), */ validatePurchaseId, purchaseController.getPurchaseById);
 router.put("/:id", permissionMiddleware("Compras", "Editar"), validateUpdatePurchase, purchaseController.updatePurchase);
 router.delete("/:id", permissionMiddleware("Compras", "Eliminar"), validatePurchaseId, purchaseController.deletePurchase);
 router.patch(

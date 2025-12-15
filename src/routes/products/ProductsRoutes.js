@@ -19,16 +19,16 @@ router.post(
 
 router.delete(
   "/delete-image",
-  permissionMiddleware("Productos", "Eliminar"),
+  /* permissionMiddleware("Productos", "Eliminar"), */
   imageUploadController.deleteImageFromUrl
 );
 
 // Rutas genéricas
-router.get("/", permissionMiddleware("Productos", "Ver"), productController.getAllProducts);
+router.get("/", /* permissionMiddleware("Productos", "Ver"), */ productController.getAllProducts);
 
 router.get(
   "/:id",
-  permissionMiddleware("Productos", "Ver"),
+  /* permissionMiddleware("Productos", "Ver"), */
   productMiddleware.getProductByIdValidation,
   productController.getProductById
 );
@@ -36,7 +36,7 @@ router.get(
 // Crear producto - permite hasta 4 imágenes
 router.post(
   "/",
-  permissionMiddleware("Productos", "Crear"),
+  /* permissionMiddleware("Productos", "Crear"), */
   uploadProductImages.array('fotos', 4), // Acepta hasta 4 imágenes con el campo 'fotos'
   productMiddleware.createProductValidation,
   productController.createProduct

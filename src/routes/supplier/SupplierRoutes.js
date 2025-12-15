@@ -9,14 +9,14 @@ router.use(authMiddleware);
 
 router.post(
   "/",
-  permissionMiddleware("Proveedores", "Crear"),
+  /* permissionMiddleware("Proveedores", "Crear"), */
   //supplierValidations.createSupplierValidation,
   supplierController.createSupplier
 );
-router.get("/", permissionMiddleware("Proveedores", "Ver"), supplierController.getAllSuppliers);
+router.get("/", /* permissionMiddleware("Proveedores", "Ver"), */ supplierController.getAllSuppliers);
 router.get(
   "/:id",
-  permissionMiddleware("Proveedores", "Ver"),
+  /* permissionMiddleware("Proveedores", "Ver"), */
   supplierValidations.findSupplierByIdValidation,
   supplierController.getSupplierById
 );
