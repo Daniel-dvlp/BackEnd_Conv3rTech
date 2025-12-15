@@ -176,10 +176,11 @@ class AppointmentService {
    */
   async validateAppointmentOverlap(id_usuario, fecha, hora_inicio, hora_fin, excludeId = null) {
     const citasExistentes = await appointmentRepository.findAll();
+    const excludeNumericId = excludeId ? Number(excludeId) : null;
 
     const conflicto = citasExistentes.find(cita => {
       // Excluir la cita actual si estamos editando
-      if (excludeId && cita.id_cita === excludeId) return false;
+      if (excludeNumericId && cita.id_cita === excludeNumericId) return false;
 
       // Solo verificar citas del mismo trabajador en la misma fecha
       if (cita.id_usuario !== id_usuario || cita.fecha !== fecha) return false;

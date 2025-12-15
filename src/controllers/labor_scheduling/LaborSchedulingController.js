@@ -5,8 +5,8 @@ const { Op } = require('sequelize');
 const getAllSchedules = async (req, res) => {
     try {
         const filters = {};
-        // Si es Técnico (3), solo ve su programación
-        if (req.user && req.user.id_rol === 3) {
+        // Si es Técnico (2), solo ve su programación
+        if (req.user && req.user.id_rol === 2) {
             filters.usuario_id = req.user.id_usuario;
         }
         
@@ -48,7 +48,7 @@ const getScheduleById = async (req, res) => {
         }
         
         // Validación de permisos: Técnico solo ve su propia programación
-        if (req.user.id_rol === 3 && s.usuario_id !== req.user.id_usuario) {
+        if (req.user.id_rol === 2 && s.usuario_id !== req.user.id_usuario) {
             return res.status(403).json({ success: false, message: 'No tienes permiso para ver esta programación' });
         }
 
@@ -73,8 +73,8 @@ const getScheduleById = async (req, res) => {
 
 const createRecurringSchedule = async (req, res) => {
     try {
-        // Solo Admin (1) y Coordinador (2) pueden crear
-        if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        // Solo Admin (1) y Coordinador (3) pueden crear
+        if (req.user && ![1, 3].includes(req.user.id_rol)) {
             return res.status(403).json({ success: false, message: "No tienes permisos para crear programación." });
         }
 
@@ -130,8 +130,8 @@ const createRecurringSchedule = async (req, res) => {
 
 const updateSchedule = async (req, res) => {
     try {
-        // Solo Admin (1) y Coordinador (2) pueden editar
-        if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        // Solo Admin (1) y Coordinador (3) pueden editar
+        if (req.user && ![1, 3].includes(req.user.id_rol)) {
             return res.status(403).json({ success: false, message: "No tienes permisos para editar programación." });
         }
 
@@ -169,8 +169,8 @@ const updateSchedule = async (req, res) => {
 
 const annulSchedule = async (req, res) => {
     try {
-        // Solo Admin (1) y Coordinador (2) pueden anular
-        if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        // Solo Admin (1) y Coordinador (3) pueden anular
+        if (req.user && ![1, 3].includes(req.user.id_rol)) {
             return res.status(403).json({ success: false, message: "No tienes permisos para anular programación." });
         }
 
@@ -223,7 +223,7 @@ const getNovedades = async (req, res) => {
         const where = {};
         
         // Filtro de usuario: Técnico solo ve lo suyo, Admin puede filtrar
-        if (req.user.id_rol === 3) {
+        if (req.user.id_rol === 2) {
             where.usuario_id = req.user.id_usuario;
         } else if (usuarioId) {
             where.usuario_id = Number(usuarioId);
@@ -273,8 +273,8 @@ const getNovedades = async (req, res) => {
 
 const createNovedad = async (req, res) => {
     try {
-        // Solo Admin (1) y Coordinador (2)
-        if (req.user && ![1, 2].includes(req.user.id_rol)) {
+        // Solo Admin (1) y Coordinador (3)
+        if (req.user && ![1, 3].includes(req.user.id_rol)) {
             return res.status(403).json({ success: false, message: "No tienes permisos para crear novedades." });
         }
 
@@ -341,7 +341,7 @@ const getNovedadById = async (req, res) => {
         if (!n) return res.status(404).json({ success: false, message: 'Novedad no encontrada' });
         
         // Validación Rol Técnico
-        if (req.user.id_rol === 3 && n.usuario_id !== req.user.id_usuario) {
+        if (req.user.id_rol === 2 && n.usuario_id !== req.user.id_usuario) {
             return res.status(403).json({ success: false, message: 'No tienes permiso para ver esta novedad' });
         }
 
